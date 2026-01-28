@@ -10,10 +10,13 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server missing RAWG API key." });
   }
 
-  const url = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}?key=${RAWG_API_KEY}`;
+  // ✅ Request all data including metacritic + screenshots
+  const url = `https://api.rawg.io/api/games/${encodeURIComponent(
+    slug
+  )}?key=${RAWG_API_KEY}&exclude_additions=false&expand=metacritic_platforms`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: "no-store" });
     const data = await response.json();
 
     if (!response.ok) {
@@ -22,7 +25,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ Explicitly ensure key fields exist
+    // ✅ Return cleaned + complete dataset
     const safeData = {
       id: data.id,
       slug: data.slug,
@@ -35,7 +38,8 @@ export default async function handler(req, res) {
       genres: data.genres || [],
       metacritic: data.metacritic ?? null,
       metacritic_platforms: data.metacritic_platforms || [],
-      screenshots: data.short_screenshots || [],
+      short_screenshots: data.short_screenshots || [],
+      screenshots: data.screenshots || [],
     };
 
     return res.status(200).json(safeData);

@@ -56,7 +56,8 @@ function setListMessage(msg) {
 async function fetchGames() {
   const platform = $("platform")?.value || "4";
   const sort = $("sort")?.value || "-added";
-  const { start, end } = getLast7DaysRange();
+  const { startStr, endStr } = getDateRange();
+
 
   const url =
     `/api/games?platform=${encodeURIComponent(platform)}` +

@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   const today = new Date();
   let startDate, endDate;
 
-  // ✅ Range logic driven by button clicks
+  // --- SMART RANGE LOGIC ---
   switch (range) {
     case "today":
       startDate = new Date(today);
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
       break;
     case "week":
       startDate = new Date(today);
-      startDate.setDate(startDate.getDate() - 7);
+      startDate.setDate(startDate.getDate() - 3); // allow mid-week buffer
       endDate = new Date(today);
       endDate.setDate(endDate.getDate() + 7);
       break;
@@ -25,9 +25,9 @@ export default async function handler(req, res) {
       break;
     default:
       startDate = new Date(today);
-      startDate.setDate(startDate.getDate() - 45);
+      startDate.setDate(startDate.getDate() - 30);
       endDate = new Date(today);
-      endDate.setDate(endDate.getDate() + 45);
+      endDate.setDate(endDate.getDate() + 30);
       break;
   }
 
@@ -40,33 +40,41 @@ export default async function handler(req, res) {
   url.searchParams.set("ordering", sort || "-released");
   url.searchParams.set("dates", `${startStr},${endStr}`);
   url.searchParams.set("exclude_additions", "true");
-  url.searchParams.set("metacritic", "1,100");
   if (platform) url.searchParams.set("platforms", platform);
 
   try {
+    // --- PRIMARY QUERY ---
     const response = await fetch(url.toString(), {
       headers: { Accept: "application/json", "User-Agent": "GamerlyApp/1.0" },
       cache: "no-store",
     });
     const data = await response.json();
+    let results = Array.isArray(data.results) ? data.results : [];
 
-    let results = data.results || [];
-
-    // ✅ Filter NSFW & very old titles
+    // --- Filter modern + safe titles ---
     results = results.filter(
       (g) =>
         g.released &&
-        parseInt(g.released.slice(0, 4)) >= 2020 &&
+        parseInt(g.released.slice(0, 4)) >= 2019 &&
         !/hentai|porn|sex|erotic/i.test(g.name || "") &&
         !/hentai|porn|sex|erotic/i.test(g.slug || "")
     );
 
-    // ✅ Fallback if range is empty
-    if (!results.length) {
-      const fallbackUrl = `https://api.rawg.io/api/games?key=${RAWG_KEY}&page_size=20&ordering=-added&dates=2020-01-01,${endStr}`;
+    // --- SECOND QUERY fallback if results < 10 ---
+    if (results.length < 10) {
+      const fallbackUrl = `https://api.rawg.io/api/games?key=${RAWG_KEY}&page_size=40&ordering=-added&dates=2019-01-01,${endStr}`;
       const fallbackRes = await fetch(fallbackUrl);
       const fallbackData = await fallbackRes.json();
-      results = fallbackData.results || [];
+      const fallbackResults = Array.isArray(fallbackData.results)
+        ? fallbackData.results.filter(
+            (g) =>
+              g.released &&
+              parseInt(g.released.slice(0, 4)) >= 2019 &&
+              !/hentai|porn|sex|erotic/i.test(g.name || "") &&
+              !/hentai|porn|sex|erotic/i.test(g.slug || "")
+          )
+        : [];
+      results = [...results, ...fallbackResults].slice(0, 40);
     }
 
     res.status(200).json({ count: results.length, results });

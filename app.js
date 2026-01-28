@@ -26,9 +26,12 @@ if (!esrb) {
   const tags = game.tags ? game.tags.map(t => t.name) : [];
   const genres = game.genres ? game.genres.map(g => g.name) : [];
 
-  const textBlob = [game.name, ...tags, ...genres]
-    .join(" ")
-    .toLowerCase();
+  const textBlob = (
+  game.name + " " +
+  tags.join(" ") + " " +
+  genres.join(" ")
+).toLowerCase();
+
 
   const blockedKeywords = [
     "hentai",

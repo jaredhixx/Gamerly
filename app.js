@@ -12,7 +12,7 @@ function formatDate(d) {
 function getLast7DaysRange() {
   const end = new Date();
   const start = new Date();
-  start.setDate(end.getDate() - 7);
+  start.setDate(end.getDate() - 30);
   return { start: formatDate(start), end: formatDate(end) };
 }
 

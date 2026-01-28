@@ -158,31 +158,72 @@
           .map(x => `<span class="badge">${escapeHtml(x)}</span>`)
           .join("");
 
-        const content = document.getElementById("content");
-        content.style.display = "block";
-        content.innerHTML = `
-          <div class="hero">
-            <div class="imgWrap">
-              ${img ? `<img src="${img}" alt="${escapeHtml(name)}" />` : ""}
-            </div>
+        const metacritic = data?.metacritic || null;
+const screenshots = Array.isArray(data?.short_screenshots)
+  ? data.short_screenshots.slice(0, 3)
+  : [];
 
-            <div class="panel">
-              <h1 class="title">${escapeHtml(name)}</h1>
-              <div class="meta">Released: ${escapeHtml(released)}</div>
+const content = document.getElementById("content");
+content.style.display = "block";
+content.innerHTML = `
+  <div class="hero">
+    <div class="imgWrap">
+      ${img ? `<img src="${img}" alt="${escapeHtml(name)}" />` : ""}
+    </div>
 
-              ${badges ? `<div class="badges">${badges}</div>` : ""}
+    <div class="panel">
+      <h1 class="title">${escapeHtml(name)}</h1>
+      <div class="meta">Released: ${escapeHtml(released)}</div>
 
-              <div style="margin-top:12px;">
-                ${website ? `<a href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">Official website</a>` : ""}
-              </div>
-            </div>
+      ${
+        metacritic
+          ? `<div style="margin-top:8px;">
+              <span style="
+                display:inline-block;
+                background:${metacritic >= 75 ? '#16a34a' : metacritic >= 50 ? '#facc15' : '#dc2626'};
+                color:white;
+                font-weight:700;
+                border-radius:6px;
+                padding:4px 8px;
+                font-size:0.9rem;">
+                Metacritic: ${metacritic}
+              </span>
+            </div>`
+          : ""
+      }
 
-            <div class="panel">
-              <h2 style="margin:0 0 10px 0;">About</h2>
-              <div class="desc">${escapeHtml(description)}</div>
-            </div>
+      ${badges ? `<div class="badges">${badges}</div>` : ""}
+
+      <div style="margin-top:12px;">
+        ${
+          website
+            ? `<a href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">Official website</a>`
+            : ""
+        }
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="margin:0 0 10px 0;">About</h2>
+      <div class="desc">${escapeHtml(description)}</div>
+    </div>
+
+    ${
+      screenshots.length
+        ? `
+        <div class="panel">
+          <h2 style="margin:0 0 10px 0;">Screenshots</h2>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            ${screenshots
+              .map(s => `<img src="${s.image}" alt="Screenshot" style="width:100%;border-radius:8px;" loading="lazy"/>`)
+              .join("")}
           </div>
-        `;
+        </div>`
+        : ""
+    }
+  </div>
+`;
+
 
         document.getElementById("status").style.display = "none";
         document.title = `Gamerly – ${name}`;

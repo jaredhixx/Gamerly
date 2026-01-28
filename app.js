@@ -49,6 +49,39 @@ function setListMessage(msg) {
   if (!grid) return;
   grid.innerHTML = `<div style="padding:12px; color:#555;">${msg}</div>`;
 }
+function isKidSafe(game) {
+  // 1) Block explicit ESRB ratings if present
+  const esrb = game?.esrb_rating?.name ? game.esrb_rating.name.toLowerCase() : "";
+
+  if (esrb.includes("mature") || esrb.includes("adults only")) {
+    return false;
+  }
+
+  // 2) Keyword safety net using name + tags + genres
+  const tags = Array.isArray(game?.tags) ? game.tags.map(t => t?.name).filter(Boolean) : [];
+  const genres = Array.isArray(game?.genres) ? game.genres.map(g => g?.name).filter(Boolean) : [];
+
+  const textBlob = [game?.name || "", ...tags, ...genres].join(" ").toLowerCase();
+
+  const blockedKeywords = [
+    "hentai",
+    "nudity",
+    "sexual",
+    "sex",
+    "porn",
+    "erotic",
+    "nsfw",
+    "adult",
+    "bdsm"
+  ];
+
+  for (const word of blockedKeywords) {
+    if (textBlob.includes(word)) return false;
+  }
+
+  return true;
+}
+
 
 
 async function fetchGames() {
@@ -82,7 +115,9 @@ function renderGames(data) {
   const grid = $("game-list");
   if (!grid) return;
 
-  const results = Array.isArray(data?.results) ? data.results : [];
+const resultsRaw = Array.isArray(data?.results) ? data.results : [];
+const results = resultsRaw.filter(isKidSafe);
+
   grid.innerHTML = "";
 
   if (results.length === 0) {

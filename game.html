@@ -158,10 +158,19 @@
           .map(x => `<span class="badge">${escapeHtml(x)}</span>`)
           .join("");
 
-        const metacritic = data?.metacritic || null;
-const screenshots = Array.isArray(data?.short_screenshots)
-  ? data.short_screenshots.slice(0, 3)
-  : [];
+        // ✅ Handle Metacritic and Screenshots more reliably
+const metacritic =
+  data?.metacritic ??
+  (Array.isArray(data?.metacritic_platforms) && data.metacritic_platforms[0]?.metascore) ??
+  null;
+
+const screenshots =
+  Array.isArray(data?.short_screenshots) && data.short_screenshots.length
+    ? data.short_screenshots.slice(0, 3)
+    : Array.isArray(data?.screenshots)
+    ? data.screenshots.slice(0, 3)
+    : [];
+
 
 const content = document.getElementById("content");
 content.style.display = "block";

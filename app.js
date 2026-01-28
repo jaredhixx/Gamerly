@@ -1,3 +1,6 @@
+window.addEventListener("DOMContentLoaded", () => {
+  // move ALL your current app.js code inside here
+});
 <script>
   const API_KEY = "ac669b002b534781818c488babf5aae4";
 

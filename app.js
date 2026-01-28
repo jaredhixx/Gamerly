@@ -60,9 +60,11 @@ async function fetchGames() {
 
 
   const url =
-    `/api/games?platform=${encodeURIComponent(platform)}` +
-    `&sort=${encodeURIComponent(sort)}` +
-    `&start=${start}&end=${end}`;
+  `/api/games?platform=${encodeURIComponent(platform)}` +
+  `&sort=${encodeURIComponent(sort)}` +
+  `&start=${encodeURIComponent(startStr)}` +
+  `&end=${encodeURIComponent(endStr)}`;
+
 
   console.log("Fetching:", url);
 
@@ -126,10 +128,18 @@ async function loadGames() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
   // Reload when dropdowns change
   $("platform")?.addEventListener("change", loadGames);
   $("sort")?.addEventListener("change", loadGames);
 
+  // Time filter buttons (Today / This Week / Upcoming)
+  document.querySelectorAll("#time-filters button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentRange = btn.dataset.range;
+      loadGames();
+    });
+  });
+
   loadGames();
+
 });

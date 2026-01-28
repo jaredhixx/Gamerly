@@ -131,7 +131,7 @@ if (!esrb) {
 
     const sortValue = sortSelect.value;
 
-const url = `https://api.rawg.io/api/games?dates=${startStr},${endStr}&platforms=${platformId}&ordering=${sortValue}&page_size=50&key=${API_KEY}`;
+const url = `/api/games?platform=${platformId}&sort=${sortValue}&start=${startStr}&end=${endStr}&pageSize=50`;
 
 
 
@@ -140,26 +140,24 @@ const url = `https://api.rawg.io/api/games?dates=${startStr},${endStr}&platforms
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
-  then((data) => {
-  // If RAWG returns an error message, show it clearly
-  if (data.detail) {
-    showMessage(`RAWG error: ${data.detail}`);
-    return;
-  }
+  .then((data) => {
+  const results = data.results || [];
 
-  if (!data.results || data.results.length === 0) {
+  if (results.length === 0) {
     showMessage("No releases found in the last 7 days.");
     return;
   }
 
-  const safeResults = data.results.filter(isKidSafe);
+  const safeResults = results.filter(isKidSafe);
 
   if (safeResults.length === 0) {
-    showMessage("No kid-safe releases found in the last 7 days. Try a different platform.");
+    showMessage("No kid-safe releases found in the last 7 days.");
     return;
   }
 
   renderGames(safeResults);
+})
+
 
   // If renderGames filters out everything (ex: missing released date)
   if (list.children.length === 0) {

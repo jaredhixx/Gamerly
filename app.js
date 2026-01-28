@@ -93,8 +93,8 @@ async function fetchGames() {
   const url =
   `/api/games?platform=${encodeURIComponent(platform)}` +
   `&sort=${encodeURIComponent(sort)}` +
-  `&start=${encodeURIComponent(startStr)}` +
-  `&end=${encodeURIComponent(endStr)}`;
+  `&range=${encodeURIComponent(currentRange)}`;
+
 
 
   console.log("Fetching:", url);

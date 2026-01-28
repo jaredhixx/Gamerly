@@ -2,65 +2,56 @@ export default async function handler(req, res) {
   const { platform, sort, start, end } = req.query;
 
   const RAWG_KEY = process.env.RAWG_KEY;
-  if (!RAWG_KEY) {
-    return res.status(500).json({ error: "Server missing RAWG_KEY." });
-  }
+  if (!RAWG_KEY) return res.status(500).json({ error: "Missing RAWG_KEY" });
 
-  // ✅ Build RAWG URL with key and filters
+  // Build base URL
   const url = new URL("https://api.rawg.io/api/games");
   url.searchParams.set("key", RAWG_KEY);
   url.searchParams.set("page_size", "40");
-
+  url.searchParams.set("exclude_additions", "true");
+  url.searchParams.set("metacritic", "1,100");
   if (platform) url.searchParams.set("platforms", platform);
   if (sort) url.searchParams.set("ordering", sort);
 
-  // ✅ Smarter date logic
+  // --- Smarter date logic: 45 days back, 90 forward
   const today = new Date();
-  const startDate = start
-    ? new Date(start)
-    : new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-  const endDate = end
-    ? new Date(end)
-    : new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30);
+  const startDate = start ? new Date(start) : new Date(today);
+  const endDate = end ? new Date(end) : new Date(today);
+
+  startDate.setDate(startDate.getDate() - 45);
+  endDate.setDate(endDate.getDate() + 90);
 
   const startStr = startDate.toISOString().slice(0, 10);
   const endStr = endDate.toISOString().slice(0, 10);
   url.searchParams.set("dates", `${startStr},${endStr}`);
 
-  // ✅ Filter out NSFW content
-  url.searchParams.set("exclude_additions", "true");
-  url.searchParams.set("metacritic", "1,100");
-
   try {
     const response = await fetch(url.toString(), {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "GamerlyApp/1.0 (https://gamerly.net)"
-      },
+      headers: { Accept: "application/json", "User-Agent": "GamerlyApp/1.0" },
       cache: "no-store"
     });
-
     const data = await response.json();
 
-    if (!response.ok || data.error) {
-      console.error("RAWG /games error:", data);
-      return res.status(500).json({ error: data?.error || "Error fetching games" });
+    let results = data.results || [];
+
+    // Fallback: if RAWG returns nothing, fetch popular games
+    if (!results.length) {
+      const fallbackUrl = `https://api.rawg.io/api/games?key=${RAWG_KEY}&page_size=20&ordering=-rating`;
+      const fallbackRes = await fetch(fallbackUrl);
+      const fallbackData = await fallbackRes.json();
+      results = fallbackData.results || [];
     }
 
-    // ✅ Filter out adult content from results
-    const filtered = (data.results || []).filter(
+    // Filter NSFW
+    const filtered = results.filter(
       g =>
-        !g.name.toLowerCase().includes("hentai") &&
-        !g.name.toLowerCase().includes("porn") &&
-        !g.name.toLowerCase().includes("sex")
+        !/hentai|porn|sex|erotic/i.test(g.name || "") &&
+        !/hentai|porn|sex|erotic/i.test(g.slug || "")
     );
 
-    return res.status(200).json({
-      count: filtered.length,
-      results: filtered
-    });
-  } catch (error) {
-    console.error("Server error fetching games:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    res.status(200).json({ count: filtered.length, results: filtered });
+  } catch (err) {
+    console.error("RAWG fetch error:", err);
+    res.status(500).json({ error: "Server error fetching games" });
   }
 }

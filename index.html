@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gamerly – Discover New Game Releases</title>
 
-  <meta name="description" content="Discover newly released and upcoming games across all platforms — PC, PlayStation, Xbox, Switch, iOS, and Android. Clean, fast, and safe." />
-  <meta name="keywords" content="new games, releases, PS5, Xbox, Switch, PC, Android, iOS, gamerly, safe games" />
-  <meta property="og:title" content="Gamerly – Discover New Game Releases" />
-  <meta property="og:description" content="Track fresh, safe, and trending games on Gamerly. Always up-to-date." />
+  <meta name="description" content="Discover and filter newly released games by platform, genre, or rating. Gamerly makes finding your next favorite game effortless." />
+  <meta property="og:title" content="Gamerly – Discover and Filter New Game Releases" />
+  <meta property="og:description" content="Explore trending and upcoming games by platform, genre, or rating. Sleek, safe, and beautifully designed for gamers." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.gamerly.net/" />
   <meta property="og:image" content="https://www.gamerly.net/og-banner.png" />
@@ -20,33 +19,26 @@
     body{
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
       color:#1d1d1f;background:linear-gradient(180deg,#f0f1f3 0%,#e8eaed 100%);
-      background-size:400% 400%;animation:bgShift 20s ease-in-out infinite;
       -webkit-font-smoothing:antialiased;transition:background .6s,color .6s;
     }
-    @keyframes bgShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     @media(prefers-color-scheme:dark){
       body{background:linear-gradient(180deg,#111215 0%,#181a1e 100%);color:#e5e5e7}
-      nav,header{background:rgba(15,15,18,.95);box-shadow:0 4px 18px rgba(0,0,0,.6)}
       .card{background:rgba(40,40,45,.6);border:1px solid rgba(255,255,255,.06)}
       .card-title{color:#fff}.card-meta{color:#aaa}
       .badge{background:rgba(255,255,255,.05);color:#eaeaea}
       .new-tag{background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.08));color:#fff}
     }
 
-    nav{
-      position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:center;gap:32px;
+    nav{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:center;gap:32px;
       font-size:.9rem;background:rgba(255,255,255,.8);backdrop-filter:blur(12px);
-      border-bottom:1px solid rgba(0,0,0,.05);z-index:20;opacity:0;transition:opacity .6s ease;
-    }
+      border-bottom:1px solid rgba(0,0,0,.05);z-index:20;opacity:0;transition:opacity .6s ease;}
     nav.visible{opacity:1}
     nav a{color:#333;text-decoration:none;font-weight:500;transition:color .2s ease}
     nav a:hover{color:#000}
     @media(prefers-color-scheme:dark){nav{background:rgba(20,20,25,.85)}nav a{color:#ddd}nav a:hover{color:#fff}}
 
-    header{
-      background:rgba(0,0,0,.9);color:white;text-align:center;padding:3rem 1rem 1.6rem;
-      margin-top:50px;box-shadow:0 2px 12px rgba(0,0,0,.15);animation:fadeInDown 1.2s ease both;
-    }
+    header{background:rgba(0,0,0,.9);color:white;text-align:center;padding:3rem 1rem 1.6rem;
+      margin-top:50px;box-shadow:0 2px 12px rgba(0,0,0,.15);animation:fadeInDown 1.2s ease both;}
     @keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
     h1{font-weight:800;font-size:2.1rem;display:flex;align-items:center;justify-content:center;gap:10px;}
     .flame{width:22px;height:22px;border-radius:50%;
@@ -57,10 +49,14 @@
 
     main{max-width:1200px;margin:0 auto;padding:1.5rem;}
     h2{font-size:1.4rem;font-weight:700;margin-bottom:.4rem;}
-    select,button{
+
+    .filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center;}
+    select,input,button{
       font-family:inherit;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111;
       padding:6px 10px;font-size:.9rem;cursor:pointer;
     }
+    input[type="text"]{flex:1;min-width:200px;}
+
     #time-filters{display:flex;gap:8px;margin-top:12px;}
     #game-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;margin-top:28px;}
 
@@ -75,22 +71,11 @@
     .card-img{height:160px;overflow:hidden;position:relative;}
     .card-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
     .card:hover .card-img img{transform:scale(1.05);}
-    .placeholder{
-      width:100%;height:100%;
-      background:linear-gradient(135deg,#d6d6d8,#bdbec0);
-      display:flex;align-items:center;justify-content:center;
-      color:#444;font-size:.9rem;font-weight:500;
-    }
-    @media(prefers-color-scheme:dark){
-      .placeholder{background:linear-gradient(135deg,#2a2a2d,#1f1f22);color:#aaa;}
-    }
-    .new-tag{
-      position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);
+    .new-tag{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);
       color:#000;font-size:.7rem;font-weight:600;padding:5px 10px;border-radius:999px;
-      box-shadow:0 0 10px rgba(255,255,255,.7);
-    }
+      box-shadow:0 0 10px rgba(255,255,255,.7);}
     .card-body{padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;}
-    .card-title{font-weight:700;font-size:1.1rem;margin-bottom:6px;}
+    .card-title{font-weight:700;font-size:1.1rem;margin-bottom:6px;text-shadow:0 1px 3px rgba(0,0,0,.15);}
     .meta-badge{display:inline-block;padding:3px 6px;border-radius:6px;font-weight:600;font-size:.75rem;margin:4px 0;color:#fff;}
     .meta-badge.green{background:#16a34a}.meta-badge.yellow{background:#facc15;color:#111}.meta-badge.red{background:#dc2626}.meta-badge.gray{background:#9ca3af}
     .card-meta{color:#666;font-size:.9rem;margin-top:2px;}
@@ -110,15 +95,15 @@
 
   <header>
     <h1>Gamerly <span class="flame"></span></h1>
-    <span class="subtitle">Discover newly released games</span>
+    <span class="subtitle">Discover and filter newly released games</span>
   </header>
 
   <main>
     <h2>New Today</h2>
-    <p style="color:#555;">Fresh, curated releases from the past few days.</p>
+    <p style="color:#555;">Explore and filter by platform, rating, or genre.</p>
 
-    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-      <label>Platform:</label>
+    <div class="filter-bar">
+      <input type="text" id="search" placeholder="Search by title..." />
       <select id="platform">
         <option value="4">PC</option>
         <option value="1">Xbox</option>
@@ -127,11 +112,19 @@
         <option value="3">iOS</option>
         <option value="21">Android</option>
       </select>
-      <label>Sort by:</label>
-      <select id="sort">
-        <option value="-added">Most Popular</option>
-        <option value="-released">Newest</option>
-        <option value="name">Name (A–Z)</option>
+      <select id="rating">
+        <option value="all">All Ratings</option>
+        <option value="80">Metacritic 80+</option>
+        <option value="60">Metacritic 60+</option>
+      </select>
+      <select id="genre">
+        <option value="all">All Genres</option>
+        <option value="action">Action</option>
+        <option value="rpg">RPG</option>
+        <option value="adventure">Adventure</option>
+        <option value="strategy">Strategy</option>
+        <option value="shooter">Shooter</option>
+        <option value="indie">Indie</option>
       </select>
     </div>
 
@@ -151,63 +144,52 @@
     window.addEventListener("scroll",()=>nav.classList.toggle("visible",window.scrollY>60));
 
     const mockGames={results:[
-      {name:"Pathologic 3",background_image:"https://images.igdb.com/igdb/image/upload/t_cover_big/co6oyc.png",released:"2026-01-09",metacritic:84,platforms:[{platform:{name:"PC"}}]},
-      {name:"Reanimal",background_image:"https://images.igdb.com/igdb/image/upload/t_cover_big/co7g7k.png",released:"2026-02-12",metacritic:null,platforms:[{platform:{name:"PlayStation 5"}},{platform:{name:"Android"}}]},
-      {name:"Escape from Ever After",background_image:"https://images.igdb.com/igdb/image/upload/t_cover_big/co6ohp.png",released:"2026-01-22",metacritic:91,platforms:[{platform:{name:"PC"}},{platform:{name:"iOS"}}]}
+      {name:"Reanimal",background_image:"https://images.igdb.com/igdb/image/upload/t_cover_big/co7g7k.png",released:"2026-02-12",metacritic:91,genres:["adventure"],platforms:[{platform:{name:"PlayStation 5"}}]},
+      {name:"Escape from Ever After",background_image:"https://images.igdb.com/igdb/image/upload/t_cover_big/co6ohp.png",released:"2026-01-22",metacritic:75,genres:["rpg"],platforms:[{platform:{name:"PC"}}]},
+      {name:"Star Horizon",background_image:"",released:"2026-01-15",metacritic:55,genres:["shooter"],platforms:[{platform:{name:"Xbox"}}]}
     ]};
 
-    const $=id=>document.getElementById(id);
     let currentRange="today";
-    const SAFE_WORDS=["xxx","porn","sex","nude","adult","hentai","explicit","violence"];
-    const setMsg=msg=>($("game-list").innerHTML=`<div style="padding:20px;text-align:center;color:#666;">${msg}</div>`);
-
+    const $=id=>document.getElementById(id);
     const formatDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     const getDateRange=()=>{const t=new Date(),s=new Date(t),e=new Date(t);if(currentRange==="week")e.setDate(t.getDate()+7);if(currentRange==="upcoming")e.setDate(t.getDate()+30);return{startStr:formatDate(s),endStr:formatDate(e)};}
 
     async function fetchGames(){
       try{
-        const {startStr,endStr}=getDateRange(),platform=$("platform").value,sort=$("sort").value;
-        const res=await fetch(`/api/games?platform=${platform}&sort=${sort}&start=${startStr}&end=${endStr}`);
-        if(!res.ok)throw new Error("API offline");
+        const {startStr,endStr}=getDateRange(),platform=$("platform").value;
+        const res=await fetch(`/api/games?platform=${platform}&start=${startStr}&end=${endStr}`);
+        if(!res.ok)throw new Error("offline");
         const data=await res.json();
         return data.results?.length?data:mockGames;
       }catch{return mockGames;}
     }
 
-    function isSafe(name,url){
-      const str=(name+url).toLowerCase();
-      return !SAFE_WORDS.some(w=>str.includes(w));
-    }
-
     function renderGames(data){
-      const grid=$("game-list");grid.innerHTML="";
+      const q=$("search").value.toLowerCase();
+      const rating=parseInt($("rating").value)||0;
+      const genre=$("genre").value;
       const results=(data.results||[]).filter(g=>{
-        if(!g.released)return true;
-        const d=new Date(g.released),now=new Date();
-        const diffDays=(d-now)/(1000*60*60*24);
-        if(currentRange==="today")return Math.abs(diffDays)<=1;
-        if(currentRange==="week")return diffDays<=7&&diffDays>=-7;
-        if(currentRange==="upcoming")return diffDays>0&&diffDays<=30;
+        if(q&&!g.name.toLowerCase().includes(q))return false;
+        if(rating!=="all"&&g.metacritic&&g.metacritic<rating)return false;
+        if(genre!=="all"&&!(g.genres||[]).some(x=>x.toLowerCase().includes(genre)))return false;
         return true;
       });
-      if(!results.length)return setMsg("No games found for this range.");
+
+      const grid=$("game-list");grid.innerHTML="";
+      if(!results.length)return grid.innerHTML="<div style='text-align:center;padding:20px;color:#666;'>No games found.</div>";
 
       results.forEach(g=>{
-        const name=g.name||"Untitled",img=g.background_image||"",safe=isSafe(name,img);
-        const released=g.released||"TBA",meta=g.metacritic;
-        const metaClass=meta>=75?"green":meta>=50?"yellow":meta?"red":"gray",metaLabel=meta||"N/A";
-        const diff=(new Date()-new Date(released))/(1000*60*60*24),isNew=diff<=7&&diff>=0;
-        const plats=(g.platforms||[]).map(p=>`<span class="badge">${p.platform.name}</span>`).join("");
+        const meta=g.metacritic,metaClass=meta>=80?"green":meta>=60?"yellow":meta?"red":"gray",metaLabel=meta||"N/A";
+        const diff=(new Date()-new Date(g.released))/(1000*60*60*24),isNew=diff<=7&&diff>=0;
+        const plats=(g.platforms||[]).map(p=>`<span class='badge'>${p.platform.name}</span>`).join("");
         const card=document.createElement("div");card.className="card";
         card.innerHTML=`
-          <div class="card-img">
-            ${safe&&img?`<img src="${img}" alt="${name}">`:`<div class='placeholder'>No Image</div>`}
-            ${isNew?`<div class="new-tag">NEW</div>`:""}
-          </div>
+          <div class="card-img">${g.background_image?`<img src="${g.background_image}" alt="${g.name}">`:`<div class='placeholder'>No Image</div>`}
+            ${isNew?`<div class='new-tag'>NEW</div>`:""}</div>
           <div class="card-body">
-            <div class="card-title">${name}</div>
+            <div class="card-title">${g.name}</div>
             <span class="meta-badge ${metaClass}">${metaLabel}</span>
-            <div class="card-meta">Released: ${released}</div>
+            <div class="card-meta">Released: ${g.released}</div>
             <div class="badges">${plats}</div>
           </div>`;
         grid.appendChild(card);
@@ -216,9 +198,10 @@
       document.querySelectorAll(".card").forEach(c=>obs.observe(c));
     }
 
-    async function loadGames(){setMsg("Loading...");const data=await fetchGames();renderGames(data);}
+    async function loadGames(){const data=await fetchGames();renderGames(data);}
     document.addEventListener("DOMContentLoaded",()=>{
-      $("platform").onchange=loadGames;$("sort").onchange=loadGames;
+      $("platform").onchange=loadGames;$("rating").onchange=loadGames;$("genre").onchange=loadGames;
+      $("search").oninput=()=>loadGames();
       document.querySelectorAll("#time-filters button").forEach(b=>b.onclick=()=>{currentRange=b.dataset.range;loadGames();});
       loadGames();
     });

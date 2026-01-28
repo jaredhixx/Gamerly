@@ -141,30 +141,7 @@ function renderGames(data) {
 }
 
 
-  for (const game of results) {
-    const li = document.createElement("li");
-
-    const name = game?.name || "Untitled";
-    const released = game?.released || "TBA";
-    const img = game?.background_image || "";
-    const slug = game?.slug || "";
-    const href = slug ? `https://rawg.io/games/${slug}` : "#";
-
-    li.innerHTML = `
-      ${
-        img
-          ? `<img src="${img}" alt="${name}" width="80" height="45" style="object-fit:cover;" />`
-          : `<div style="width:80px;height:45px;background:#eee;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#888;font-size:12px;">No image</div>`
-      }
-      <div>
-        <a href="${href}" target="_blank" rel="noopener noreferrer">${name}</a>
-        <div style="color:#666; font-size: 0.9rem;">Released: ${released}</div>
-      </div>
-    `;
-
-    ul.appendChild(li);
-  }
-}
+  
 
 async function loadGames() {
   try {

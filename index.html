@@ -246,7 +246,7 @@ if (!esrb) {
 
     const sortValue = sortSelect.value;
 
-const url = `https://api.rawg.io/api/games?dates=${startStr},${endStr}&platforms=${platformId}&ordering=${sortValue}&page_size=20&key=${API_KEY}`;
+const url = `https://api.rawg.io/api/games?dates=${startStr},${endStr}&platforms=${platformId}&ordering=${sortValue}&page_size=50&key=${API_KEY}`;
 
 
 
@@ -255,7 +255,7 @@ const url = `https://api.rawg.io/api/games?dates=${startStr},${endStr}&platforms
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
-  .then((data) => {
+  then((data) => {
   // If RAWG returns an error message, show it clearly
   if (data.detail) {
     showMessage(`RAWG error: ${data.detail}`);
@@ -304,6 +304,7 @@ const url = `https://api.rawg.io/api/games?dates=${startStr},${endStr}&platforms
 
   </body>
 </html>
+
 
 
 

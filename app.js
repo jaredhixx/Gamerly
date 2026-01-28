@@ -128,6 +128,7 @@ async function loadGames() {
   }
 }
 
+document.addEventListener("DOMContentLoaded", () => {
   // Reload when dropdowns change
   $("platform")?.addEventListener("change", loadGames);
   $("sort")?.addEventListener("change", loadGames);
@@ -140,6 +141,7 @@ async function loadGames() {
     });
   });
 
+  // First load
   loadGames();
-
 });
+

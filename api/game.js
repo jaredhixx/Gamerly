@@ -1,43 +1,27 @@
 export default async function handler(req, res) {
   const { slug } = req.query;
-
-  // ✅ Validate slug
-  if (!slug) {
-    return res.status(400).json({ error: "Missing slug parameter" });
-  }
-
-  // ✅ Use your RAWG API key from environment
   const RAWG_KEY = process.env.RAWG_KEY;
-  if (!RAWG_KEY) {
-    return res.status(500).json({ error: "Missing RAWG_KEY in environment" });
-  }
+  if (!RAWG_KEY) return res.status(500).json({ error: "Missing RAWG_KEY" });
 
-  // ✅ Use HTTPS (not http) and always include key in query
-  const url = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}?key=${RAWG_KEY}`;
+  if (!slug) return res.status(400).json({ error: "Missing slug" });
 
   try {
-    // ✅ Explicitly disable caching and set headers RAWG expects
-    const response = await fetch(url, {
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "GamerlyApp/1.0 (https://gamerly.net)"
-      },
-      cache: "no-store"
-    });
-
+    const url = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}?key=${RAWG_KEY}`;
+    const response = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
     const data = await response.json();
+    if (!response.ok) return res.status(response.status).json({ error: data?.error || "Error fetching game" });
 
-    // ✅ Handle errors gracefully
-    if (!response.ok || data.error) {
-      console.error("RAWG API error:", data);
-      return res.status(500).json({ error: data?.error || "Error fetching game details" });
-    }
+    // Fetch screenshots separately (RAWG separates them)
+    const shotsRes = await fetch(`https://api.rawg.io/api/games/${encodeURIComponent(slug)}/screenshots?key=${RAWG_KEY}`);
+    const shotsData = await shotsRes.json();
 
-    // ✅ Success
-    return res.status(200).json(data);
+    const screenshots = Array.isArray(shotsData.results)
+      ? shotsData.results.slice(0, 5)
+      : [];
 
-  } catch (error) {
-    console.error("Server error fetching RAWG data:", error);
+    return res.status(200).json({ ...data, screenshots });
+  } catch (err) {
+    console.error("Error fetching detailed game data:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

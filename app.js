@@ -130,7 +130,8 @@ const results = resultsRaw.filter(isKidSafe);
     const released = game?.released || "TBA";
     const img = game?.background_image || "";
     const slug = game?.slug || "";
-    const href = slug ? `https://rawg.io/games/${slug}` : "#";
+    const href = slug ? `/game.html?slug=${slug}` : "#";
+
 
     // Platforms (badges)
     const platforms = Array.isArray(game?.platforms)

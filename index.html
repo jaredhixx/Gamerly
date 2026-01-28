@@ -13,16 +13,17 @@
       body {
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
         margin: 0;
-        background: #f5f5f7;
+        background: linear-gradient(180deg, #f0f1f3 0%, #e8eaed 100%);
         color: #1d1d1f;
         -webkit-font-smoothing: antialiased;
       }
 
+      /* ===== HEADER ===== */
       header {
         background: rgba(0, 0, 0, 0.9);
         color: white;
         text-align: center;
-        padding: 2rem 1rem;
+        padding: 2rem 1rem 1.6rem;
         backdrop-filter: blur(12px);
         position: sticky;
         top: 0;
@@ -33,13 +34,38 @@
       header h1 {
         margin: 0;
         font-weight: 800;
-        font-size: 2rem;
+        font-size: 2.1rem;
         letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
       }
 
-      header span {
+      header h1 span.flame {
+        display: inline-block;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 40% 30%, #ffb347 0%, #ff5c33 60%, #ff1f00 100%);
+        box-shadow: 0 0 12px rgba(255, 85, 34, 0.8);
+        animation: flicker 1.8s infinite ease-in-out alternate;
+      }
+
+      @keyframes flicker {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.1);
+          opacity: 0.85;
+        }
+      }
+
+      header span.subtitle {
         font-weight: 400;
-        opacity: 0.7;
+        opacity: 0.75;
         font-size: 1rem;
         display: block;
         margin-top: 0.4rem;
@@ -85,7 +111,7 @@
       #game-list {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 20px;
+        gap: 22px;
         margin-top: 28px;
       }
 
@@ -99,14 +125,13 @@
         display: flex;
         flex-direction: column;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
         cursor: pointer;
         backdrop-filter: blur(10px);
         opacity: 0;
         transform: translateY(30px);
       }
 
-      /* Scroll reveal */
       .card.visible {
         opacity: 1;
         transform: translateY(0);
@@ -115,7 +140,26 @@
 
       .card:hover {
         transform: translateY(-5px) scale(1.01);
-        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Apple-style reflective sheen */
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          120deg,
+          rgba(255, 255, 255, 0.35) 0%,
+          rgba(255, 255, 255, 0.1) 40%,
+          rgba(255, 255, 255, 0) 60%
+        );
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+
+      .card:hover::before {
+        opacity: 1;
       }
 
       .card-img {
@@ -136,37 +180,24 @@
         transform: scale(1.05);
       }
 
-      /* ===== NEW TAG (with Apple-style gradient glow) ===== */
+      /* ===== NEW TAG ===== */
       .new-tag {
         position: absolute;
         top: 10px;
         right: 10px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(230, 230, 230, 0.9));
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 240, 240, 0.85));
         color: #000;
         font-size: 0.7rem;
         font-weight: 600;
         letter-spacing: 0.05em;
         padding: 5px 10px;
         border-radius: 999px;
-        box-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 2px 6px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 2px 4px rgba(0, 0, 0, 0.25);
         backdrop-filter: blur(8px);
         user-select: none;
         opacity: 0;
         transform: translateY(-5px);
         animation: fadeIn 0.6s ease forwards 0.3s;
-      }
-
-      .new-tag::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: radial-gradient(
-          circle at center,
-          rgba(255, 255, 255, 0.6) 0%,
-          rgba(255, 255, 255, 0.1) 80%
-        );
-        z-index: -1;
       }
 
       @keyframes fadeIn {
@@ -185,7 +216,6 @@
         align-items: center;
       }
 
-      /* ===== TITLE ===== */
       .card-title {
         font-weight: 700;
         font-size: 1.1rem;
@@ -234,7 +264,6 @@
         margin-top: 2px;
       }
 
-      /* ===== PLATFORM TAGS ===== */
       .badges {
         display: flex;
         flex-wrap: wrap;
@@ -263,8 +292,8 @@
 
   <body>
     <header>
-      <h1>Gamerly</h1>
-      <span>Discover newly released games</span>
+      <h1>Gamerly <span class="flame"></span></h1>
+      <span class="subtitle">Discover newly released games</span>
     </header>
 
     <main>
@@ -313,11 +342,9 @@
         const today = new Date();
         let start = new Date(today);
         let end = new Date(today);
-
         if (currentRange === "today") end = new Date(today);
         if (currentRange === "week") end.setDate(today.getDate() + 7);
         if (currentRange === "upcoming") end.setDate(today.getDate() + 30);
-
         return { startStr: formatDate(start), endStr: formatDate(end) };
       }
 
@@ -333,11 +360,9 @@
         const platform = $("platform").value;
         const sort = $("sort").value;
         const { startStr, endStr } = getDateRange();
-
         const url = `/api/games?platform=${platform}&sort=${sort}&start=${startStr}&end=${endStr}`;
         const res = await fetch(url, { cache: "no-store" });
         const data = await res.json();
-
         if (!res.ok) throw new Error(data?.error || "Failed to load");
         return data;
       }
@@ -346,7 +371,6 @@
         const grid = $("game-list");
         grid.innerHTML = "";
         const results = data?.results || [];
-
         if (!results.length) {
           setListMessage("No games found for this range/platform.");
           return;
@@ -363,7 +387,6 @@
           const metaClass = meta >= 75 ? "green" : meta >= 50 ? "yellow" : meta ? "red" : "gray";
           const metaLabel = meta ? meta : "N/A";
 
-          /* ✅ Working NEW tag */
           let isNew = false;
           if (released && released !== "TBA") {
             const releaseDate = new Date(released);
@@ -399,7 +422,6 @@
           grid.appendChild(card);
         }
 
-        /* Scroll reveal */
         const observer = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
@@ -411,7 +433,6 @@
           },
           { threshold: 0.1 }
         );
-
         document.querySelectorAll(".card").forEach((card) => observer.observe(card));
       }
 

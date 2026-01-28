@@ -186,7 +186,7 @@ if (typeof game?.metacritic === "number") {
 const metaBadge = `
   <span style="
     display:inline-block;
-    margin-top:4px;
+    margin-top:3px;
     background:${meta
       ? meta >= 75
         ? '#16a34a'
@@ -195,13 +195,15 @@ const metaBadge = `
         : '#dc2626'
       : '#e5e7eb'};
     color:${meta ? 'white' : '#374151'};
-    font-weight:700;
-    border-radius:6px;
-    padding:2px 6px;
-    font-size:0.75rem;">
-    ${meta ? `Metacritic: ${meta}` : 'Metacritic: N/A'}
+    font-weight:600;
+    border-radius:4px;
+    padding:1px 5px;
+    font-size:0.7rem;
+    line-height:1;">
+    ${meta ? `★ ${meta}` : 'N/A'}
   </span>
 `;
+
 
 card.innerHTML = `
   <div class="card-img">

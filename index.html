@@ -13,9 +13,58 @@
       body {
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
         margin: 0;
-        background: linear-gradient(180deg, #f0f1f3 0%, #e8eaed 100%);
         color: #1d1d1f;
         -webkit-font-smoothing: antialiased;
+        background: linear-gradient(180deg, #f0f1f3 0%, #e8eaed 100%);
+        background-attachment: fixed;
+        background-size: 400% 400%;
+        animation: bgShift 20s ease-in-out infinite;
+        transition: background 0.6s ease, color 0.6s ease;
+      }
+
+      @keyframes bgShift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* ===== DARK MODE ===== */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: linear-gradient(180deg, #111215 0%, #181a1e 100%);
+          color: #e5e5e7;
+        }
+        header {
+          background: rgba(15, 15, 18, 0.95);
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+        }
+        .card {
+          background: rgba(40, 40, 45, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+        }
+        .card-title {
+          color: #fff;
+        }
+        .card-meta {
+          color: #aaa;
+        }
+        .badge {
+          background: rgba(255, 255, 255, 0.05);
+          color: #eaeaea;
+          border-color: rgba(255, 255, 255, 0.08);
+        }
+        .new-tag {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+          color: #fff;
+          box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+        }
       }
 
       /* ===== HEADER ===== */
@@ -29,6 +78,7 @@
         top: 0;
         z-index: 50;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        transition: background 0.6s ease;
       }
 
       header h1 {
@@ -48,8 +98,16 @@
         height: 22px;
         border-radius: 50%;
         background: radial-gradient(circle at 40% 30%, #ffb347 0%, #ff5c33 60%, #ff1f00 100%);
-        box-shadow: 0 0 12px rgba(255, 85, 34, 0.8);
+        box-shadow: 0 0 15px rgba(255, 85, 34, 0.9);
         animation: flicker 1.8s infinite ease-in-out alternate;
+        transition: all 0.6s ease;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        header h1 span.flame {
+          background: radial-gradient(circle at 40% 30%, #ffd06b 0%, #ff7f50 60%, #ff4500 100%);
+          box-shadow: 0 0 20px rgba(255, 120, 60, 0.9);
+        }
       }
 
       @keyframes flicker {
@@ -93,7 +151,7 @@
         padding: 6px 10px;
         font-size: 0.9rem;
         cursor: pointer;
-        transition: background 0.2s ease;
+        transition: background 0.2s ease, color 0.2s ease;
       }
 
       button:hover,
@@ -139,19 +197,19 @@
       }
 
       .card:hover {
-        transform: translateY(-5px) scale(1.01);
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        transform: translateY(-6px) scale(1.015);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
       }
 
-      /* Apple-style reflective sheen */
+      /* Light reflection effect */
       .card::before {
         content: "";
         position: absolute;
         inset: 0;
         background: linear-gradient(
           120deg,
-          rgba(255, 255, 255, 0.35) 0%,
-          rgba(255, 255, 255, 0.1) 40%,
+          rgba(255, 255, 255, 0.25) 0%,
+          rgba(255, 255, 255, 0.05) 40%,
           rgba(255, 255, 255, 0) 60%
         );
         opacity: 0;
@@ -230,7 +288,6 @@
         text-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
       }
 
-      /* ===== METACRITIC BADGE ===== */
       .meta-badge {
         display: inline-block;
         padding: 3px 6px;
@@ -451,12 +508,4 @@
         $("sort").addEventListener("change", loadGames);
         document.querySelectorAll("#time-filters button").forEach((b) =>
           b.addEventListener("click", () => {
-            currentRange = b.dataset.range;
-            loadGames();
-          })
-        );
-        loadGames();
-      });
-    </script>
-  </body>
-</html>
+            currentRange =

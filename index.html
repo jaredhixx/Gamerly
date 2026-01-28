@@ -6,12 +6,14 @@
     <title>Gamerly – New Releases</title>
     <style>
   body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    margin: 0;
-    padding: 0;
-    background: #f9fafb;
-    color: #111;
-  }
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to bottom, #f9fafb, #e5e7eb);
+  color: #111;
+  transition: background 0.5s ease;
+}
+
 
   header {
     background: #111827;
@@ -147,6 +149,17 @@
   padding: 3px 8px;
   border-radius: 999px;
 }
+/* =========================
+   CARD HOVER ANIMATION
+   ========================= */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
     
 </style>
 
@@ -194,6 +207,7 @@
 <script src="./app.js"></script>
 </body>
 </html>
+
 
 
 

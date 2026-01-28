@@ -100,15 +100,35 @@ async function fetchGames() {
   console.log("Fetching:", url);
 
   const res = await fetch(url, { cache: "no-store" });
-  const data = await res.json();
+const data = await res.json();
 
-  console.log("Response:", data);
+console.log("Response:", data);
 
-  if (!res.ok) {
-    throw new Error(data?.error || data?.message || `Request failed (${res.status})`);
-  }
+if (!res.ok) {
+  throw new Error(data?.error || data?.message || `Request failed (${res.status})`);
+}
 
-  return data;
+// ✅ Fallback: if no results found, fetch last 30 days instead
+if (!data.results || data.results.length === 0) {
+  console.log("No new/upcoming games — fetching recent releases as fallback...");
+  const fallbackEnd = new Date();
+  const fallbackStart = new Date();
+  fallbackStart.setDate(fallbackEnd.getDate() - 30);
+
+  const fallbackUrl =
+    `/api/games?platform=${encodeURIComponent(platform)}` +
+    `&sort=${encodeURIComponent(sort)}` +
+    `&start=${encodeURIComponent(formatDate(fallbackStart))}` +
+    `&end=${encodeURIComponent(formatDate(fallbackEnd))}`;
+
+  const fallbackRes = await fetch(fallbackUrl, { cache: "no-store" });
+  const fallbackData = await fallbackRes.json();
+
+  return fallbackData;
+}
+
+return data;
+
 }
 
 function renderGames(data) {

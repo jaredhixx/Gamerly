@@ -160,21 +160,25 @@
   margin: 8px 0 6px 0;
   text-align: center;
   font-size: 1.05rem;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  width: 100%;
-  background: linear-gradient(90deg, #1e3a8a, #2563eb);
-  padding: 4px 8px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 8px;
-  display: inline-block;
-  transition: background 0.3s ease, transform 0.1s ease;
+  padding: 4px 8px;
+  width: fit-content;
+  max-width: 90%;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+  transition: all 0.25s ease;
 }
 
 .card-title:hover {
-  background: linear-gradient(90deg, #1e40af, #1d4ed8);
-  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.85);
+  transform: scale(1.03);
+  color: #000;
   text-decoration: none;
 }
+
 
 /* ============ META INFO ============ */
 .card-meta {
@@ -274,6 +278,7 @@
 <script src="./app.js"></script>
 </body>
 </html>
+
 
 
 

@@ -1,209 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gamerly – Discover the Latest Game Releases</title>
-
-<!-- Smooth Apple-like font -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-
-<style>
-    :root {
-        --bg: #f7f7f7;
-        --text: #111;
-        --card-bg: #fff;
-        --radius: 18px;
-        --shadow: 0 6px 18px rgba(0,0,0,0.08);
-        --accent: #0d6efd;
-    }
-
-    body {
-        background: var(--bg);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gamerly – Discover the Latest Game Releases</title>
+    <meta name="description" content="Discover the newest PC, console, and mobile game releases with clean, safe previews and modern Apple-inspired design." />
+    <style>
+      body {
         margin: 0;
-        font-family: Inter, system-ui, sans-serif;
-        color: var(--text);
-    }
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f9fafb;
+        color: #111;
+      }
 
-    /* NAV BAR */
-    header {
-        background: #0e0f12;
+      header {
+        background: #0b0b0c;
         color: white;
-        padding: 26px 20px;
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
+        padding: 24px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      }
 
-    header h1 {
-        font-size: 2.1rem;
-        font-weight: 700;
+      header h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
         margin: 0;
         display: flex;
         align-items: center;
-        gap: 10px;
-    }
+        gap: 8px;
+      }
 
-    header h1 span.fire {
-        font-size: 1.9rem;
-        animation: flicker 2.2s infinite ease-in-out;
-    }
+      header span {
+        color: #f97316;
+        font-size: 1.6rem;
+      }
 
-    @keyframes flicker {
-        0% { opacity: 1; }
-        50% { opacity: 0.35; }
-        100% { opacity: 1; }
-    }
+      header p {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin: 0;
+      }
 
-    /* FILTER BAR */
-    .filters {
-        display: flex;
-        gap: 12px;
-        padding: 20px;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        background: rgba(255,255,255,0.7);
-        backdrop-filter: blur(10px);
-        position: sticky;
-        top: 90px;
-        z-index: 40;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    }
-
-    .filters select,
-    .filters input {
-        padding: 10px 14px;
-        font-size: 1rem;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        width: 180px;
-    }
-
-    /* SHIMMER LOADING */
-    .shimmer {
-        height: 260px;
-        background: linear-gradient(
-            90deg,
-            #e9e9e9 0%,
-            #f4f4f4 50%,
-            #e9e9e9 100%
-        );
-        background-size: 400% 100%;
-        animation: shimmer 1.4s infinite;
-        border-radius: var(--radius);
-    }
-
-    @keyframes shimmer {
-        0% { background-position: 0% 0; }
-        100% { background-position: 100% 0; }
-    }
-
-    /* GAME GRID */
-    #game-list {
+      main {
         max-width: 1100px;
-        margin: 20px auto;
-        padding: 10px;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-        gap: 24px;
-    }
+        margin: 0 auto;
+        padding: 24px 16px 60px;
+      }
 
-    /* CARD */
-    .card {
-        background: var(--card-bg);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        cursor: pointer;
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+
+      select,
+      input[type="text"] {
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        outline: none;
+        transition: all 0.2s ease;
+      }
+
+      select:hover,
+      input[type="text"]:hover {
+        border-color: #aaa;
+      }
+
+      input[type="text"] {
+        min-width: 220px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 14px;
         overflow: hidden;
-        transition: transform .18s ease, box-shadow .18s ease;
-    }
-    .card:hover {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        cursor: pointer;
+      }
+
+      .card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 28px rgba(0,0,0,0.2);
-    }
+        box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+      }
 
-    .card-img img {
+      .card-img img {
         width: 100%;
-        height: 180px;
+        height: 200px;
         object-fit: cover;
-        display: block;
-    }
+      }
 
-    .card-body {
-        padding: 15px;
-    }
+      .card-body {
+        padding: 14px 16px 16px;
+      }
 
-    .card-title {
-        font-size: 1.1rem;
+      .card-title {
         font-weight: 700;
-        margin: 0 0 4px 0;
+        font-size: 1rem;
         color: #111;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
-    }
+        text-align: center;
+      }
 
-    .badge-new {
-        background: #0da4ff;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.7rem;
-        font-weight: 700;
-    }
-
-    .safe-preview {
-        height: 180px;
-        background: #ddd;
+      .meta-row {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #666;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .badge-meta {
+        border-radius: 6px;
+        font-size: 0.8rem;
+        padding: 2px 6px;
+        color: #fff;
+        font-weight: 600;
+      }
+
+      .meta-good { background: #16a34a; }
+      .meta-mid { background: #facc15; color: #111; }
+      .meta-bad { background: #dc2626; }
+      .meta-na { background: #9ca3af; }
+
+      .badge {
+        background: #f4f4f5;
+        border-radius: 999px;
+        padding: 3px 8px;
+        font-size: 0.7rem;
+        color: #333;
+        border: 1px solid #e0e0e0;
+        margin: 2px;
+        display: inline-block;
+      }
+
+      .badge-new {
+        background: #0ea5e9;
+        color: white;
+        font-size: 0.7rem;
+        border-radius: 8px;
+        padding: 2px 6px;
+        margin-left: 4px;
+      }
+
+      .badges {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+
+      .release-date {
+        font-size: 0.85rem;
+        color: #555;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+      }
+
+      .safe-preview {
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #888;
+        background: #e5e7eb;
         font-size: 0.9rem;
-        border-radius: var(--radius);
-    }
-</style>
+      }
 
-<script defer src="/app.js"></script>
+      .shimmer {
+        width: 100%;
+        height: 200px;
+        border-radius: 14px;
+        background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+      }
 
-</head>
-<body>
+      @keyframes shimmer {
+        100% { background-position: -200% 0; }
+      }
 
-<header>
-    <h1><span class="fire">🔥</span> Gamerly</h1>
-    <div style="opacity:0.75; font-size:1rem;">Discover the latest game releases</div>
-</header>
+      footer {
+        text-align: center;
+        color: #777;
+        padding: 32px 0;
+        font-size: 0.85rem;
+      }
 
-<div class="filters">
-    <select id="platform">
-        <option value="4">PC</option>
-        <option value="187">PlayStation 5</option>
-        <option value="18">PlayStation 4</option>
-        <option value="1">Xbox One</option>
-        <option value="186">Xbox Series X/S</option>
-        <option value="7">Nintendo Switch</option>
-        <option value="21">Android</option>
-        <option value="3">iOS</option>
-        <option value="5">macOS</option>
-    </select>
+      @media (prefers-color-scheme: dark) {
+        body { background: #0e0e10; color: #f3f4f6; }
+        .card { background: #18181b; }
+        select, input[type="text"] { background: #18181b; color: white; border-color: #333; }
+        .badge { background: #27272a; color: #e5e5e5; border-color: #3f3f46; }
+        .meta-na { background: #52525b; }
+      }
+    </style>
+  </head>
 
-    <select id="sort">
-        <option value="-released">Newest</option>
-        <option value="name">A → Z</option>
-        <option value="-rating">Top Rated</option>
-    </select>
+  <body>
+    <header>
+      <h1><span>🔥</span> Gamerly</h1>
+      <p>Discover the latest game releases</p>
+    </header>
 
-    <input id="search" placeholder="Search games..." />
-</div>
+    <main>
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <select id="platform">
+          <option value="pc">PC</option>
+          <option value="playstation">PlayStation</option>
+          <option value="xbox">Xbox</option>
+          <option value="nintendo">Nintendo</option>
+          <option value="ios">iOS</option>
+          <option value="android">Android</option>
+        </select>
 
-<div id="game-list">
-    <!-- shimmer placeholders -->
-    <div class="shimmer"></div>
-    <div class="shimmer"></div>
-    <div class="shimmer"></div>
-</div>
+        <select id="sort">
+          <option value="released">Newest</option>
+          <option value="-rating">Highest Rated</option>
+          <option value="name">A–Z</option>
+        </select>
 
-</body>
+        <select id="date-range">
+          <option value="all">All Time</option>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="year">This Year</option>
+        </select>
+
+        <input type="text" id="search" placeholder="Search games…" />
+      </div>
+
+      <div id="game-list" class="grid"></div>
+    </main>
+
+    <footer>© 2026 Gamerly — Built for gamers ❤️</footer>
+
+    <script src="app.js"></script>
+  </body>
 </html>

@@ -1,34 +1,26 @@
 //
-// Gamerly – app.js v3 (Stable Build)
-// Complete: Metacritic, Date Filters, NSFW Safe Mode
+// Gamerly app.js v4 — Polished, Modern, Safe, Complete
+// Includes: NSFW filter, Metacritic badges, date dropdown, platform pills
 //
 
 const API_BASE = "/api/games";
 
-// Expanded blacklist for safe browsing
 const NSFW_KEYWORDS = [
-  "sex", "porn", "hentai", "nsfw", "xxx", "ecchi", "boob", "tits",
-  "nude", "nudity", "strip", "lewd", "fetish", "bdsm", "adult",
-  "erotic", "sexual", "explicit", "18+", "uncensored", "hot girls",
-  "dating sim", "waifu", "mistress", "brothel"
+  "sex","porn","hentai","nsfw","xxx","ecchi","boob","tits","nude","nudity",
+  "strip","lewd","fetish","bdsm","adult","erotic","sexual","explicit","18+",
+  "uncensored","dating sim","waifu","mistress","brothel"
 ];
 
-// DOM Elements
 const listEl = document.getElementById("game-list");
 const platformEl = document.getElementById("platform");
 const sortEl = document.getElementById("sort");
 const searchEl = document.getElementById("search");
-const todayBtn = document.getElementById("btn-today");
-const weekBtn = document.getElementById("btn-week");
-const yearBtn = document.getElementById("btn-year");
+const dateEl = document.getElementById("date-range");
 
 let allGames = [];
-let filteredGames = [];
 let currentDateFilter = "all";
 
-// =======================
-// FETCH GAMES
-// =======================
+// =============== Fetch ===============
 async function fetchGames() {
   try {
     const url = `${API_BASE}?platform=${platformEl.value}&ordering=${sortEl.value}`;
@@ -41,9 +33,7 @@ async function fetchGames() {
   }
 }
 
-// =======================
-// SAFE FILTERING
-// =======================
+// =============== NSFW Filtering ===============
 function isSafe(game) {
   const fields = [
     game.name,
@@ -55,10 +45,7 @@ function isSafe(game) {
     ...(game.stores || []).map(s => s.store?.name || "")
   ].join(" ").toLowerCase();
 
-  for (const bad of NSFW_KEYWORDS) {
-    if (fields.includes(bad)) return false;
-  }
-
+  for (const bad of NSFW_KEYWORDS) if (fields.includes(bad)) return false;
   const esrb = game.esrb_rating?.name?.toLowerCase() || "";
   if (esrb.includes("adults") || esrb.includes("mature 18")) return false;
 
@@ -68,18 +55,14 @@ function isSafe(game) {
   return true;
 }
 
-// =======================
-// DATE FILTERS
-// =======================
+// =============== Date Filtering ===============
 function applyDateFilter(list) {
   if (currentDateFilter === "all") return list;
-
   const now = new Date();
   return list.filter(g => {
     if (!g.released) return false;
     const release = new Date(g.released);
     const diffDays = (now - release) / (1000 * 60 * 60 * 24);
-
     if (currentDateFilter === "today") return diffDays <= 1 && diffDays >= 0;
     if (currentDateFilter === "week") return diffDays <= 7 && diffDays >= 0;
     if (currentDateFilter === "year") return diffDays <= 365 && diffDays >= 0;
@@ -87,28 +70,22 @@ function applyDateFilter(list) {
   });
 }
 
-// =======================
-// SEARCH
-// =======================
+// =============== Search ===============
 function applySearch(list) {
   const q = searchEl.value.trim().toLowerCase();
   if (!q) return list;
   return list.filter(g => g.name.toLowerCase().includes(q));
 }
 
-// =======================
-// RENDER CARD
-// =======================
+// =============== Render Card ===============
 function renderGameCard(game) {
   const released = game.released || "TBA";
-  const isNew =
-    game.released &&
+  const isNew = game.released &&
     Date.now() - new Date(game.released).getTime() <= 7 * 24 * 60 * 60 * 1000;
 
   const imgSrc = game.background_image || (game.short_screenshots?.[0]?.image ?? null);
-  const hasImage = !!imgSrc;
-  const imgHTML = hasImage
-    ? `<div class="card-img"><img src="${imgSrc}" alt="${game.name}"></div>`
+  const imgHTML = imgSrc
+    ? `<div class="card-img"><img src="${imgSrc}" alt="${game.name}" loading="lazy"></div>`
     : `<div class="safe-preview">Preview Unavailable</div>`;
 
   const platforms =
@@ -116,10 +93,12 @@ function renderGameCard(game) {
       ?.map(p => `<span class="badge">${p.platform.name}</span>`)
       .join(" ") || "";
 
-  const metacritic =
-    game.metacritic != null
-      ? `<span class="badge-meta">${game.metacritic}</span>`
-      : `<span class="badge-meta na">N/A</span>`;
+  const metacritic = game.metacritic != null
+    ? `<span class="badge-meta ${
+        game.metacritic >= 75 ? "meta-good" :
+        game.metacritic >= 50 ? "meta-mid" : "meta-bad"
+      }">${game.metacritic}</span>`
+    : `<span class="badge-meta meta-na">N/A</span>`;
 
   return `
     <div class="card" onclick="openGame('${game.slug}')">
@@ -139,62 +118,41 @@ function renderGameCard(game) {
   `;
 }
 
-// =======================
-// RENDER LIST
-// =======================
+// =============== Render List ===============
 function renderList() {
-  let visible = [...filteredGames];
+  let visible = [...allGames];
   visible = applySearch(visible);
   visible = applyDateFilter(visible);
 
   if (!visible.length) {
-    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:#555;">No results found.</div>`;
+    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">No results found.</div>`;
     return;
   }
 
   listEl.innerHTML = visible.map(renderGameCard).join("");
 }
 
-// =======================
-// LOAD GAMES
-// =======================
+// =============== Load Games ===============
 async function loadGames() {
   listEl.innerHTML = `<div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>`;
   let games = await fetchGames();
   games = games.filter(isSafe);
   allGames = games;
-  filteredGames = [...allGames];
   renderList();
 }
 
-// =======================
-// OPEN GAME PAGE
-// =======================
+// =============== Open Game ===============
 function openGame(slug) {
   window.location.href = `/game.html?slug=${slug}`;
 }
 
-// =======================
-// EVENT LISTENERS
-// =======================
+// =============== Events ===============
 platformEl.addEventListener("change", loadGames);
 sortEl.addEventListener("change", loadGames);
 searchEl.addEventListener("input", renderList);
-
-todayBtn?.addEventListener("click", () => {
-  currentDateFilter = "today";
-  renderList();
-});
-weekBtn?.addEventListener("click", () => {
-  currentDateFilter = "week";
-  renderList();
-});
-yearBtn?.addEventListener("click", () => {
-  currentDateFilter = "year";
+dateEl.addEventListener("change", e => {
+  currentDateFilter = e.target.value;
   renderList();
 });
 
-// =======================
-// INIT
-// =======================
 loadGames();

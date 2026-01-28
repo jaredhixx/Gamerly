@@ -182,40 +182,40 @@
           .join("");
 
         // =========================
-        // ✅ Handle Metacritic score (with fallback)
+        // ✅ Handle Metacritic score (with clean fallback)
         // =========================
         let metacritic = null;
 
-        // RAWG sometimes provides it as a single number
         if (typeof data?.metacritic === "number") {
           metacritic = data.metacritic;
-        }
-
-        // ...or nested inside metacritic_platforms
-        else if (Array.isArray(data?.metacritic_platforms) && data.metacritic_platforms.length > 0) {
+        } else if (Array.isArray(data?.metacritic_platforms) && data.metacritic_platforms.length > 0) {
           const allScores = data.metacritic_platforms
             .map(p => p?.metascore)
             .filter(s => typeof s === "number");
           if (allScores.length) {
-            // Average all platform metascores
             metacritic = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
           }
         }
 
-        const metaBlock = metacritic
-          ? `<div style="margin-top:8px;">
-              <span style="
-                display:inline-block;
-                background:${metacritic >= 75 ? '#16a34a' : metacritic >= 50 ? '#facc15' : '#dc2626'};
-                color:white;
-                font-weight:700;
-                border-radius:6px;
-                padding:4px 8px;
-                font-size:0.9rem;">
-                ★ Metacritic: ${metacritic}
-              </span>
-            </div>`
-          : "";
+        const metaBlock = `
+          <div style="margin-top:8px;">
+            <span style="
+              display:inline-block;
+              background:${metacritic
+                ? metacritic >= 75
+                  ? '#16a34a'
+                  : metacritic >= 50
+                  ? '#facc15'
+                  : '#dc2626'
+                : '#e5e7eb'};
+              color:${metacritic ? 'white' : '#374151'};
+              font-weight:700;
+              border-radius:6px;
+              padding:4px 8px;
+              font-size:0.9rem;">
+              Metacritic: ${metacritic ?? 'N/A'}
+            </span>
+          </div>`;
 
         // =========================
         // ✅ Screenshots Grid

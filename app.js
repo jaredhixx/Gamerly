@@ -1,3 +1,4 @@
+let currentRange = "upcoming";
 /* =========================
    Gamerly - app.js (matches your index.html IDs)
    ========================= */

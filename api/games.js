@@ -13,28 +13,31 @@ export default async function handler(req, res) {
 
   if (platform) url.searchParams.set("platforms", platform);
   if (sort) url.searchParams.set("ordering", sort);
-  if (start && end) {
-    url.searchParams.set("dates", `${start},${end}`);
-  } else {
-    // default range (last 30 days)
-    const today = new Date();
-    const past = new Date();
-    past.setDate(today.getDate() - 30);
-    url.searchParams.set("dates", `${past.toISOString().slice(0, 10)},${today.toISOString().slice(0, 10)}`);
-  }
 
-  // ✅ Filter out adult / NSFW content
+  // ✅ Smarter date logic
+  const today = new Date();
+  const startDate = start
+    ? new Date(start)
+    : new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+  const endDate = end
+    ? new Date(end)
+    : new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30);
+
+  const startStr = startDate.toISOString().slice(0, 10);
+  const endStr = endDate.toISOString().slice(0, 10);
+  url.searchParams.set("dates", `${startStr},${endStr}`);
+
+  // ✅ Filter out NSFW content
   url.searchParams.set("exclude_additions", "true");
-  url.searchParams.set("exclude_stores", "9"); // exclude adult stores like Nutaku
   url.searchParams.set("metacritic", "1,100");
 
   try {
     const response = await fetch(url.toString(), {
       headers: {
-        "Accept": "application/json",
+        Accept: "application/json",
         "User-Agent": "GamerlyApp/1.0 (https://gamerly.net)"
       },
-      cache: "no-store",
+      cache: "no-store"
     });
 
     const data = await response.json();
@@ -44,10 +47,17 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: data?.error || "Error fetching games" });
     }
 
-    // ✅ Only return essential data
+    // ✅ Filter out adult content from results
+    const filtered = (data.results || []).filter(
+      g =>
+        !g.name.toLowerCase().includes("hentai") &&
+        !g.name.toLowerCase().includes("porn") &&
+        !g.name.toLowerCase().includes("sex")
+    );
+
     return res.status(200).json({
-      count: data.count,
-      results: data.results,
+      count: filtered.length,
+      results: filtered
     });
   } catch (error) {
     console.error("Server error fetching games:", error);

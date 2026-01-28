@@ -1,194 +1,229 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gamerly – Discover New Game Releases</title>
-  <meta name="description" content="Discover safe, newly released games with filters for platform, genre, and rating. Clean design and smart content filtering." />
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html{scroll-behavior:smooth}
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
-      background:linear-gradient(180deg,#f1f2f4,#e5e7eb);
-      color:#1d1d1f;transition:background .6s,color .6s;
-      -webkit-font-smoothing:antialiased;
-    }
-    @media(prefers-color-scheme:dark){
-      body{background:linear-gradient(180deg,#111215,#181a1e);color:#e5e5e7}
-      .card{background:rgba(45,45,50,.6);border-color:rgba(255,255,255,.08)}
-      .filter-bar{background:rgba(25,25,30,.9);border-color:rgba(255,255,255,.08)}
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gamerly – New Releases</title>
 
-    header{background:#000;color:#fff;text-align:center;padding:3rem 1rem 1.5rem;margin-top:50px;}
-    h1{font-size:2rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;}
-    .flame{width:22px;height:22px;border-radius:50%;
-      background:radial-gradient(circle at 40% 30%,#ffb347 0%,#ff5c33 60%,#ff1f00 100%);
-      box-shadow:0 0 12px rgba(255,80,0,.9);animation:flicker 1.8s infinite alternate ease-in-out;}
-    @keyframes flicker{0%{opacity:1;transform:scale(1)}100%{opacity:.85;transform:scale(1.1)}}
-    .subtitle{opacity:.8;font-size:1rem;margin-top:.3rem;}
+    <style>
+      :root {
+        --bg: #f9fafb;
+        --fg: #111;
+        --panel: #ffffff;
+        --border: #e5e7eb;
+        --subtle: #6b7280;
+        --link: #111;
+        --link-hover: #000;
+      }
+      body.dark {
+        --bg: #0d0d0d;
+        --fg: #fafafa;
+        --panel: #1a1a1a;
+        --border: #333;
+        --subtle: #bbb;
+        --link: #fafafa;
+        --link-hover: #fff;
+      }
 
-    nav{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:center;gap:30px;
-      background:rgba(255,255,255,.8);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,0,0,.05);
-      font-size:.9rem;z-index:20;transition:opacity .6s;}
-    nav a{color:#333;text-decoration:none;font-weight:500;}
-    nav.visible{opacity:1;}
-    @media(prefers-color-scheme:dark){nav{background:rgba(25,25,30,.85);}nav a{color:#ddd;}}
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI";
+        background: var(--bg);
+        color: var(--fg);
+        transition: background 0.3s ease, color 0.3s ease;
+      }
 
-    main{max-width:1200px;margin:0 auto;padding:1.5rem;}
-    .filter-bar{
-      position:sticky;top:50px;z-index:15;
-      display:flex;flex-wrap:wrap;gap:10px;align-items:center;
-      background:rgba(255,255,255,.85);backdrop-filter:blur(10px);
-      padding:10px;border:1px solid rgba(0,0,0,.05);border-radius:12px;
-      box-shadow:0 2px 8px rgba(0,0,0,.05);
-    }
-    input,select,button{
-      font-family:inherit;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111;
-      padding:6px 10px;font-size:.9rem;cursor:pointer;
-    }
-    input[type=text]{flex:1;min-width:180px;}
-    @media(prefers-color-scheme:dark){input,select,button{background:#1e1f22;color:#e5e5e7;border-color:rgba(255,255,255,.1);}}
+      header {
+        background: #111827;
+        color: white;
+        padding: 22px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
 
-    #time-filters{display:flex;gap:8px;margin-top:12px;}
-    #game-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;margin-top:28px;}
+      h1 {
+        margin: 0;
+        font-size: 1.9rem;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
 
-    .card{
-      position:relative;background:rgba(255,255,255,.9);border:1px solid rgba(0,0,0,.05);
-      border-radius:20px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.08);
-      transition:transform .3s,box-shadow .3s;opacity:0;transform:translateY(25px);
-    }
-    .card.visible{opacity:1;transform:translateY(0);}
-    .card:hover{transform:translateY(-5px) scale(1.015);box-shadow:0 10px 28px rgba(0,0,0,.15);}
-    .card-img{height:160px;overflow:hidden;position:relative;}
-    .card-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
-    .card:hover .card-img img{transform:scale(1.05);}
-    .placeholder{
-      width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg,#d4d4d4,#c0c0c0);color:#555;font-size:.9rem;
-    }
-    @media(prefers-color-scheme:dark){.placeholder{background:linear-gradient(135deg,#2a2a2d,#1f1f22);color:#aaa;}}
-    .new-tag{position:absolute;top:10px;right:10px;background:#fff;color:#000;font-size:.7rem;font-weight:600;
-      padding:4px 8px;border-radius:999px;box-shadow:0 0 6px rgba(255,255,255,.7);}
-    .card-body{padding:14px;text-align:center;}
-    .card-title{font-weight:700;font-size:1.05rem;margin-bottom:5px;}
-    .meta-badge{display:inline-block;padding:3px 6px;border-radius:6px;font-weight:600;font-size:.75rem;margin:3px 0;color:#fff;}
-    .meta-badge.green{background:#16a34a}.meta-badge.yellow{background:#facc15;color:#111}.meta-badge.red{background:#dc2626}.meta-badge.gray{background:#9ca3af}
-    .card-meta{color:#666;font-size:.85rem;margin-top:2px;}
-    .badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;justify-content:center;}
-    .badge{font-size:.7rem;color:#111;background:#f3f4f6;border:1px solid #e5e7eb;padding:2px 7px;border-radius:999px;}
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 22px;
+      }
 
-    /* Shimmer Loader */
-    .shimmer{
-      background:linear-gradient(90deg,#e3e4e6 25%,#f3f4f6 37%,#e3e4e6 63%);
-      background-size:400% 100%;animation:shimmer 1.4s ease infinite;
-    }
-    @keyframes shimmer{0%{background-position:-400px 0;}100%{background-position:400px 0;}}
-    .skeleton-card{height:240px;border-radius:16px;}
-    footer{text-align:center;color:#999;font-size:.85rem;margin-top:32px;}
-  </style>
-</head>
+      /* Sticky Filter/Search Bar */
+      .filter-bar {
+        position: sticky;
+        top: 78px;
+        z-index: 40;
+        background: var(--bg);
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(8px);
+      }
 
-<body>
-  <nav><a href="#">Home</a><a href="#">Discover</a><a href="#">Platforms</a><a href="#">About</a></nav>
+      .filter-bar select,
+      .filter-bar input {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--fg);
+        font-size: 0.95rem;
+      }
 
-  <header>
-    <h1>Gamerly <span class="flame"></span></h1>
-    <div class="subtitle">Discover and filter new releases safely</div>
-  </header>
+      /* Cards Grid */
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+        gap: 18px;
+        margin-top: 20px;
+      }
 
-  <main>
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        cursor: pointer;
+        transform: translateY(0);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        opacity: 0;
+        animation: fadeIn 0.6s forwards;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 26px rgba(0,0,0,0.12);
+      }
+
+      .card-img {
+        width: 100%;
+        height: 150px;
+        background: #d1d5db;
+      }
+      .card-img img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+      }
+
+      .card-body {
+        padding: 14px;
+      }
+
+      .card-title {
+        font-weight: 800;
+        font-size: 1rem;
+        margin: 0 0 6px 0;
+        line-height: 1.25;
+      }
+
+      .card-title a {
+        color: var(--link);
+        text-decoration: none;
+      }
+      .card-title a:hover {
+        color: var(--link-hover);
+      }
+
+      .badge-new {
+        background: #0ea5e9;
+        color: white;
+        padding: 2px 8px;
+        font-size: 0.7rem;
+        border-radius: 999px;
+        font-weight: 700;
+        margin-left: 6px;
+      }
+
+      .metacritic-badge {
+        display: inline-block;
+        padding: 3px 6px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-top: 6px;
+      }
+
+      /* Clean fallback preview placeholder */
+      .safe-preview {
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1e293b;
+        font-size: 0.8rem;
+        font-weight: 600;
+        opacity: 0.85;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <!-- ======================
+         HEADER
+    ======================= -->
+    <header>
+      <h1>🔥 Gamerly</h1>
+      <div style="opacity:0.75; margin-top:4px; font-size:0.95rem;">
+        Discover the latest game releases
+      </div>
+    </header>
+
+    <!-- ======================
+         FILTER BAR (sticky)
+    ======================= -->
     <div class="filter-bar">
-      <input id="search" placeholder="Search..." />
-      <select id="platform"><option value="4">PC</option><option value="1">Xbox</option><option value="18">PlayStation</option><option value="7">Switch</option><option value="3">iOS</option><option value="21">Android</option></select>
-      <select id="rating"><option value="all">All Ratings</option><option value="80">Metacritic 80+</option><option value="60">Metacritic 60+</option></select>
-      <select id="genre"><option value="all">All Genres</option><option value="action">Action</option><option value="rpg">RPG</option><option value="adventure">Adventure</option><option value="strategy">Strategy</option><option value="shooter">Shooter</option><option value="indie">Indie</option></select>
+
+      <label>Platform:</label>
+      <select id="platform">
+        <option value="4" selected>PC</option>
+        <option value="187">PlayStation</option>
+        <option value="1">Xbox</option>
+        <option value="7">Nintendo Switch</option>
+        <option value="3">iOS</option>
+        <option value="21">Android</option>
+      </select>
+
+      <label style="margin-left:12px;">Sort:</label>
+      <select id="sort">
+        <option value="-released">Newest</option>
+        <option value="-added">Most Popular</option>
+      </select>
+
+      <input
+        id="search"
+        type="text"
+        placeholder="Search games…"
+        style="margin-left:12px; width:180px;"
+      />
     </div>
-    <div id="time-filters" style="margin-top:15px;">
-      <button data-range="today">Today</button><button data-range="week">This Week</button><button data-range="upcoming">Upcoming</button>
-    </div>
-    <div id="game-list"></div>
-  </main>
-  <footer>© 2026 Gamerly — Built with ❤️ for gamers.</footer>
 
-  <script>
-    const $=id=>document.getElementById(id);
-    const nav=document.querySelector("nav");
-    window.addEventListener("scroll",()=>nav.classList.toggle("visible",window.scrollY>60));
+    <!-- CONTENT -->
+    <main>
+      <div id="game-list" class="cards"></div>
+    </main>
 
-    const BAD_WORDS=["porn","sex","hentai","bdsm","fetish","erotic","nude","xxx","18+","nsfw","rape"];
-    const SAFE_EXCEPTIONS=["deus ex","cyberpunk","mass effect","dark souls","dead space"];
+    <!-- Your logic lives in app.js -->
+    <script src="./app.js"></script>
 
-    function isSafe(name,url){
-      const lower=(name+" "+url).toLowerCase();
-      if(SAFE_EXCEPTIONS.some(w=>lower.includes(w)))return true;
-      return !BAD_WORDS.some(w=>lower.includes(w));
-    }
-
-    const mockGames={results:[
-      {name:"Reanimal",background_image:"https://images.igdb.com/igdb/image/upload/t_cover_big/co7g7k.png",released:"2026-02-12",metacritic:91,genres:["adventure"],platforms:[{platform:{name:"PlayStation 5"}}]},
-      {name:"Escape from Ever After",background_image:"https://images.igdb.com/igdb/image/upload/t_cover_big/co6ohp.png",released:"2026-01-22",metacritic:75,genres:["rpg"],platforms:[{platform:{name:"PC"}}]},
-      {name:"Star Horizon",background_image:"",released:"2026-01-15",metacritic:55,genres:["shooter"],platforms:[{platform:{name:"Xbox"}}]},
-      {name:"BDsm Quest",background_image:"https://cdn/bdsmgame.png",released:"2026-02-01",metacritic:90,genres:["action"],platforms:[{platform:{name:"PC"}}]},
-      {name:"Deus Ex: Revival",background_image:"https://cdn/deusex.jpg",released:"2026-01-28",metacritic:89,genres:["action"],platforms:[{platform:{name:"PC"}}]}
-    ]};
-
-    const skeletons=n=>Array.from({length:n}).map(()=>"<div class='skeleton-card shimmer'></div>").join("");
-
-    async function fetchGames(){
-      const grid=$("game-list");
-      grid.innerHTML=skeletons(8);
-      try{
-        const res=await fetch("/api/games");
-        if(!res.ok)throw new Error("offline");
-        const data=await res.json();
-        return data.results?.length?data:mockGames;
-      }catch{return mockGames;}
-    }
-
-    function renderGames(data){
-      const q=$("search").value.toLowerCase();
-      const rating=parseInt($("rating").value)||0;
-      const genre=$("genre").value;
-      const filtered=(data.results||[]).filter(g=>{
-        if(!isSafe(g.name,g.background_image))return false;
-        if(q&&!g.name.toLowerCase().includes(q))return false;
-        if(rating!=="all"&&g.metacritic&&g.metacritic<rating)return false;
-        if(genre!=="all"&&!(g.genres||[]).some(x=>x.toLowerCase().includes(genre)))return false;
-        return true;
-      });
-      const grid=$("game-list");
-      grid.innerHTML=filtered.length?"":
-        "<div style='text-align:center;padding:20px;color:#666;'>No safe results found.</div>";
-      filtered.forEach(g=>{
-        const meta=g.metacritic,metaClass=meta>=80?"green":meta>=60?"yellow":meta?"red":"gray",metaLabel=meta||"N/A";
-        const diff=(new Date()-new Date(g.released))/(1000*60*60*24),isNew=diff<=7&&diff>=0;
-        const plats=(g.platforms||[]).map(p=>`<span class='badge'>${p.platform.name}</span>`).join("");
-        const imgOk=isSafe(g.name,g.background_image)&&g.background_image;
-        grid.insertAdjacentHTML("beforeend",`
-          <div class='card'>
-            <div class='card-img'>
-              ${imgOk?`<img src='${g.background_image}' alt='${g.name}'>`:`<div class='placeholder'>Safe Preview</div>`}
-              ${isNew?`<div class='new-tag'>NEW</div>`:""}
-            </div>
-            <div class='card-body'>
-              <div class='card-title'>${g.name}</div>
-              <span class='meta-badge ${metaClass}'>${metaLabel}</span>
-              <div class='card-meta'>Released: ${g.released}</div>
-              <div class='badges'>${plats}</div>
-            </div>
-          </div>`);
-      });
-      const obs=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add("visible");obs.unobserve(x.target)}}),{threshold:.1});
-      document.querySelectorAll(".card").forEach(c=>obs.observe(c));
-    }
-
-    async function loadGames(){const data=await fetchGames();renderGames(data);}
-    document.addEventListener("DOMContentLoaded",()=>{
-      ["platform","rating","genre","search"].forEach(id=>$(id).oninput=loadGames);
-      document.querySelectorAll("#time-filters button").forEach(b=>b.onclick=()=>loadGames());
-      loadGames();
-    });
-  </script>
-</body>
+  </body>
 </html>

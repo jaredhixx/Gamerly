@@ -1,6 +1,7 @@
 let currentRange = "upcoming";
+
 /* =========================
-   Gamerly - app.js (matches your index.html IDs)
+   Gamerly - app.js
    ========================= */
 
 function formatDate(d) {
@@ -39,106 +40,45 @@ function getDateRange() {
   };
 }
 
-
 function $(id) {
   return document.getElementById(id);
 }
 
 function setListMessage(msg) {
-  const grid = $("game-list");
-  if (!grid) return;
-  grid.innerHTML = `<div style="padding:12px; color:#555;">${msg}</div>`;
+  const ul = $("game-list");
+  if (!ul) return;
+  ul.innerHTML = `<li style="border-bottom:none; color:#555;">${msg}</li>`;
 }
-function isKidSafe(game) {
-  // 1) Block explicit ESRB ratings if present
-  const esrb = game?.esrb_rating?.name ? game.esrb_rating.name.toLowerCase() : "";
-
-  if (esrb.includes("mature") || esrb.includes("adults only")) {
-    return false;
-  }
-
-  // 2) Keyword safety net using name + tags + genres
-  const tags = Array.isArray(game?.tags) ? game.tags.map(t => t?.name).filter(Boolean) : [];
-  const genres = Array.isArray(game?.genres) ? game.genres.map(g => g?.name).filter(Boolean) : [];
-
-  const textBlob = [game?.name || "", ...tags, ...genres].join(" ").toLowerCase();
-
-  const blockedKeywords = [
-    "hentai",
-    "nudity",
-    "sexual",
-    "sex",
-    "porn",
-    "erotic",
-    "nsfw",
-    "adult",
-    "bdsm"
-  ];
-
-  for (const word of blockedKeywords) {
-    if (textBlob.includes(word)) return false;
-  }
-
-  return true;
-}
-
-
 
 async function fetchGames() {
-  const platform = $("platform")?.value || "4";
+  const platform = $("platform")?.value || "4"; // Default PC
   const sort = $("sort")?.value || "-added";
   const { startStr, endStr } = getDateRange();
 
-
   const url =
-  `/api/games?platform=${encodeURIComponent(platform)}` +
-  `&sort=${encodeURIComponent(sort)}` +
-  `&range=${encodeURIComponent(currentRange)}`;
-
-
+    `/api/games?platform=${encodeURIComponent(platform)}` +
+    `&sort=${encodeURIComponent(sort)}` +
+    `&start=${encodeURIComponent(startStr)}` +
+    `&end=${encodeURIComponent(endStr)}`;
 
   console.log("Fetching:", url);
 
   const res = await fetch(url, { cache: "no-store" });
-const data = await res.json();
+  const data = await res.json();
 
-console.log("Response:", data);
+  if (!res.ok) {
+    throw new Error(data?.error || `Request failed (${res.status})`);
+  }
 
-if (!res.ok) {
-  throw new Error(data?.error || data?.message || `Request failed (${res.status})`);
-}
-
-// ✅ Fallback: if no results found, fetch last 30 days instead
-if (!data.results || data.results.length === 0) {
-  console.log("No new/upcoming games — fetching recent releases as fallback...");
-  const fallbackEnd = new Date();
-  const fallbackStart = new Date();
-  fallbackStart.setDate(fallbackEnd.getDate() - 30);
-
-  const fallbackUrl =
-    `/api/games?platform=${encodeURIComponent(platform)}` +
-    `&sort=${encodeURIComponent(sort)}` +
-    `&start=${encodeURIComponent(formatDate(fallbackStart))}` +
-    `&end=${encodeURIComponent(formatDate(fallbackEnd))}`;
-
-  const fallbackRes = await fetch(fallbackUrl, { cache: "no-store" });
-  const fallbackData = await fallbackRes.json();
-
-  return fallbackData;
-}
-
-return data;
-
+  return data;
 }
 
 function renderGames(data) {
-  const grid = $("game-list");
-  if (!grid) return;
+  const ul = $("game-list");
+  if (!ul) return;
 
-const resultsRaw = Array.isArray(data?.results) ? data.results : [];
-const results = resultsRaw.filter(isKidSafe);
-
-  grid.innerHTML = "";
+  const results = Array.isArray(data?.results) ? data.results : [];
+  ul.innerHTML = "";
 
   if (results.length === 0) {
     setListMessage("No games returned for this date range / platform.");
@@ -146,95 +86,84 @@ const results = resultsRaw.filter(isKidSafe);
   }
 
   for (const game of results) {
+    const li = document.createElement("li");
+
     const name = game?.name || "Untitled";
     const released = game?.released || "TBA";
     const img = game?.background_image || "";
     const slug = game?.slug || "";
-    const href = slug ? `/game.html?slug=${slug}` : "#";
+    const href = `/game.html?slug=${slug}`;
 
+    const metacritic =
+      typeof game?.metacritic === "number" ? game.metacritic : null;
 
-    // Platforms (badges)
-    const platforms = Array.isArray(game?.platforms)
-      ? game.platforms
-          .map((p) => p?.platform?.name)
-          .filter(Boolean)
-          .slice(0, 6)
+    // Platform and genre badges
+    const platforms = Array.isArray(game?.parent_platforms)
+      ? game.parent_platforms.map(p => p.platform?.name).filter(Boolean)
       : [];
 
     const badgesHtml = platforms
-      .map((p) => `<span class="badge">${p}</span>`)
+      .slice(0, 5)
+      .map(p => `<span class="badge">${p}</span>`)
       .join("");
 
+    // Create card container
     const card = document.createElement("div");
     card.className = "card";
+    card.style.cursor = "pointer";
+    card.addEventListener("click", () => {
+      window.location.href = href;
+    });
 
-    // Determine Metacritic score or fallback
-let meta = null;
+    card.innerHTML = `
+      <div class="card-img">
+        ${
+          img
+            ? `<img src="${img}" alt="${name}" loading="lazy" style="width:100%;height:160px;object-fit:cover;border-top-left-radius:12px;border-top-right-radius:12px;" />`
+            : `<div style="width:100%;height:160px;background:#e5e7eb;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:center;color:#888;">No image</div>`
+        }
+      </div>
 
-if (typeof game?.metacritic === "number") {
-  meta = game.metacritic;
-} else if (Array.isArray(game?.metacritic_platforms) && game.metacritic_platforms.length > 0) {
-  const allScores = game.metacritic_platforms
-    .map(p => p?.metascore)
-    .filter(s => typeof s === "number");
-  if (allScores.length) {
-    meta = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+      <div class="card-body" style="padding:10px 12px;">
+        <div class="card-title" style="font-weight:700;font-size:1rem;margin-bottom:4px;color:#2563eb;">
+          ${name}
+        </div>
+
+        ${
+          metacritic
+            ? `<div style="
+                  display:inline-block;
+                  background:${metacritic >= 75 ? '#16a34a' : metacritic >= 50 ? '#facc15' : '#dc2626'};
+                  color:white;
+                  font-weight:700;
+                  border-radius:6px;
+                  padding:2px 6px;
+                  font-size:0.75rem;
+                  margin-bottom:6px;">
+                  ${metacritic}
+               </div>`
+            : `<div style="
+                  display:inline-block;
+                  background:#e5e7eb;
+                  color:#6b7280;
+                  font-weight:600;
+                  border-radius:6px;
+                  padding:2px 6px;
+                  font-size:0.75rem;
+                  margin-bottom:6px;">
+                  N/A
+               </div>`
+        }
+
+        <div class="card-meta" style="font-size:0.85rem;color:#6b7280;">Released: ${released}</div>
+        ${badgesHtml ? `<div class="badges" style="margin-top:6px;">${badgesHtml}</div>` : ""}
+      </div>
+    `;
+
+    li.appendChild(card);
+    ul.appendChild(li);
   }
 }
-
-// Build color-coded Metacritic badge
-const metaBadge = `
-  <div style="margin-top:4px;">
-    <span style="
-      display:inline-block;
-      background:${meta
-        ? meta >= 75
-          ? '#16a34a'
-          : meta >= 50
-          ? '#facc15'
-          : '#dc2626'
-        : '#e5e7eb'};
-      color:${meta ? 'white' : '#374151'};
-      font-weight:700;
-      border-radius:6px;
-      padding:2px 6px;
-      font-size:0.7rem;
-      line-height:1;
-      width:auto;
-      min-width:unset;
-      text-align:center;
-      white-space:nowrap;">
-      ${meta ?? 'N/A'}
-    </span>
-  </div>
-`;
-
-
-
-card.innerHTML = `
-  <div class="card-img">
-    ${img ? `<img src="${img}" alt="${name}" loading="lazy" />` : ""}
-  </div>
-
-  <div class="card-body">
-    <div class="card-title">
-      <a href="/game.html?slug=${slug}">${name}</a>
-    </div>
-
-    ${metaBadge}
-    <div class="card-meta">Released: ${released}</div>
-
-    ${badgesHtml ? `<div class="badges">${badgesHtml}</div>` : ""}
-  </div>
-`;
-
-
-    grid.appendChild(card);
-  }
-}
-
-
-  
 
 async function loadGames() {
   try {
@@ -247,20 +176,16 @@ async function loadGames() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Reload when dropdowns change
-  $("platform")?.addEventListener("change", loadGames);
-  $("sort")?.addEventListener("change", loadGames);
+// Reload when dropdowns change
+$("platform")?.addEventListener("change", loadGames);
+$("sort")?.addEventListener("change", loadGames);
 
-  // Time filter buttons (Today / This Week / Upcoming)
-  document.querySelectorAll("#time-filters button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      currentRange = btn.dataset.range;
-      loadGames();
-    });
+// Time filter buttons
+document.querySelectorAll("#time-filters button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    currentRange = btn.dataset.range;
+    loadGames();
   });
-
-  // First load
-  loadGames();
 });
 
+loadGames();

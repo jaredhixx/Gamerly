@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gamerly – Discover New Game Releases</title>
 
-  <meta name="description" content="Discover and filter newly released games by platform, genre, or rating. Gamerly makes finding your next favorite game effortless." />
-  <meta property="og:title" content="Gamerly – Discover and Filter New Game Releases" />
-  <meta property="og:description" content="Explore trending and upcoming games by platform, genre, or rating. Sleek, safe, and beautifully designed for gamers." />
+  <meta name="description" content="Discover and safely explore newly released games by platform, genre, and rating. Gamerly filters out explicit content automatically." />
+  <meta property="og:title" content="Gamerly – Discover Safe, New Game Releases" />
+  <meta property="og:description" content="Explore trending and upcoming games by platform, genre, or rating. Safe, modern, and beautifully designed for gamers." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.gamerly.net/" />
-  <meta property="og:image" content="https://www.gamerly.net/og-banner.png" />
   <link rel="canonical" href="https://www.gamerly.net/" />
 
   <style>
@@ -27,6 +26,7 @@
       .card-title{color:#fff}.card-meta{color:#aaa}
       .badge{background:rgba(255,255,255,.05);color:#eaeaea}
       .new-tag{background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.08));color:#fff}
+      .filter-bar{background:rgba(25,25,30,.85);border-color:rgba(255,255,255,.05);}
     }
 
     nav{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:center;gap:32px;
@@ -50,12 +50,21 @@
     main{max-width:1200px;margin:0 auto;padding:1.5rem;}
     h2{font-size:1.4rem;font-weight:700;margin-bottom:.4rem;}
 
-    .filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center;}
-    select,input,button{
+    .filter-bar{
+      position:sticky;top:50px;z-index:15;
+      display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center;
+      background:rgba(255,255,255,.85);backdrop-filter:blur(10px);
+      padding:10px;border:1px solid rgba(0,0,0,.05);border-radius:12px;
+      box-shadow:0 2px 10px rgba(0,0,0,.05);
+    }
+    input,select,button{
       font-family:inherit;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111;
       padding:6px 10px;font-size:.9rem;cursor:pointer;
     }
     input[type="text"]{flex:1;min-width:200px;}
+    @media(prefers-color-scheme:dark){
+      input,select,button{background:#1e1f22;color:#e5e5e7;border:1px solid rgba(255,255,255,.1);}
+    }
 
     #time-filters{display:flex;gap:8px;margin-top:12px;}
     #game-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;margin-top:28px;}
@@ -71,6 +80,11 @@
     .card-img{height:160px;overflow:hidden;position:relative;}
     .card-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
     .card:hover .card-img img{transform:scale(1.05);}
+    .placeholder{
+      width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#d4d4d4,#c0c0c0);color:#555;font-size:.9rem;
+    }
+    @media(prefers-color-scheme:dark){.placeholder{background:linear-gradient(135deg,#2a2a2d,#1f1f22);color:#aaa;}}
     .new-tag{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);
       color:#000;font-size:.7rem;font-weight:600;padding:5px 10px;border-radius:999px;
       box-shadow:0 0 10px rgba(255,255,255,.7);}
@@ -100,35 +114,23 @@
 
   <main>
     <h2>New Today</h2>
-    <p style="color:#555;">Explore and filter by platform, rating, or genre.</p>
-
     <div class="filter-bar">
       <input type="text" id="search" placeholder="Search by title..." />
       <select id="platform">
-        <option value="4">PC</option>
-        <option value="1">Xbox</option>
-        <option value="18">PlayStation</option>
-        <option value="7">Nintendo Switch</option>
-        <option value="3">iOS</option>
-        <option value="21">Android</option>
+        <option value="4">PC</option><option value="1">Xbox</option><option value="18">PlayStation</option>
+        <option value="7">Nintendo Switch</option><option value="3">iOS</option><option value="21">Android</option>
       </select>
       <select id="rating">
-        <option value="all">All Ratings</option>
-        <option value="80">Metacritic 80+</option>
-        <option value="60">Metacritic 60+</option>
+        <option value="all">All Ratings</option><option value="80">Metacritic 80+</option><option value="60">Metacritic 60+</option>
       </select>
       <select id="genre">
-        <option value="all">All Genres</option>
-        <option value="action">Action</option>
-        <option value="rpg">RPG</option>
-        <option value="adventure">Adventure</option>
-        <option value="strategy">Strategy</option>
-        <option value="shooter">Shooter</option>
-        <option value="indie">Indie</option>
+        <option value="all">All Genres</option><option value="action">Action</option><option value="rpg">RPG</option>
+        <option value="adventure">Adventure</option><option value="strategy">Strategy</option>
+        <option value="shooter">Shooter</option><option value="indie">Indie</option>
       </select>
     </div>
 
-    <div id="time-filters">
+    <div id="time-filters" style="margin-top:15px;">
       <button data-range="today">Today</button>
       <button data-range="week">This Week</button>
       <button data-range="upcoming">Upcoming</button>
@@ -146,18 +148,22 @@
     const mockGames={results:[
       {name:"Reanimal",background_image:"https://images.igdb.com/igdb/image/upload/t_cover_big/co7g7k.png",released:"2026-02-12",metacritic:91,genres:["adventure"],platforms:[{platform:{name:"PlayStation 5"}}]},
       {name:"Escape from Ever After",background_image:"https://images.igdb.com/igdb/image/upload/t_cover_big/co6ohp.png",released:"2026-01-22",metacritic:75,genres:["rpg"],platforms:[{platform:{name:"PC"}}]},
-      {name:"Star Horizon",background_image:"",released:"2026-01-15",metacritic:55,genres:["shooter"],platforms:[{platform:{name:"Xbox"}}]}
+      {name:"Star Horizon",background_image:"",released:"2026-01-15",metacritic:55,genres:["shooter"],platforms:[{platform:{name:"Xbox"}}]},
+      {name:"Obvious Adult Title",background_image:"https://fakecdn/pornbanner.png",released:"2026-02-01",metacritic:90,genres:["action"],platforms:[{platform:{name:"PC"}}]}
     ]};
 
-    let currentRange="today";
+    const BAD_WORDS=["porn","sex","nude","xxx","adult","hentai","explicit","ecchi","nsfw","fetish","violence","rape","naked","18+"];
     const $=id=>document.getElementById(id);
-    const formatDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-    const getDateRange=()=>{const t=new Date(),s=new Date(t),e=new Date(t);if(currentRange==="week")e.setDate(t.getDate()+7);if(currentRange==="upcoming")e.setDate(t.getDate()+30);return{startStr:formatDate(s),endStr:formatDate(e)};}
+    let currentRange="today";
+
+    function isSafe(name,url){
+      const lower=(name+url).toLowerCase();
+      return !BAD_WORDS.some(w=>lower.includes(w));
+    }
 
     async function fetchGames(){
       try{
-        const {startStr,endStr}=getDateRange(),platform=$("platform").value;
-        const res=await fetch(`/api/games?platform=${platform}&start=${startStr}&end=${endStr}`);
+        const res=await fetch("/api/games");
         if(!res.ok)throw new Error("offline");
         const data=await res.json();
         return data.results?.length?data:mockGames;
@@ -169,23 +175,26 @@
       const rating=parseInt($("rating").value)||0;
       const genre=$("genre").value;
       const results=(data.results||[]).filter(g=>{
+        if(!isSafe(g.name,g.background_image))return false;
         if(q&&!g.name.toLowerCase().includes(q))return false;
         if(rating!=="all"&&g.metacritic&&g.metacritic<rating)return false;
         if(genre!=="all"&&!(g.genres||[]).some(x=>x.toLowerCase().includes(genre)))return false;
         return true;
       });
-
       const grid=$("game-list");grid.innerHTML="";
-      if(!results.length)return grid.innerHTML="<div style='text-align:center;padding:20px;color:#666;'>No games found.</div>";
+      if(!results.length)return grid.innerHTML="<div style='text-align:center;padding:20px;color:#666;'>No safe results found.</div>";
 
       results.forEach(g=>{
         const meta=g.metacritic,metaClass=meta>=80?"green":meta>=60?"yellow":meta?"red":"gray",metaLabel=meta||"N/A";
         const diff=(new Date()-new Date(g.released))/(1000*60*60*24),isNew=diff<=7&&diff>=0;
         const plats=(g.platforms||[]).map(p=>`<span class='badge'>${p.platform.name}</span>`).join("");
+        const imgSafe=isSafe(g.name,g.background_image)&&g.background_image;
         const card=document.createElement("div");card.className="card";
         card.innerHTML=`
-          <div class="card-img">${g.background_image?`<img src="${g.background_image}" alt="${g.name}">`:`<div class='placeholder'>No Image</div>`}
-            ${isNew?`<div class='new-tag'>NEW</div>`:""}</div>
+          <div class="card-img">
+            ${imgSafe?`<img src="${g.background_image}" alt="${g.name}">`:`<div class='placeholder'>Safe Preview</div>`}
+            ${isNew?`<div class='new-tag'>NEW</div>`:""}
+          </div>
           <div class="card-body">
             <div class="card-title">${g.name}</div>
             <span class="meta-badge ${metaClass}">${metaLabel}</span>
@@ -200,8 +209,7 @@
 
     async function loadGames(){const data=await fetchGames();renderGames(data);}
     document.addEventListener("DOMContentLoaded",()=>{
-      $("platform").onchange=loadGames;$("rating").onchange=loadGames;$("genre").onchange=loadGames;
-      $("search").oninput=()=>loadGames();
+      ["platform","rating","genre","search"].forEach(id=>$(id).oninput=loadGames);
       document.querySelectorAll("#time-filters button").forEach(b=>b.onclick=()=>{currentRange=b.dataset.range;loadGames();});
       loadGames();
     });

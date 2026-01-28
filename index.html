@@ -106,7 +106,7 @@
         transform: translateY(30px);
       }
 
-      /* Apple-style scroll reveal animation */
+      /* Scroll reveal */
       .card.visible {
         opacity: 1;
         transform: translateY(0);
@@ -115,7 +115,7 @@
 
       .card:hover {
         transform: translateY(-5px) scale(1.01);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.15);
       }
 
       .card-img {
@@ -136,24 +136,37 @@
         transform: scale(1.05);
       }
 
-      /* ===== NEW TAG ===== */
+      /* ===== NEW TAG (with Apple-style gradient glow) ===== */
       .new-tag {
         position: absolute;
         top: 10px;
         right: 10px;
-        background: rgba(0, 0, 0, 0.85);
-        color: #fff;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(230, 230, 230, 0.9));
+        color: #000;
         font-size: 0.7rem;
         font-weight: 600;
         letter-spacing: 0.05em;
-        padding: 5px 9px;
+        padding: 5px 10px;
         border-radius: 999px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 2px 6px rgba(0, 0, 0, 0.2);
         backdrop-filter: blur(8px);
         user-select: none;
         opacity: 0;
         transform: translateY(-5px);
         animation: fadeIn 0.6s ease forwards 0.3s;
+      }
+
+      .new-tag::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(
+          circle at center,
+          rgba(255, 255, 255, 0.6) 0%,
+          rgba(255, 255, 255, 0.1) 80%
+        );
+        z-index: -1;
       }
 
       @keyframes fadeIn {
@@ -350,12 +363,12 @@
           const metaClass = meta >= 75 ? "green" : meta >= 50 ? "yellow" : meta ? "red" : "gray";
           const metaLabel = meta ? meta : "N/A";
 
-          /* ✅ Fixed NEW tag logic */
+          /* ✅ Working NEW tag */
           let isNew = false;
           if (released && released !== "TBA") {
             const releaseDate = new Date(released);
             const now = new Date();
-            const diffDays = (now.getTime() - releaseDate.getTime()) / (1000 * 60 * 60 * 24);
+            const diffDays = (now - releaseDate) / (1000 * 60 * 60 * 24);
             isNew = diffDays <= 7 && diffDays >= 0;
           }
 
@@ -386,7 +399,7 @@
           grid.appendChild(card);
         }
 
-        /* ✅ Scroll Reveal Animation */
+        /* Scroll reveal */
         const observer = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {

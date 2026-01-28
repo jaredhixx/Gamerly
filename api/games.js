@@ -1,37 +1,56 @@
 export default async function handler(req, res) {
-  const API_KEY = process.env.RAWG_API_KEY;
+  const { platform, sort, start, end } = req.query;
 
-  if (!API_KEY) {
-    return res.status(500).json({ error: "The API key is not found" });
+  const RAWG_KEY = process.env.RAWG_KEY;
+  if (!RAWG_KEY) {
+    return res.status(500).json({ error: "Server missing RAWG_KEY." });
   }
 
-  // Read query params (with safe defaults)
-  const platform = req.query.platform || "4"; // PC default
-  const sort = req.query.sort || "-added";
-  const start = req.query.start;
-  const end = req.query.end;
-  const pageSize = req.query.pageSize || "50";
+  // ✅ Build RAWG URL with key and filters
+  const url = new URL("https://api.rawg.io/api/games");
+  url.searchParams.set("key", RAWG_KEY);
+  url.searchParams.set("page_size", "40");
 
-  // If dates are missing, return a helpful error
-  if (!start || !end) {
-    return res.status(400).json({
-      error: "Missing start/end dates. Example: /api/games?platform=4&sort=-added&start=YYYY-MM-DD&end=YYYY-MM-DD"
-    });
+  if (platform) url.searchParams.set("platforms", platform);
+  if (sort) url.searchParams.set("ordering", sort);
+  if (start && end) {
+    url.searchParams.set("dates", `${start},${end}`);
+  } else {
+    // default range (last 30 days)
+    const today = new Date();
+    const past = new Date();
+    past.setDate(today.getDate() - 30);
+    url.searchParams.set("dates", `${past.toISOString().slice(0, 10)},${today.toISOString().slice(0, 10)}`);
   }
 
-  const url =
-    `https://api.rawg.io/api/games` +
-    `?dates=${start},${end}` +
-    `&platforms=${platform}` +
-    `&ordering=${sort}` +
-    `&page_size=${pageSize}` +
-    `&key=${API_KEY}`;
+  // ✅ Filter out adult / NSFW content
+  url.searchParams.set("exclude_additions", "true");
+  url.searchParams.set("exclude_stores", "9"); // exclude adult stores like Nutaku
+  url.searchParams.set("metacritic", "1,100");
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url.toString(), {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "GamerlyApp/1.0 (https://gamerly.net)"
+      },
+      cache: "no-store",
+    });
+
     const data = await response.json();
-    return res.status(200).json(data);
+
+    if (!response.ok || data.error) {
+      console.error("RAWG /games error:", data);
+      return res.status(500).json({ error: data?.error || "Error fetching games" });
+    }
+
+    // ✅ Only return essential data
+    return res.status(200).json({
+      count: data.count,
+      results: data.results,
+    });
   } catch (error) {
-    return res.status(500).json({ error: "Failed to fetch games" });
+    console.error("Server error fetching games:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }

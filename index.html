@@ -194,6 +194,23 @@
         font-size: 0.85rem;
         margin-top: 32px;
       }
+      /* ======== NEW TAG ======== */
+.new-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 4px 7px;
+  border-radius: 999px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+  user-select: none;
+}
+
     </style>
   </head>
 
@@ -296,6 +313,16 @@
           const slug = g?.slug;
           const href = slug ? `/game.html?slug=${slug}` : "#";
 
+          // ✅ Check if released within last 7 days
+let isNew = false;
+if (released && released !== "TBA") {
+  const releaseDate = new Date(released);
+  const now = new Date();
+  const diffDays = (now - releaseDate) / (1000 * 60 * 60 * 24);
+  isNew = diffDays <= 7 && diffDays >= 0;
+}
+
+
           const metaClass = meta >= 75 ? "green" : meta >= 50 ? "yellow" : meta ? "red" : "gray";
           const metaLabel = meta ? meta : "N/A";
 
@@ -311,14 +338,18 @@
           card.onclick = () => (window.location.href = href);
 
           card.innerHTML = `
-            <div class="card-img">${img ? `<img src="${img}" alt="${name}" />` : ""}</div>
-            <div class="card-body">
-              <div class="card-title">${name}</div>
-              <span class="meta-badge ${metaClass}">${metaLabel}</span>
-              <div class="card-meta">Released: ${released}</div>
-              ${badgesHtml ? `<div class="badges">${badgesHtml}</div>` : ""}
-            </div>
-          `;
+  <div class="card-img">
+    ${img ? `<img src="${img}" alt="${name}" />` : ""}
+    ${isNew ? `<div class="new-tag">NEW</div>` : ""}
+  </div>
+  <div class="card-body">
+    <div class="card-title">${name}</div>
+    <span class="meta-badge ${metaClass}">${metaLabel}</span>
+    <div class="card-meta">Released: ${released}</div>
+    ${badgesHtml ? `<div class="badges">${badgesHtml}</div>` : ""}
+  </div>
+`;
+
 
           grid.appendChild(card);
         }
@@ -348,3 +379,4 @@
     </script>
   </body>
 </html>
+

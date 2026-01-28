@@ -45,13 +45,11 @@ function $(id) {
 }
 
 function setListMessage(msg) {
-  const ul = $("game-list");
-  if (!ul) {
-    console.warn("Missing <ul id='game-list'> in index.html");
-    return;
-  }
-  ul.innerHTML = `<li style="border-bottom:none; color:#555;">${msg}</li>`;
+  const grid = $("game-list");
+  if (!grid) return;
+  grid.innerHTML = `<div style="padding:12px; color:#555;">${msg}</div>`;
 }
+
 
 async function fetchGames() {
   const platform = $("platform")?.value || "4";
@@ -81,16 +79,67 @@ async function fetchGames() {
 }
 
 function renderGames(data) {
-  const ul = $("game-list");
-  if (!ul) return;
+  const grid = $("game-list");
+  if (!grid) return;
 
   const results = Array.isArray(data?.results) ? data.results : [];
-  ul.innerHTML = "";
+  grid.innerHTML = "";
 
   if (results.length === 0) {
     setListMessage("No games returned for this date range / platform.");
     return;
   }
+
+  for (const game of results) {
+    const name = game?.name || "Untitled";
+    const released = game?.released || "TBA";
+    const img = game?.background_image || "";
+    const slug = game?.slug || "";
+    const href = slug ? `https://rawg.io/games/${slug}` : "#";
+
+    // Platforms (badges)
+    const platforms = Array.isArray(game?.platforms)
+      ? game.platforms
+          .map((p) => p?.platform?.name)
+          .filter(Boolean)
+          .slice(0, 6)
+      : [];
+
+    const badgesHtml = platforms
+      .map((p) => `<span class="badge">${p}</span>`)
+      .join("");
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-img">
+        ${
+          img
+            ? `<img src="${img}" alt="${name}" loading="lazy" />`
+            : ""
+        }
+      </div>
+
+      <div class="card-body">
+        <div class="card-title">
+          <a href="${href}" target="_blank" rel="noopener noreferrer">${name}</a>
+        </div>
+
+        <div class="card-meta">Released: ${released}</div>
+
+        ${
+          badgesHtml
+            ? `<div class="badges">${badgesHtml}</div>`
+            : ""
+        }
+      </div>
+    `;
+
+    grid.appendChild(card);
+  }
+}
+
 
   for (const game of results) {
     const li = document.createElement("li");

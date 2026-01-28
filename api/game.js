@@ -1,25 +1,26 @@
 export default async function handler(req, res) {
+  const { slug } = req.query;
+
+  if (!slug) {
+    return res.status(400).json({ error: "Missing slug parameter" });
+  }
+
+  const RAWG_API_KEY = process.env.RAWG_KEY;
+  const url = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}?key=${RAWG_API_KEY}`;
+
   try {
-    const { slug } = req.query;
+    const response = await fetch(url);
+    const data = await response.json();
 
-    if (!slug) {
-      return res.status(400).json({ error: "Missing slug parameter." });
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data?.error || "Error fetching game details",
+      });
     }
 
-    const apiKey = "ac669b002b534781818c488babf5aae4"; // RAWG key
-    const url = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}?key=${apiKey}`;
-
-    const rawgRes = await fetch(url);
-    if (!rawgRes.ok) {
-      return res
-        .status(rawgRes.status)
-        .json({ error: `RAWG error: ${rawgRes.statusText}` });
-    }
-
-    const data = await rawgRes.json();
     return res.status(200).json(data);
-  } catch (err) {
-    console.error("API error:", err);
-    return res.status(500).json({ error: "Server error fetching game details." });
+  } catch (error) {
+    console.error("Error fetching game details:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }

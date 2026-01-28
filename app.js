@@ -168,29 +168,58 @@ const results = resultsRaw.filter(isKidSafe);
     const card = document.createElement("div");
     card.className = "card";
 
-    card.innerHTML = `
-      <div class="card-img">
-        ${
-          img
-            ? `<img src="${img}" alt="${name}" loading="lazy" />`
-            : ""
-        }
-      </div>
+    // Determine Metacritic score or fallback
+let meta = null;
 
-      <div class="card-body">
-        <div class="card-title">
-          <a href="${href}" target="_blank" rel="noopener noreferrer">${name}</a>
-        </div>
+if (typeof game?.metacritic === "number") {
+  meta = game.metacritic;
+} else if (Array.isArray(game?.metacritic_platforms) && game.metacritic_platforms.length > 0) {
+  const allScores = game.metacritic_platforms
+    .map(p => p?.metascore)
+    .filter(s => typeof s === "number");
+  if (allScores.length) {
+    meta = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+  }
+}
 
-        <div class="card-meta">Released: ${released}</div>
+// Build color-coded Metacritic badge
+const metaBadge = `
+  <span style="
+    display:inline-block;
+    margin-top:4px;
+    background:${meta
+      ? meta >= 75
+        ? '#16a34a'
+        : meta >= 50
+        ? '#facc15'
+        : '#dc2626'
+      : '#e5e7eb'};
+    color:${meta ? 'white' : '#374151'};
+    font-weight:700;
+    border-radius:6px;
+    padding:2px 6px;
+    font-size:0.75rem;">
+    ${meta ? `Metacritic: ${meta}` : 'Metacritic: N/A'}
+  </span>
+`;
 
-        ${
-          badgesHtml
-            ? `<div class="badges">${badgesHtml}</div>`
-            : ""
-        }
-      </div>
-    `;
+card.innerHTML = `
+  <div class="card-img">
+    ${img ? `<img src="${img}" alt="${name}" loading="lazy" />` : ""}
+  </div>
+
+  <div class="card-body">
+    <div class="card-title">
+      <a href="/game.html?slug=${slug}">${name}</a>
+    </div>
+
+    ${metaBadge}
+    <div class="card-meta">Released: ${released}</div>
+
+    ${badgesHtml ? `<div class="badges">${badgesHtml}</div>` : ""}
+  </div>
+`;
+
 
     grid.appendChild(card);
   }

@@ -1,512 +1,263 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gamerly – New Releases</title>
-    <style>
-      /* ===== GLOBAL RESET ===== */
-      * {
-        box-sizing: border-box;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gamerly – New Releases</title>
+  <style>
+    /* === BASE === */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+      color:#1d1d1f;
+      background:linear-gradient(180deg,#f0f1f3 0%,#e8eaed 100%);
+      background-size:400% 400%;
+      animation:bgShift 20s ease-in-out infinite;
+      -webkit-font-smoothing:antialiased;
+      transition:background .6s,color .6s;
+    }
+    @keyframes bgShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-        margin: 0;
-        color: #1d1d1f;
-        -webkit-font-smoothing: antialiased;
-        background: linear-gradient(180deg, #f0f1f3 0%, #e8eaed 100%);
-        background-attachment: fixed;
-        background-size: 400% 400%;
-        animation: bgShift 20s ease-in-out infinite;
-        transition: background 0.6s ease, color 0.6s ease;
-      }
+    @media(prefers-color-scheme:dark){
+      body{background:linear-gradient(180deg,#111215 0%,#181a1e 100%);color:#e5e5e7}
+      header{background:rgba(15,15,18,.95);box-shadow:0 4px 18px rgba(0,0,0,.6)}
+      .card{background:rgba(40,40,45,.6);border:1px solid rgba(255,255,255,.06);box-shadow:0 4px 18px rgba(0,0,0,.3)}
+      .card-title{color:#fff}.card-meta{color:#aaa}
+      .badge{background:rgba(255,255,255,.05);color:#eaeaea;border-color:rgba(255,255,255,.08)}
+      .new-tag{background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.08));color:#fff;box-shadow:0 0 12px rgba(255,255,255,.3)}
+    }
 
-      @keyframes bgShift {
-        0% {
-          background-position: 0% 50%;
+    header{
+      background:rgba(0,0,0,.9);color:white;text-align:center;
+      padding:2rem 1rem 1.4rem;backdrop-filter:blur(12px);
+      position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,.15);
+    }
+    header h1{margin:0;font-weight:800;font-size:2.1rem;display:flex;align-items:center;justify-content:center;gap:10px;}
+    header h1 .flame{
+      width:22px;height:22px;border-radius:50%;
+      background:radial-gradient(circle at 40% 30%,#ffb347 0%,#ff5c33 60%,#ff1f00 100%);
+      box-shadow:0 0 15px rgba(255,85,34,.9);
+      animation:flicker 1.8s infinite ease-in-out alternate;
+    }
+    @keyframes flicker{0%{transform:scale(1);opacity:1}100%{transform:scale(1.1);opacity:.85}}
+    header .subtitle{font-weight:400;opacity:.75;font-size:1rem;margin-top:.3rem;display:block;}
+
+    main{max-width:1200px;margin:0 auto;padding:1.5rem;}
+    h2{font-size:1.4rem;font-weight:700;margin-bottom:.4rem;}
+    select,button{font-family:inherit;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111;padding:6px 10px;font-size:.9rem;cursor:pointer;}
+    #time-filters{display:flex;gap:8px;margin-top:12px;}
+
+    #game-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;margin-top:28px;}
+    .card{
+      position:relative;background:rgba(255,255,255,.9);border:1px solid rgba(0,0,0,.05);
+      border-radius:20px;overflow:hidden;display:flex;flex-direction:column;
+      box-shadow:0 4px 16px rgba(0,0,0,.08);transition:transform .4s,box-shadow .4s;
+      cursor:pointer;backdrop-filter:blur(10px);opacity:0;transform:translateY(30px);
+    }
+    .card.visible{opacity:1;transform:translateY(0);transition:all .8s cubic-bezier(.16,1,.3,1);}
+    .card:hover{transform:translateY(-6px) scale(1.015);box-shadow:0 12px 35px rgba(0,0,0,.18);}
+    .card::before{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(120deg,rgba(255,255,255,.25)0%,rgba(255,255,255,.05)40%,rgba(255,255,255,0)60%);
+      opacity:0;transition:opacity .5s;
+    }
+    .card:hover::before{opacity:1;}
+    .card-img{height:160px;overflow:hidden;position:relative;}
+    .card-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+    .card:hover .card-img img{transform:scale(1.05);}
+    .new-tag{
+      position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);
+      color:#000;font-size:.7rem;font-weight:600;letter-spacing:.05em;padding:5px 10px;border-radius:999px;
+      box-shadow:0 0 10px rgba(255,255,255,.7),0 2px 4px rgba(0,0,0,.25);
+      backdrop-filter:blur(8px);animation:fadeIn .6s ease forwards .3s;
+    }
+    @keyframes fadeIn{to{opacity:1;transform:translateY(0);}}
+    .card-body{padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;}
+    .card-title{font-weight:700;font-size:1.1rem;margin-bottom:6px;color:#000;text-shadow:0 1px 3px rgba(0,0,0,.15);}
+    .meta-badge{display:inline-block;padding:3px 6px;border-radius:6px;font-weight:600;font-size:.75rem;margin:4px 0;color:#fff;}
+    .meta-badge.green{background:#16a34a}.meta-badge.yellow{background:#facc15;color:#111}.meta-badge.red{background:#dc2626}.meta-badge.gray{background:#9ca3af}
+    .card-meta{color:#666;font-size:.9rem;margin-top:2px;}
+    .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;justify-content:center;}
+    .badge{font-size:.75rem;color:#111;background:#f3f4f6;border:1px solid #e5e7eb;padding:3px 8px;border-radius:999px;}
+    footer{text-align:center;color:#999;font-size:.85rem;margin-top:32px;}
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Gamerly <span class="flame"></span></h1>
+    <span class="subtitle">Discover newly released games</span>
+  </header>
+
+  <main>
+    <h2>New Today</h2>
+    <p style="color:#555;">Fresh game releases from the past few days.</p>
+
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+      <label>Platform:</label>
+      <select id="platform">
+        <option value="4">PC</option>
+        <option value="1">Xbox</option>
+        <option value="18">PlayStation</option>
+        <option value="7">Nintendo Switch</option>
+      </select>
+      <label>Sort by:</label>
+      <select id="sort">
+        <option value="-added">Most Popular</option>
+        <option value="-released">Newest</option>
+        <option value="name">Name (A–Z)</option>
+      </select>
+    </div>
+
+    <div id="time-filters">
+      <button data-range="today">Today</button>
+      <button data-range="week">This Week</button>
+      <button data-range="upcoming">Upcoming</button>
+    </div>
+
+    <div id="game-list"></div>
+  </main>
+
+  <footer>© 2026 Gamerly — Built with ❤️ for gamers.</footer>
+
+  <script>
+    const mockGames = {
+      results: [
+        {
+          name: "Pathologic 3",
+          background_image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co6oyc.png",
+          released: "2026-01-09",
+          metacritic: 84,
+          platforms: [{ platform: { name: "PC" } }]
+        },
+        {
+          name: "Reanimal",
+          background_image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co7g7k.png",
+          released: "2026-02-12",
+          metacritic: null,
+          platforms: [{ platform: { name: "PlayStation 5" } }, { platform: { name: "Xbox Series S/X" } }]
+        },
+        {
+          name: "Escape from Ever After",
+          background_image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co6ohp.png",
+          released: "2026-01-22",
+          metacritic: 91,
+          platforms: [{ platform: { name: "PC" } }]
         }
-        50% {
-          background-position: 100% 50%;
-        }
-        100% {
-          background-position: 0% 50%;
-        }
-      }
+      ]
+    };
 
-      /* ===== DARK MODE ===== */
-      @media (prefers-color-scheme: dark) {
-        body {
-          background: linear-gradient(180deg, #111215 0%, #181a1e 100%);
-          color: #e5e5e7;
-        }
-        header {
-          background: rgba(15, 15, 18, 0.95);
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
-        }
-        .card {
-          background: rgba(40, 40, 45, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
-        }
-        .card-title {
-          color: #fff;
-        }
-        .card-meta {
-          color: #aaa;
-        }
-        .badge {
-          background: rgba(255, 255, 255, 0.05);
-          color: #eaeaea;
-          border-color: rgba(255, 255, 255, 0.08);
-        }
-        .new-tag {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
-          color: #fff;
-          box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
-        }
-      }
+    let currentRange = "today";
+    const $ = (id) => document.getElementById(id);
+    const setMsg = (msg) =>
+      ($("game-list").innerHTML = `<div style="padding:20px;text-align:center;color:#666;">${msg}</div>`);
 
-      /* ===== HEADER ===== */
-      header {
-        background: rgba(0, 0, 0, 0.9);
-        color: white;
-        text-align: center;
-        padding: 2rem 1rem 1.6rem;
-        backdrop-filter: blur(12px);
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-        transition: background 0.6s ease;
-      }
+    async function fetchGames() {
+      const { startStr, endStr } = getDateRange();
+      const platform = $("platform").value;
+      const sort = $("sort").value;
+      const url = `/api/games?platform=${platform}&sort=${sort}&start=${startStr}&end=${endStr}`;
 
-      header h1 {
-        margin: 0;
-        font-weight: 800;
-        font-size: 2.1rem;
-        letter-spacing: -0.02em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-      }
-
-      header h1 span.flame {
-        display: inline-block;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: radial-gradient(circle at 40% 30%, #ffb347 0%, #ff5c33 60%, #ff1f00 100%);
-        box-shadow: 0 0 15px rgba(255, 85, 34, 0.9);
-        animation: flicker 1.8s infinite ease-in-out alternate;
-        transition: all 0.6s ease;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        header h1 span.flame {
-          background: radial-gradient(circle at 40% 30%, #ffd06b 0%, #ff7f50 60%, #ff4500 100%);
-          box-shadow: 0 0 20px rgba(255, 120, 60, 0.9);
-        }
-      }
-
-      @keyframes flicker {
-        0% {
-          transform: scale(1);
-          opacity: 1;
-        }
-        100% {
-          transform: scale(1.1);
-          opacity: 0.85;
-        }
-      }
-
-      header span.subtitle {
-        font-weight: 400;
-        opacity: 0.75;
-        font-size: 1rem;
-        display: block;
-        margin-top: 0.4rem;
-      }
-
-      main {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 1.5rem;
-      }
-
-      h2 {
-        font-size: 1.4rem;
-        font-weight: 700;
-        margin-bottom: 0.4rem;
-      }
-
-      select,
-      button {
-        font-family: inherit;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        background: #fff;
-        color: #111;
-        padding: 6px 10px;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: background 0.2s ease, color 0.2s ease;
-      }
-
-      button:hover,
-      select:hover {
-        background: #f0f0f0;
-      }
-
-      #time-filters {
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-      }
-
-      /* ===== GRID ===== */
-      #game-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 22px;
-        margin-top: 28px;
-      }
-
-      /* ===== CARD ===== */
-      .card {
-        position: relative;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        border-radius: 20px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        transition: transform 0.4s ease, box-shadow 0.4s ease;
-        cursor: pointer;
-        backdrop-filter: blur(10px);
-        opacity: 0;
-        transform: translateY(30px);
-      }
-
-      .card.visible {
-        opacity: 1;
-        transform: translateY(0);
-        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .card:hover {
-        transform: translateY(-6px) scale(1.015);
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
-      }
-
-      /* Light reflection effect */
-      .card::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          120deg,
-          rgba(255, 255, 255, 0.25) 0%,
-          rgba(255, 255, 255, 0.05) 40%,
-          rgba(255, 255, 255, 0) 60%
-        );
-        opacity: 0;
-        transition: opacity 0.5s ease;
-      }
-
-      .card:hover::before {
-        opacity: 1;
-      }
-
-      .card-img {
-        height: 160px;
-        background: #e5e5e5;
-        overflow: hidden;
-        position: relative;
-      }
-
-      .card-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.4s ease;
-      }
-
-      .card:hover .card-img img {
-        transform: scale(1.05);
-      }
-
-      /* ===== NEW TAG ===== */
-      .new-tag {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 240, 240, 0.85));
-        color: #000;
-        font-size: 0.7rem;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        padding: 5px 10px;
-        border-radius: 999px;
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 2px 4px rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(8px);
-        user-select: none;
-        opacity: 0;
-        transform: translateY(-5px);
-        animation: fadeIn 0.6s ease forwards 0.3s;
-      }
-
-      @keyframes fadeIn {
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* ===== CARD BODY ===== */
-      .card-body {
-        padding: 16px;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .card-title {
-        font-weight: 700;
-        font-size: 1.1rem;
-        margin-bottom: 6px;
-        color: #000;
-        letter-spacing: -0.02em;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-        transition: all 0.25s ease;
-      }
-
-      .card-title:hover {
-        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-      }
-
-      .meta-badge {
-        display: inline-block;
-        padding: 3px 6px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.75rem;
-        margin: 4px 0;
-        color: #fff;
-      }
-
-      .meta-badge.green {
-        background: #16a34a;
-      }
-
-      .meta-badge.yellow {
-        background: #facc15;
-        color: #111;
-      }
-
-      .meta-badge.red {
-        background: #dc2626;
-      }
-
-      .meta-badge.gray {
-        background: #9ca3af;
-      }
-
-      .card-meta {
-        color: #666;
-        font-size: 0.9rem;
-        margin-top: 2px;
-      }
-
-      .badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 8px;
-        justify-content: center;
-      }
-
-      .badge {
-        font-size: 0.75rem;
-        color: #111;
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
-        padding: 3px 8px;
-        border-radius: 999px;
-      }
-
-      footer {
-        text-align: center;
-        color: #999;
-        font-size: 0.85rem;
-        margin-top: 32px;
-      }
-    </style>
-  </head>
-
-  <body>
-    <header>
-      <h1>Gamerly <span class="flame"></span></h1>
-      <span class="subtitle">Discover newly released games</span>
-    </header>
-
-    <main>
-      <h2>New Today</h2>
-      <p style="color:#555;">Fresh game releases from the past few days.</p>
-
-      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-        <label>Platform:</label>
-        <select id="platform">
-          <option value="4">PC</option>
-          <option value="1">Xbox</option>
-          <option value="18">PlayStation</option>
-          <option value="7">Nintendo Switch</option>
-        </select>
-
-        <label>Sort by:</label>
-        <select id="sort">
-          <option value="-added">Most Popular</option>
-          <option value="-released">Newest</option>
-          <option value="name">Name (A-Z)</option>
-        </select>
-      </div>
-
-      <div id="time-filters">
-        <button data-range="today">Today</button>
-        <button data-range="week">This Week</button>
-        <button data-range="upcoming">Upcoming</button>
-      </div>
-
-      <div id="game-list"></div>
-    </main>
-
-    <footer>© 2026 Gamerly — Built with ❤️ for gamers.</footer>
-
-    <script>
-      let currentRange = "today";
-
-      function formatDate(d) {
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        return `${yyyy}-${mm}-${dd}`;
-      }
-
-      function getDateRange() {
-        const today = new Date();
-        let start = new Date(today);
-        let end = new Date(today);
-        if (currentRange === "today") end = new Date(today);
-        if (currentRange === "week") end.setDate(today.getDate() + 7);
-        if (currentRange === "upcoming") end.setDate(today.getDate() + 30);
-        return { startStr: formatDate(start), endStr: formatDate(end) };
-      }
-
-      function $(id) {
-        return document.getElementById(id);
-      }
-
-      function setListMessage(msg) {
-        $("game-list").innerHTML = `<div style="padding:20px;text-align:center;color:#666;">${msg}</div>`;
-      }
-
-      async function fetchGames() {
-        const platform = $("platform").value;
-        const sort = $("sort").value;
-        const { startStr, endStr } = getDateRange();
-        const url = `/api/games?platform=${platform}&sort=${sort}&start=${startStr}&end=${endStr}`;
-        const res = await fetch(url, { cache: "no-store" });
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("API offline");
         const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Failed to load");
+        if (!data.results?.length) throw new Error("Empty API data");
         return data;
+      } catch (err) {
+        console.warn("Using mock data instead:", err.message);
+        return mockGames;
       }
+    }
 
-      function renderGames(data) {
-        const grid = $("game-list");
-        grid.innerHTML = "";
-        const results = data?.results || [];
-        if (!results.length) {
-          setListMessage("No games found for this range/platform.");
-          return;
+    function formatDate(d) {
+      const yyyy = d.getFullYear(),
+        mm = String(d.getMonth() + 1).padStart(2, "0"),
+        dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function getDateRange() {
+      const t = new Date(),
+        s = new Date(t),
+        e = new Date(t);
+      if (currentRange === "week") e.setDate(t.getDate() + 7);
+      if (currentRange === "upcoming") e.setDate(t.getDate() + 30);
+      return { startStr: formatDate(s), endStr: formatDate(e) };
+    }
+
+    function renderGames(data) {
+      const grid = $("game-list");
+      grid.innerHTML = "";
+      const results = data.results || [];
+      if (!results.length) return setMsg("No games found.");
+
+      results.forEach((g) => {
+        const name = g.name || "Untitled";
+        const img = g.background_image || "";
+        const released = g.released || "TBA";
+        const meta = g.metacritic;
+        const metaClass = meta >= 75 ? "green" : meta >= 50 ? "yellow" : meta ? "red" : "gray";
+        const metaLabel = meta ? meta : "N/A";
+
+        let isNew = false;
+        if (released && released !== "TBA") {
+          const diff = (new Date() - new Date(released)) / (1000 * 60 * 60 * 24);
+          isNew = diff <= 7 && diff >= 0;
         }
 
-        for (const g of results) {
-          const name = g?.name || "Untitled";
-          const img = g?.background_image || "";
-          const released = g?.released || "TBA";
-          const meta = g?.metacritic;
-          const slug = g?.slug;
-          const href = slug ? `/game.html?slug=${slug}` : "#";
+        const plats = (g.platforms || [])
+          .map((p) => `<span class="badge">${p.platform.name}</span>`)
+          .join("");
 
-          const metaClass = meta >= 75 ? "green" : meta >= 50 ? "yellow" : meta ? "red" : "gray";
-          const metaLabel = meta ? meta : "N/A";
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-img">
+            ${img ? `<img src="${img}" alt="${name}">` : ""}
+            ${isNew ? `<div class="new-tag">NEW</div>` : ""}
+          </div>
+          <div class="card-body">
+            <div class="card-title">${name}</div>
+            <span class="meta-badge ${metaClass}">${metaLabel}</span>
+            <div class="card-meta">Released: ${released}</div>
+            ${plats ? `<div class="badges">${plats}</div>` : ""}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
 
-          let isNew = false;
-          if (released && released !== "TBA") {
-            const releaseDate = new Date(released);
-            const now = new Date();
-            const diffDays = (now - releaseDate) / (1000 * 60 * 60 * 24);
-            isNew = diffDays <= 7 && diffDays >= 0;
-          }
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              obs.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+      document.querySelectorAll(".card").forEach((c) => obs.observe(c));
+    }
 
-          const plats = (g?.platforms || [])
-            .map((p) => p?.platform?.name)
-            .filter(Boolean)
-            .slice(0, 4);
+    async function loadGames() {
+      setMsg("Loading...");
+      const data = await fetchGames();
+      renderGames(data);
+    }
 
-          const badgesHtml = plats.map((p) => `<span class="badge">${p}</span>`).join("");
-
-          const card = document.createElement("div");
-          card.className = "card";
-          card.onclick = () => (window.location.href = href);
-
-          card.innerHTML = `
-            <div class="card-img">
-              ${img ? `<img src="${img}" alt="${name}" />` : ""}
-              ${isNew ? `<div class="new-tag">NEW</div>` : ""}
-            </div>
-            <div class="card-body">
-              <div class="card-title">${name}</div>
-              <span class="meta-badge ${metaClass}">${metaLabel}</span>
-              <div class="card-meta">Released: ${released}</div>
-              ${badgesHtml ? `<div class="badges">${badgesHtml}</div>` : ""}
-            </div>
-          `;
-
-          grid.appendChild(card);
-        }
-
-        const observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("visible");
-                observer.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.1 }
-        );
-        document.querySelectorAll(".card").forEach((card) => observer.observe(card));
-      }
-
-      async function loadGames() {
-        try {
-          setListMessage("Loading...");
-          const data = await fetchGames();
-          renderGames(data);
-        } catch (e) {
-          setListMessage(`Error: ${e.message}`);
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", () => {
-        $("platform").addEventListener("change", loadGames);
-        $("sort").addEventListener("change", loadGames);
-        document.querySelectorAll("#time-filters button").forEach((b) =>
-          b.addEventListener("click", () => {
-            currentRange =
-
+    document.addEventListener("DOMContentLoaded", () => {
+      $("platform").onchange = loadGames;
+      $("sort").onchange = loadGames;
+      document.querySelectorAll("#time-filters button").forEach((b) => {
+        b.onclick = () => {
+          currentRange = b.dataset.range;
+          loadGames();
+        };
+      });
+      loadGames();
+    });
+  </script>
+</body>
+</html>

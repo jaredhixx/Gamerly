@@ -5,294 +5,346 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gamerly – New Releases</title>
     <style>
-  body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  margin: 0;
-  padding: 0;
-  background: linear-gradient(to bottom, #f9fafb, #e5e7eb);
-  color: #111;
-  transition: background 0.5s ease;
-}
+      /* ========== BASE STYLES ========== */
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+        margin: 0;
+        background: #f9fafb;
+        color: #111;
+      }
 
+      header {
+        background: #111;
+        color: white;
+        padding: 32px 24px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 1.8rem;
+        letter-spacing: -0.03em;
+      }
 
-  header {
-    background: #111827;
-    color: white;
-    padding: 24px;
-  }
+      header span {
+        font-weight: 400;
+        opacity: 0.7;
+        font-size: 1rem;
+        display: block;
+        margin-top: 6px;
+      }
 
-  main {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 24px;
-  }
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+      }
 
-  h1 {
-    margin: 0;
-    font-size: 2rem;
-  }
+      h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
 
-  h2 {
-    margin-top: 0;
-  }
+      select,
+      button {
+        font-family: inherit;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        color: #111;
+        padding: 6px 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
 
-  .subtitle {
-    color: #555;
-  }
+      button:hover,
+      select:hover {
+        background: #f3f4f6;
+      }
 
-  .note {
-    color: #777;
-    font-size: 0.9rem;
-  }
+      #time-filters {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
 
-  label {
-    margin-right: 8px;
-    font-weight: 600;
-  }
+      /* ========== GRID ========== */
+      #game-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+        margin-top: 24px;
+      }
 
-  select {
-    margin-right: 16px;
-    padding: 4px 6px;
-  }
+      /* ========== CARD ========== */
+      .card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+      }
 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 20px;
-  }
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      }
 
-  li {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid #e5e7eb;
-  }
+      .card-img {
+        height: 150px;
+        background: #f3f4f6;
+        overflow: hidden;
+        position: relative;
+      }
 
-  li img {
-    border-radius: 6px;
-  }
+      .card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
 
-  a {
-    font-weight: 600;
-    text-decoration: none;
-    color: #2563eb;
-  }
+      .card:hover .card-img img {
+        transform: scale(1.05);
+      }
 
-  a:hover {
-    text-decoration: underline;
-  }
-  /* =========================
-   GAME CARD GRID
-   ========================= */
+      /* ========== CARD BODY ========== */
+      .card-body {
+        padding: 14px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
 
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  margin-top: 20px;
-}
+      /* ========== TITLE ========== */
+      .card-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin-bottom: 6px;
+        color: #000;
+        letter-spacing: -0.02em;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        transition: all 0.25s ease;
+      }
 
-/* ============ CARD BASE ============ */
-.card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-  cursor: pointer;
-}
+      .card-title:hover {
+        color: #000;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+      }
 
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-}
+      /* ========== METACRITIC BADGE ========== */
+      .meta-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        margin: 4px 0;
+        color: #fff;
+      }
 
-/* ============ CARD IMAGE ============ */
-.card-img {
-  position: relative;
-  overflow: hidden;
-  height: 140px;
-  background: #f3f4f6;
-}
+      .meta-badge.green {
+        background: #16a34a;
+      }
 
-.card-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.25s ease;
-}
+      .meta-badge.yellow {
+        background: #facc15;
+        color: #111;
+      }
 
-.card:hover .card-img img {
-  transform: scale(1.05);
-}
+      .meta-badge.red {
+        background: #dc2626;
+      }
 
-.card-img::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0);
-  transition: background 0.25s ease;
-}
+      .meta-badge.gray {
+        background: #9ca3af;
+      }
 
-.card:hover .card-img::after {
-  background: rgba(0, 0, 0, 0.15);
-}
+      .card-meta {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 2px;
+      }
 
-/* ============ CARD BODY ============ */
-.card-body {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
+      /* ========== PLATFORM TAGS ========== */
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+        justify-content: center;
+      }
 
-/* ============ GAME TITLE ============ */
-.card-title {
-  font-weight: 700;
-  line-height: 1.3;
-  margin: 8px 0 6px 0;
-  text-align: center;
-  font-size: 1.05rem;
-  color: #111;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
-  padding: 4px 8px;
-  width: fit-content;
-  max-width: 90%;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
-  transition: all 0.25s ease;
-}
+      .badge {
+        font-size: 0.75rem;
+        color: #111;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        padding: 3px 8px;
+        border-radius: 999px;
+      }
 
-.card-title:hover {
-  background: rgba(255, 255, 255, 0.85);
-  transform: scale(1.03);
-  color: #000;
-  text-decoration: none;
-}
-
-
-/* ============ META INFO ============ */
-.card-meta {
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
-/* ============ METACRITIC BADGE ============ */
-.meta-badge {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.75rem;
-  margin: 4px 0;
-  color: #fff;
-}
-
-.meta-badge.green { background: #16a34a; }
-.meta-badge.yellow { background: #facc15; }
-.meta-badge.red { background: #dc2626; }
-.meta-badge.gray { background: #9ca3af; }
-
-/* ============ PLATFORM BADGES ============ */
-.badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
-  justify-content: center;
-}
-
-.badge {
-  font-size: 0.75rem;
-  color: #374151;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  padding: 3px 8px;
-  border-radius: 999px;
-}
-
-/* =========================
-   CARD HOVER ANIMATION
-   ========================= */
-.card {
-  transition: transform 0.2s ease, box-shadow 0.25s ease;
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
-}
-    
-</style>
-
-
+      /* ========== FOOTER ========== */
+      footer {
+        text-align: center;
+        color: #999;
+        font-size: 0.85rem;
+        margin-top: 32px;
+      }
+    </style>
   </head>
 
   <body>
     <header>
-  <h1>Gamerly 🔥</h1>
-  <p>Discover newly released games 🔥</p>
-</header>
+      Gamerly
+      <span>Discover newly released games</span>
+    </header>
 
-<main>
-  <h2>New Today</h2>
-<p class="subtitle">New game releases from the past 7 days</p>
-<p class="note">Showing the most recent releases across platforms.</p>
+    <main>
+      <h2>New Today</h2>
+      <p style="color:#555;">Fresh game releases from the past few days.</p>
 
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+        <label>Platform:</label>
+        <select id="platform">
+          <option value="4">PC</option>
+          <option value="1">Xbox</option>
+          <option value="18">PlayStation</option>
+          <option value="7">Nintendo Switch</option>
+        </select>
 
-  <label for="platform">Platform:</label>
-<select id="platform">
-  <option value="4" selected>PC</option>
-  <option value="187">PlayStation</option>
-  <option value="1">Xbox</option>
-  <option value="7">Nintendo Switch</option>
-  <option value="3">iOS</option>
-  <option value="21">Android</option>
-</select>
+        <label>Sort by:</label>
+        <select id="sort">
+          <option value="-added">Most Popular</option>
+          <option value="-released">Newest</option>
+          <option value="name">Name (A-Z)</option>
+        </select>
+      </div>
 
-<label for="sort">Sort by:</label>
-<select id="sort">
-  <option value="-added" selected>Most Popular</option>
-  <option value="-released">Newest</option>
-</select>
-  <div id="time-filters" style="margin-top: 16px;">
-  <button data-range="today">Today</button>
-  <button data-range="week">This Week</button>
-  <button data-range="upcoming">Upcoming</button>
-</div>
+      <div id="time-filters">
+        <button data-range="today">Today</button>
+        <button data-range="week">This Week</button>
+        <button data-range="upcoming">Upcoming</button>
+      </div>
 
+      <div id="game-list"></div>
+    </main>
 
-<div id="game-list" class="cards"></div>
+    <footer>© 2026 Gamerly — Built with ❤️ for gamers.</footer>
 
+    <script>
+      let currentRange = "today";
 
-</main>
-<script src="./app.js"></script>
-</body>
+      function formatDate(d) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      function getDateRange() {
+        const today = new Date();
+        let start = new Date(today);
+        let end = new Date(today);
+
+        if (currentRange === "today") end = new Date(today);
+        if (currentRange === "week") end.setDate(today.getDate() + 7);
+        if (currentRange === "upcoming") end.setDate(today.getDate() + 30);
+
+        return { startStr: formatDate(start), endStr: formatDate(end) };
+      }
+
+      function $(id) {
+        return document.getElementById(id);
+      }
+
+      function setListMessage(msg) {
+        $("game-list").innerHTML = `<div style="padding:20px;text-align:center;color:#666;">${msg}</div>`;
+      }
+
+      async function fetchGames() {
+        const platform = $("platform").value;
+        const sort = $("sort").value;
+        const { startStr, endStr } = getDateRange();
+
+        const url = `/api/games?platform=${platform}&sort=${sort}&start=${startStr}&end=${endStr}`;
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data?.error || "Failed to load");
+        return data;
+      }
+
+      function renderGames(data) {
+        const grid = $("game-list");
+        grid.innerHTML = "";
+        const results = data?.results || [];
+
+        if (!results.length) {
+          setListMessage("No games found for this range/platform.");
+          return;
+        }
+
+        for (const g of results) {
+          const name = g?.name || "Untitled";
+          const img = g?.background_image || "";
+          const released = g?.released || "TBA";
+          const meta = g?.metacritic;
+          const slug = g?.slug;
+          const href = slug ? `/game.html?slug=${slug}` : "#";
+
+          const metaClass = meta >= 75 ? "green" : meta >= 50 ? "yellow" : meta ? "red" : "gray";
+          const metaLabel = meta ? meta : "N/A";
+
+          const plats = (g?.platforms || [])
+            .map((p) => p?.platform?.name)
+            .filter(Boolean)
+            .slice(0, 4);
+
+          const badgesHtml = plats.map((p) => `<span class="badge">${p}</span>`).join("");
+
+          const card = document.createElement("div");
+          card.className = "card";
+          card.onclick = () => (window.location.href = href);
+
+          card.innerHTML = `
+            <div class="card-img">${img ? `<img src="${img}" alt="${name}" />` : ""}</div>
+            <div class="card-body">
+              <div class="card-title">${name}</div>
+              <span class="meta-badge ${metaClass}">${metaLabel}</span>
+              <div class="card-meta">Released: ${released}</div>
+              ${badgesHtml ? `<div class="badges">${badgesHtml}</div>` : ""}
+            </div>
+          `;
+
+          grid.appendChild(card);
+        }
+      }
+
+      async function loadGames() {
+        try {
+          setListMessage("Loading...");
+          const data = await fetchGames();
+          renderGames(data);
+        } catch (e) {
+          setListMessage(`Error: ${e.message}`);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        $("platform").addEventListener("change", loadGames);
+        $("sort").addEventListener("change", loadGames);
+        document.querySelectorAll("#time-filters button").forEach((b) =>
+          b.addEventListener("click", () => {
+            currentRange = b.dataset.range;
+            loadGames();
+          })
+        );
+        loadGames();
+      });
+    </script>
+  </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -10,12 +10,35 @@ function formatDate(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function getLast7DaysRange() {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - 30);
-  return { start: formatDate(start), end: formatDate(end) };
+function getDateRange() {
+  const today = new Date();
+
+  let start;
+  let end;
+
+  if (currentRange === "today") {
+    start = new Date(today);
+    end = new Date(today);
+  }
+
+  if (currentRange === "week") {
+    start = new Date(today);
+    end = new Date(today);
+    end.setDate(end.getDate() + 7);
+  }
+
+  if (currentRange === "upcoming") {
+    start = new Date(today);
+    end = new Date(today);
+    end.setDate(end.getDate() + 30);
+  }
+
+  return {
+    startStr: formatDate(start),
+    endStr: formatDate(end),
+  };
 }
+
 
 function $(id) {
   return document.getElementById(id);

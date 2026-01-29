@@ -1,10 +1,9 @@
 //
-// Gamerly app.js v6 — Smart Filters, Caching, and Apple-Polished
+// Gamerly app.js v7 — Fully correct filters + sorting + caching
 //
 
 const API_BASE = "/api/games";
 
-// 🔞 NSFW keyword blacklist
 const NSFW_KEYWORDS = [
   "sex","porn","hentai","nsfw","xxx","ecchi","boob","tits","nude","nudity",
   "strip","lewd","fetish","bdsm","adult","erotic","sexual","explicit","18+",
@@ -17,44 +16,15 @@ const sortEl = document.getElementById("sort");
 const searchEl = document.getElementById("search");
 const dateEl = document.getElementById("date-range");
 
-let allGames = [];
 let cache = {};
+let allGames = [];
 
-// =============== 🔹 Build API URL ===============
-function buildApiUrl() {
-  const platform = platformEl.value;
-  const sort = sortEl.value;
-  const dateFilter = dateEl.value;
+// ========== HELPER FUNCTIONS ==========
 
-  const today = new Date();
-  const format = d => d.toISOString().split("T")[0];
-
-  let startDate, endDate;
-  if (dateFilter === "today") {
-    startDate = endDate = format(today);
-  } else if (dateFilter === "week") {
-    const lastWeek = new Date(today);
-    lastWeek.setDate(today.getDate() - 7);
-    startDate = format(lastWeek);
-    endDate = format(today);
-  } else if (dateFilter === "year") {
-    const lastYear = new Date(today);
-    lastYear.setFullYear(today.getFullYear() - 1);
-    startDate = format(lastYear);
-    endDate = format(today);
-  }
-
-  const dateRange = startDate && endDate ? `&dates=${startDate},${endDate}` : "";
-  const ordering =
-    sort === "released" ? "-released" :
-    sort === "-rating" ? "-rating" :
-    sort === "name" ? "name" : "-released";
-
-  // RAWG needs platform IDs not names, but your API proxy may handle this
-  return `${API_BASE}?platform=${platform}&ordering=${ordering}${dateRange}&page_size=30`;
+function normalizeText(x) {
+  return String(x || "").toLowerCase();
 }
 
-// =============== 🔹 NSFW Filter ===============
 function isSafe(game) {
   const fields = [
     game.name,
@@ -66,87 +36,104 @@ function isSafe(game) {
     ...(game.stores || []).map(s => s.store?.name || "")
   ].join(" ").toLowerCase();
 
-  for (const bad of NSFW_KEYWORDS) if (fields.includes(bad)) return false;
-  const esrb = game.esrb_rating?.name?.toLowerCase() || "";
-  if (esrb.includes("adult") || esrb.includes("mature 18")) return false;
+  for (const bad of NSFW_KEYWORDS) {
+    if (fields.includes(bad)) return false;
+  }
+  const esrb = normalizeText(game.esrb_rating?.name);
+  if (esrb.includes("adults") || esrb.includes("mature 18")) return false;
 
-  const img = (game.background_image || "").toLowerCase();
+  const img = normalizeText(game.background_image);
   if (img.match(/adult|hentai|sex|erotic/)) return false;
 
   return true;
 }
 
-// =============== 🔹 Smart Cache (5min) ===============
-function getCacheKey() {
-  return `${platformEl.value}-${sortEl.value}-${dateEl.value}`;
+function getDateRangeFilter(list) {
+  const df = dateEl.value;
+  const now = new Date();
+  const filtered = list.filter(game => {
+    if (!game.released) return false;
+
+    const release = new Date(game.released);
+    const diff = (now - release) / (1000 * 60 * 60 * 24);
+
+    if (df === "today") return diff <= 1 && diff >= 0;
+    if (df === "week") return diff <= 7 && diff >= 0;
+    if (df === "year") return diff <= 365 && diff >= 0;
+    return true; // all
+  });
+
+  return filtered;
 }
 
-function getCachedResults() {
-  const key = getCacheKey();
-  const entry = cache[key];
+function sortGames(list) {
+  const s = sortEl.value;
+
+  if (s === "released" || s === "-released") {
+    return list.sort((a, b) => new Date(b.released) - new Date(a.released));
+  }
+  if (s === "-rating") {
+    return list.sort((a, b) => (b.metacritic || 0) - (a.metacritic || 0));
+  }
+  if (s === "name") {
+    return list.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  return list;
+}
+
+function applySearch(list) {
+  const q = searchEl.value.trim().toLowerCase();
+  if (!q) return list;
+  return list.filter(g => g.name.toLowerCase().includes(q));
+}
+
+function cacheKey() {
+  return `${platformEl.value}-${dateEl.value}-${sortEl.value}`;
+}
+
+function getCached() {
+  const k = cacheKey();
+  const entry = cache[k];
   if (!entry) return null;
-  const age = Date.now() - entry.timestamp;
-  if (age > 5 * 60 * 1000) return null; // 5 min expiry
+  if (Date.now() - entry.time > 1000 * 60 * 5) return null; // 5 min
   return entry.data;
 }
 
-function setCachedResults(data) {
-  const key = getCacheKey();
-  cache[key] = { data, timestamp: Date.now() };
+function setCached(data) {
+  cache[cacheKey()] = { data, time: Date.now() };
 }
 
-// =============== 🔹 Fetch & Filter Games ===============
 async function fetchGames() {
-  const cached = getCachedResults();
-  if (cached) return cached;
+  const hit = getCached();
+  if (hit) return hit;
 
   try {
-    const url = buildApiUrl();
+    const url = `${API_BASE}?platform=${platformEl.value}&page_size=100`;
     const res = await fetch(url, { cache: "no-store" });
     const data = await res.json();
-    let results = (data?.results || []).filter(isSafe);
-
-    // Strict recheck: filter by release window locally too
-    const now = new Date();
-    const dateFilter = dateEl.value;
-    if (dateFilter !== "all") {
-      results = results.filter(g => {
-        if (!g.released) return false;
-        const release = new Date(g.released);
-        const diffDays = (now - release) / (1000 * 60 * 60 * 24);
-        if (dateFilter === "today") return diffDays <= 1 && diffDays >= 0;
-        if (dateFilter === "week") return diffDays <= 7 && diffDays >= 0;
-        if (dateFilter === "year") return diffDays <= 365 && diffDays >= 0;
-        return true;
-      });
-    }
-
-    // Store in cache
-    setCachedResults(results);
-    return results;
-  } catch (err) {
-    console.error("API error:", err);
+    const safe = data.results.filter(isSafe);
+    setCached(safe);
+    return safe;
+  } catch {
     return [];
   }
 }
 
-// =============== 🔹 Render Cards ===============
+// ========== RENDERING ==========
+
 function renderGameCard(game) {
   const released = game.released || "TBA";
-  const isNew = game.released &&
-    Date.now() - new Date(game.released).getTime() <= 7 * 24 * 60 * 60 * 1000;
-
+  const isNew = game.released && (new Date() - new Date(game.released)) <= 1000 * 60 * 60 * 24 * 7;
   const imgSrc = game.background_image || (game.short_screenshots?.[0]?.image ?? null);
+
   const imgHTML = imgSrc
     ? `<div class="card-img"><img src="${imgSrc}" alt="${game.name}" loading="lazy"></div>`
     : `<div class="safe-preview">Preview Unavailable</div>`;
 
   const platforms =
-    game.parent_platforms
-      ?.map(p => `<span class="badge">${p.platform.name}</span>`)
-      .join(" ") || "";
+    game.parent_platforms?.map(p => `<span class="badge">${p.platform.name}</span>`).join(" ") || "";
 
-  const metacritic = game.metacritic != null
+  const mscore = game.metacritic != null
     ? `<span class="badge-meta ${
         game.metacritic >= 75 ? "meta-good" :
         game.metacritic >= 50 ? "meta-mid" : "meta-bad"
@@ -158,11 +145,10 @@ function renderGameCard(game) {
       ${imgHTML}
       <div class="card-body">
         <div class="card-title">
-          ${game.name}
-          ${isNew ? `<span class="badge-new">NEW</span>` : ""}
+          ${game.name} ${isNew ? `<span class="badge-new">NEW</span>` : ""}
         </div>
         <div class="meta-row">
-          ${metacritic}
+          ${mscore}
           <span class="release-date">Released: ${released}</span>
         </div>
         <div class="badges">${platforms}</div>
@@ -171,38 +157,38 @@ function renderGameCard(game) {
   `;
 }
 
-// =============== 🔹 Render List ===============
 function renderList() {
-  let visible = [...allGames];
-  const q = searchEl.value.trim().toLowerCase();
-  if (q) visible = visible.filter(g => g.name.toLowerCase().includes(q));
+  let list = [...allGames];
+  list = getDateRangeFilter(list);
+  list = sortGames(list);
+  list = applySearch(list);
 
-  if (!visible.length) {
-    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">No games found for this filter.</div>`;
+  if (!list.length) {
+    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">No games found.</div>`;
     return;
   }
 
-  listEl.innerHTML = visible.map(renderGameCard).join("");
+  listEl.innerHTML = list.map(renderGameCard).join("");
 }
 
-// =============== 🔹 Load Games ===============
 async function loadGames() {
-  listEl.innerHTML = `<div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>`;
-  let games = await fetchGames();
-  allGames = games;
+  listEl.innerHTML = `
+    <div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>
+  `;
+
+  allGames = await fetchGames();
   renderList();
 }
 
-// =============== 🔹 Open Game ===============
 function openGame(slug) {
   window.location.href = `/game.html?slug=${slug}`;
 }
 
-// =============== 🔹 Event Listeners ===============
-platformEl.addEventListener("change", loadGames);
-sortEl.addEventListener("change", loadGames);
-dateEl.addEventListener("change", loadGames);
+// ========== EVENTS ==========
+platformEl.addEventListener("change", () => { cache = {}; loadGames(); });
+sortEl.addEventListener("change", renderList);
+dateEl.addEventListener("change", renderList);
 searchEl.addEventListener("input", renderList);
 
-// =============== 🔹 Init ===============
+// ========== INIT ==========
 loadGames();

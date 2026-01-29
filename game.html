@@ -117,181 +117,97 @@
     </main>
 
     <script>
-      // =========================
-      // Gamerly - Game Detail Page
-      // =========================
+async function loadGame() {
+  const slug = new URLSearchParams(window.location.search).get("slug");
+  if (!slug) {
+    document.getElementById("status").textContent = "Missing slug in URL.";
+    return;
+  }
 
-      function getSlugFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        return params.get("slug");
-      }
+  const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}&languages=en`, { cache: "no-store" });
+  const data = await res.json();
 
-      function setStatus(text) {
-        const status = document.getElementById("status");
-        status.textContent = text;
-      }
+  if (!res.ok) {
+    document.getElementById("status").textContent = "Error loading game.";
+    return;
+  }
 
-      function escapeHtml(str) {
-        return String(str || "")
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
+  const name = data?.name || "Untitled";
+  const released = data?.released || "TBA";
+  const img = data?.background_image || "";
+  const website = data?.website || "";
+  const description = data?.description_raw || "No description available.";
+  const clip = data?.clip?.clip || null;
+  const stores = Array.isArray(data?.stores) ? data.stores : [];
 
-      async function loadGame() {
-        const slug = getSlugFromUrl();
-        if (!slug) {
-          setStatus("Missing slug in URL. Example: /game.html?slug=elden-ring");
-          return;
-        }
+  const platforms = Array.isArray(data?.platforms)
+    ? data.platforms.map(p => p?.platform?.name).filter(Boolean).slice(0, 10)
+    : [];
+  const genres = Array.isArray(data?.genres)
+    ? data.genres.map(g => g?.name).filter(Boolean).slice(0, 10)
+    : [];
 
-        setStatus("Loading game…");
+  const badges = [...platforms, ...genres]
+    .slice(0, 16)
+    .map(x => `<span class="badge">${x}</span>`)
+    .join("");
 
-        // ✅ Fetch game data from your API
-        const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
-        const data = await res.json();
+  let metacritic = data?.metacritic ?? null;
+  if (!metacritic && Array.isArray(data.metacritic_platforms)) {
+    const allScores = data.metacritic_platforms
+      .map(p => p.metascore)
+      .filter(s => typeof s === "number");
+    if (allScores.length)
+      metacritic = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+  }
 
-        if (!res.ok) {
-          setStatus(data?.error || "Error loading game.");
-          return;
-        }
+  const metaColor =
+    metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
 
-        // =========================
-        // Extract relevant data
-        // =========================
-        const name = data?.name || "Untitled";
-        const released = data?.released || "TBA";
-        const img = data?.background_image || "";
-        const website = data?.website || "";
-        const description = data?.description_raw || "No description available.";
+  const storeLinks = stores
+    .map(
+      (s) => `
+      <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="store-btn">
+        Buy on ${s.store?.name || "Store"}
+      </a>`
+    )
+    .join("");
 
-        // Platforms + Genres
-        const platforms = Array.isArray(data?.platforms)
-          ? data.platforms.map(p => p?.platform?.name).filter(Boolean).slice(0, 12)
-          : [];
+  const trailer = clip
+    ? `<video controls poster="${img}" class="trailer"><source src="${clip}" type="video/mp4" /></video>`
+    : "";
 
-        const genres = Array.isArray(data?.genres)
-          ? data.genres.map(g => g?.name).filter(Boolean).slice(0, 12)
-          : [];
+  const content = `
+    <div class="hero-banner" style="background-image:url('${img}')">
+      <div class="overlay-gradient"></div>
+      <div class="hero-content">
+        <h1>${name}</h1>
+        <div class="meta">Released: ${released}</div>
+        <div class="score" style="background:${metaColor}">
+          ${metacritic ? `Metacritic: ${metacritic}` : "No Score"}
+        </div>
+        <div class="badges">${badges}</div>
+        <div class="links">
+          ${website ? `<a href="${website}" target="_blank" class="store-btn">Official Site</a>` : ""}
+          ${storeLinks}
+        </div>
+      </div>
+    </div>
 
-        const badges = [...platforms, ...genres]
-          .slice(0, 16)
-          .map(x => `<span class="badge">${escapeHtml(x)}</span>`)
-          .join("");
+    ${trailer}
 
-        // =========================
-        // ✅ Handle Metacritic score (with clean fallback)
-        // =========================
-        let metacritic = null;
+    <div class="panel">
+      <h2>About</h2>
+      <p>${description}</p>
+    </div>
+  `;
 
-        if (typeof data?.metacritic === "number") {
-          metacritic = data.metacritic;
-        } else if (Array.isArray(data?.metacritic_platforms) && data.metacritic_platforms.length > 0) {
-          const allScores = data.metacritic_platforms
-            .map(p => p?.metascore)
-            .filter(s => typeof s === "number");
-          if (allScores.length) {
-            metacritic = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
-          }
-        }
+  document.getElementById("content").innerHTML = content;
+  document.getElementById("status").remove();
+}
 
-        const metaBlock = `
-          <div style="margin-top:8px;">
-            <span style="
-              display:inline-block;
-              background:${metacritic
-                ? metacritic >= 75
-                  ? '#16a34a'
-                  : metacritic >= 50
-                  ? '#facc15'
-                  : '#dc2626'
-                : '#e5e7eb'};
-              color:${metacritic ? 'white' : '#374151'};
-              font-weight:700;
-              border-radius:6px;
-              padding:4px 8px;
-              font-size:0.9rem;">
-              Metacritic: ${metacritic ?? 'N/A'}
-            </span>
-          </div>`;
+loadGame();
+</script>
 
-        // =========================
-        // ✅ Screenshots Grid
-        // =========================
-        const screenshots =
-          Array.isArray(data?.screenshots) && data.screenshots.length
-            ? data.screenshots
-            : Array.isArray(data?.short_screenshots)
-            ? data.short_screenshots
-            : [];
-
-        const screenshotGrid = screenshots.length
-          ? `
-            <div class="panel">
-              <h2 style="margin:0 0 10px 0;">Screenshots</h2>
-              <div style="
-                display:grid;
-                grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-                gap:10px;">
-                ${screenshots
-                  .map(
-                    (s) => `<img src="${s.image}" alt="Screenshot"
-                      style="width:100%;border-radius:10px;object-fit:cover;" loading="lazy"/>`
-                  )
-                  .join("")}
-              </div>
-            </div>
-          `
-          : "";
-
-        // =========================
-        // ✅ Render Game Content
-        // =========================
-        const content = document.getElementById("content");
-        content.style.display = "block";
-        content.innerHTML = `
-          <div class="hero">
-
-            <!-- Hero Image -->
-            <div class="imgWrap">
-              ${img ? `<img src="${img}" alt="${escapeHtml(name)}" />` : ""}
-            </div>
-
-            <!-- Info Panel -->
-            <div class="panel">
-              <h1 class="title">${escapeHtml(name)}</h1>
-              <div class="meta">Released: ${escapeHtml(released)}</div>
-              ${metaBlock}
-              ${badges ? `<div class="badges">${badges}</div>` : ""}
-              <div style="margin-top:12px;">
-                ${
-                  website
-                    ? `<a href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">Official website</a>`
-                    : ""
-                }
-              </div>
-            </div>
-
-            <!-- Description -->
-            <div class="panel">
-              <h2 style="margin:0 0 10px 0;">About</h2>
-              <div class="desc">${escapeHtml(description)}</div>
-            </div>
-
-            <!-- Screenshots -->
-            ${screenshotGrid}
-
-          </div>
-        `;
-
-        // ✅ Hide loading message
-        document.getElementById("status").style.display = "none";
-        document.title = `Gamerly – ${name}`;
-      }
-
-      loadGame();
-    </script>
   </body>
 </html>

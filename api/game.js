@@ -1,50 +1,34 @@
+// /api/game.js
 export default async function handler(req, res) {
-  const { slug } = req.query;
-
-  if (!slug) {
-    return res.status(400).json({ error: "Missing slug parameter" });
-  }
-
-  const RAWG_API_KEY = process.env.RAWG_KEY;
-  if (!RAWG_API_KEY) {
-    return res.status(500).json({ error: "Server missing RAWG API key." });
-  }
-
-  // ✅ Request all data including metacritic + screenshots
-  const url = `https://api.rawg.io/api/games/${encodeURIComponent(
-    slug
-  )}?key=${RAWG_API_KEY}&exclude_additions=false&expand=metacritic_platforms`;
-
   try {
-    const response = await fetch(url, { cache: "no-store" });
-    const data = await response.json();
+    const { slug } = req.query;
+    const RAWG_KEY = process.env.RAWG_KEY;
+
+    if (!slug) return res.status(400).json({ error: "Missing slug parameter" });
+    if (!RAWG_KEY) return res.status(500).json({ error: "Missing RAWG_KEY" });
+
+    const url = `https://api.rawg.io/api/games/${slug}?key=${RAWG_KEY}&languages=en`;
+
+    const response = await fetch(url, {
+      headers: { Accept: "application/json", "User-Agent": "GamerlyApp/1.0" },
+      cache: "no-store",
+    });
 
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: data?.error || "Error fetching game details",
-      });
+      const text = await response.text();
+      throw new Error(`RAWG error: ${response.status} ${text}`);
     }
 
-    // ✅ Return cleaned + complete dataset
-    const safeData = {
-      id: data.id,
-      slug: data.slug,
-      name: data.name,
-      released: data.released,
-      description_raw: data.description_raw,
-      website: data.website,
-      background_image: data.background_image,
-      platforms: data.platforms || [],
-      genres: data.genres || [],
-      metacritic: data.metacritic ?? null,
-      metacritic_platforms: data.metacritic_platforms || [],
-      short_screenshots: data.short_screenshots || [],
-      screenshots: data.screenshots || [],
-    };
+    const data = await response.json();
 
-    return res.status(200).json(safeData);
-  } catch (error) {
-    console.error("Error fetching game details:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    // Basic cleanup: make sure description is plain text
+    if (data.description_raw === undefined && data.description) {
+      data.description_raw = data.description.replace(/<[^>]+>/g, "");
+    }
+
+    res.status(200).json(data);
+  } catch (err) {
+    console.error("Error in /api/game.js:", err);
+    res.status(500).json({ error: "Failed to fetch game details" });
   }
 }

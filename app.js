@@ -1,89 +1,101 @@
 //
-// Gamerly app.js — ultra-stable minimal build (final filter fix)
-// Stripped down to verified RAWG behavior + local release-date validation
+// Gamerly - rebuilt filter logic (stable, Apple/Netflix style)
+//
+// Handles platform toggles, date filters, and local sorting reliably.
 //
 
 const API_BASE = "/api/games";
 const listEl = document.getElementById("game-list");
-const platformEl = document.getElementById("platform");
 const sortEl = document.getElementById("sort");
 const searchEl = document.getElementById("search");
 const dateEl = document.getElementById("date-range");
+const platformRow = document.createElement("div");
+platformRow.className = "platform-row";
+document.querySelector(".toolbar").before(platformRow);
 
+// Platform toggles setup
+const platforms = [
+  { id: "pc", label: "PC" },
+  { id: "playstation", label: "PlayStation" },
+  { id: "xbox", label: "Xbox" },
+  { id: "nintendo", label: "Nintendo" },
+  { id: "ios", label: "iOS" },
+  { id: "android", label: "Android" }
+];
+
+let activePlatforms = new Set();
 let allGames = [];
 
-// =============== HELPERS ===============
-function formatDate(date) {
-  return date.toISOString().split("T")[0];
-}
+// Build buttons visually
+platformRow.innerHTML = platforms
+  .map(
+    (p) => `
+    <button class="platform-btn" data-id="${p.id}">
+      ${p.label} <span class="checkmark">✓</span>
+    </button>
+  `
+  )
+  .join("");
 
-function getDateRange() {
-  const today = new Date();
-  let start = new Date("2000-01-01");
-  let end = new Date(today);
-
-  switch (dateEl.value) {
-    case "today":
-      start = new Date(today);
-      break;
-    case "week":
-      start.setDate(today.getDate() - 7);
-      break;
-    case "year":
-      start.setFullYear(today.getFullYear() - 1);
-      break;
-    default:
-      break;
+// Add toggle behavior
+platformRow.addEventListener("click", (e) => {
+  const btn = e.target.closest(".platform-btn");
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (activePlatforms.has(id)) {
+    activePlatforms.delete(id);
+    btn.classList.remove("active");
+  } else {
+    activePlatforms.add(id);
+    btn.classList.add("active");
   }
+  renderList();
+});
 
-  return `${formatDate(start)},${formatDate(end)}`;
+// === Helper: Dates ===
+function daysAgo(days) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d;
 }
 
-// =============== FETCH GAMES ===============
+function withinRange(dateStr, range) {
+  const d = new Date(dateStr);
+  if (range === "today") return d >= daysAgo(1);
+  if (range === "week") return d >= daysAgo(7);
+  if (range === "year") return d >= daysAgo(90);
+  return true;
+}
+
+// === Fetch RAWG data ===
 async function fetchGames() {
-  const platform = platformEl.value;
-  const sort = sortEl.value;
-  const ordering =
-    sort === "released" ? "-released" :
-    sort === "-rating" ? "-rating" :
-    sort === "name" ? "name" : "-released";
+  listEl.innerHTML = `
+    <div class="shimmer"></div>
+    <div class="shimmer"></div>
+    <div class="shimmer"></div>
+  `;
 
-  const dates = getDateRange();
-  const url = `${API_BASE}?platform=${platform}&dates=${dates}&ordering=${ordering}&page_size=40`;
-
+  const url = `${API_BASE}?page_size=100&ordering=-released`;
   console.log("Fetching:", url);
 
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    const data = await res.json();
+  const res = await fetch(url, { cache: "no-store" });
+  const data = await res.json();
 
-    if (!res.ok || !data?.results) return [];
+  if (!res.ok || !Array.isArray(data.results)) return [];
+  const safeGames = data.results.filter(
+    (g) =>
+      g.released &&
+      !/hentai|porn|sex|erotic/i.test(g.name || "") &&
+      !/hentai|porn|sex|erotic/i.test(g.slug || "")
+  );
 
-    const now = new Date();
-
-    // ✅ Strictest possible filtering:
-    return data.results
-      .filter(g => {
-        if (!g?.released) return false;
-        const rel = new Date(g.released);
-        return (
-          !g.tba &&
-          rel <= now &&
-          rel.getFullYear() >= 2000 &&
-          rel.toString() !== "Invalid Date"
-        );
-      })
-      .sort((a, b) => new Date(b.released) - new Date(a.released));
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
+  return safeGames;
 }
 
-// =============== RENDER ===============
+// === Render ===
 function renderGameCard(game) {
   const released = game.released || "TBA";
-  const img = game.background_image || (game.short_screenshots?.[0]?.image ?? "");
+  const img = game.background_image || game.short_screenshots?.[0]?.image || "";
   const platforms =
     game.parent_platforms?.map(p => `<span class="badge">${p.platform.name}</span>`).join(" ") || "";
   const meta =
@@ -107,33 +119,48 @@ function renderGameCard(game) {
     </div>`;
 }
 
+// === Render List ===
 function renderList() {
   let visible = [...allGames];
+
+  // Platform filtering
+  if (activePlatforms.size > 0) {
+    visible = visible.filter((g) =>
+      g.parent_platforms?.some((p) => activePlatforms.has(p.platform.slug))
+    );
+  }
+
+  // Date filtering
+  const range = dateEl.value;
+  if (range && range !== "all") {
+    visible = visible.filter((g) => withinRange(g.released, range));
+  }
+
+  // Search
   const q = searchEl.value.trim().toLowerCase();
-  if (q) visible = visible.filter(g => g.name.toLowerCase().includes(q));
+  if (q) visible = visible.filter((g) => g.name.toLowerCase().includes(q));
+
+  // Sorting
+  const sort = sortEl.value;
+  if (sort === "released") visible.sort((a, b) => new Date(b.released) - new Date(a.released));
+  if (sort === "-rating") visible.sort((a, b) => (b.metacritic || 0) - (a.metacritic || 0));
+  if (sort === "name") visible.sort((a, b) => a.name.localeCompare(b.name));
 
   listEl.innerHTML = visible.length
     ? visible.map(renderGameCard).join("")
     : `<div style="padding:40px;text-align:center;color:#777;">No games found.</div>`;
 }
 
-// =============== LOAD ===============
-async function loadGames() {
-  listEl.innerHTML = `
-    <div class="shimmer"></div>
-    <div class="shimmer"></div>
-    <div class="shimmer"></div>
-  `;
-  const games = await fetchGames();
-  allGames = games;
+// === Init ===
+async function init() {
+  allGames = await fetchGames();
   renderList();
 }
 
-// =============== EVENTS ===============
-platformEl.addEventListener("change", loadGames);
-sortEl.addEventListener("change", loadGames);
-dateEl.addEventListener("change", loadGames);
+// === Event listeners ===
+sortEl.addEventListener("change", renderList);
 searchEl.addEventListener("input", renderList);
+dateEl.addEventListener("change", renderList);
 
-// =============== INIT ===============
-loadGames();
+// === Start ===
+init();

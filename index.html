@@ -7,9 +7,7 @@
     <meta name="description" content="Discover the newest PC, console, and mobile game releases with a modern Apple-inspired design." />
     <style>
       /* ===== Base ===== */
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
@@ -74,9 +72,7 @@
         transition: opacity 0.2s;
       }
 
-      header a:hover {
-        opacity: 1;
-      }
+      header a:hover { opacity: 1; }
 
       /* ===== Layout ===== */
       main {
@@ -93,8 +89,7 @@
         margin-bottom: 24px;
       }
 
-      select,
-      input[type="text"] {
+      select, input[type="text"] {
         padding: 10px 14px;
         font-size: 0.95rem;
         border: 1px solid #ddd;
@@ -105,14 +100,8 @@
         transition: all 0.2s ease;
       }
 
-      select:hover,
-      input[type="text"]:hover {
-        border-color: #aaa;
-      }
-
-      input[type="text"] {
-        min-width: 220px;
-      }
+      select:hover, input[type="text"]:hover { border-color: #aaa; }
+      input[type="text"] { min-width: 220px; }
 
       @media (prefers-color-scheme: dark) {
         select, input[type="text"] { background: #18181b; color: white; border-color: #333; }
@@ -143,10 +132,7 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       }
 
-      .platform-btn:hover {
-        background: #f3f3f3;
-        transform: translateY(-2px);
-      }
+      .platform-btn:hover { background: #f3f3f3; transform: translateY(-2px); }
 
       .platform-btn.active {
         background: #0b0b0c;
@@ -155,14 +141,8 @@
         transform: scale(1.05);
       }
 
-      .platform-btn .checkmark {
-        opacity: 0;
-        font-size: 0.8rem;
-      }
-
-      .platform-btn.active .checkmark {
-        opacity: 1;
-      }
+      .platform-btn .checkmark { opacity: 0; font-size: 0.8rem; }
+      .platform-btn.active .checkmark { opacity: 1; }
 
       /* ===== Game Cards ===== */
       .grid {
@@ -191,9 +171,7 @@
         object-fit: cover;
       }
 
-      .card-body {
-        padding: 14px 16px 16px;
-      }
+      .card-body { padding: 14px 16px 16px; }
 
       .card-title {
         font-weight: 700;
@@ -235,10 +213,7 @@
         display: inline-block;
       }
 
-      .release-date {
-        font-size: 0.85rem;
-        color: #555;
-      }
+      .release-date { font-size: 0.85rem; color: #555; }
 
       .safe-preview {
         height: 200px;
@@ -259,9 +234,7 @@
         animation: shimmer 1.5s infinite;
       }
 
-      @keyframes shimmer {
-        100% { background-position: -200% 0; }
-      }
+      @keyframes shimmer { 100% { background-position: -200% 0; } }
 
       footer {
         text-align: center;
@@ -285,10 +258,7 @@
         transition: opacity 0.4s ease, visibility 0.4s ease;
       }
 
-      .overlay.hidden {
-        opacity: 0;
-        visibility: hidden;
-      }
+      .overlay.hidden { opacity: 0; visibility: hidden; }
 
       .modal {
         background: rgba(255,255,255,0.1);
@@ -302,11 +272,7 @@
         box-shadow: 0 8px 30px rgba(0,0,0,0.4);
       }
 
-      .modal h2 {
-        margin-top: 0;
-        font-size: 1.6rem;
-        font-weight: 800;
-      }
+      .modal h2 { margin-top: 0; font-size: 1.6rem; font-weight: 800; }
 
       .modal button {
         margin-top: 20px;
@@ -320,9 +286,7 @@
         transition: background 0.2s;
       }
 
-      .modal button:hover {
-        background: #ea580c;
-      }
+      .modal button:hover { background: #ea580c; }
     </style>
   </head>
 
@@ -337,17 +301,7 @@
     </header>
 
     <main>
-      <!-- Platform Buttons -->
-      <div class="platform-row">
-        <button class="platform-btn" data-id="pc">PC <span class="checkmark">✓</span></button>
-        <button class="platform-btn" data-id="playstation">PlayStation <span class="checkmark">✓</span></button>
-        <button class="platform-btn" data-id="xbox">Xbox <span class="checkmark">✓</span></button>
-        <button class="platform-btn" data-id="nintendo">Nintendo <span class="checkmark">✓</span></button>
-        <button class="platform-btn" data-id="ios">iOS <span class="checkmark">✓</span></button>
-        <button class="platform-btn" data-id="android">Android <span class="checkmark">✓</span></button>
-      </div>
-
-      <!-- Toolbar -->
+      <!-- Toolbar (no duplicate platform list here) -->
       <div class="toolbar">
         <select id="sort">
           <option value="released">Newest</option>

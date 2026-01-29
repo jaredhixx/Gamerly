@@ -81,23 +81,18 @@ async function fetchGames() {
 }
 
 // ---------- Render ----------
-function renderGameCard(game) {
-  const released = game.released || "TBA";
-  const img = game.background_image || game.short_screenshots?.[0]?.image || "";
-  const platformsHTML =
-    game.parent_platforms
-      ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
-      .join(" ") || "";
-  const meta =
-    game.metacritic != null
-      ? `<span class="badge-meta ${
-          game.metacritic >= 75
-            ? "meta-good"
-            : game.metacritic >= 50
-            ? "meta-mid"
-            : "meta-bad"
-        }">${game.metacritic}</span>`
-      : `<span class="badge-meta meta-na">N/A</span>`;
+return `
+  <div class="card" onclick="window.location='/game.html?slug=${game.slug}'" title="${game.name}">
+    ${img
+      ? `<div class="card-img"><img src="${img}" alt="${game.name}" loading="lazy"></div>`
+      : `<div class="safe-preview">Preview Unavailable</div>`}
+    <div class="card-body">
+      <div class="card-title">${game.name}</div>
+      <div class="meta-row">${meta}<span class="release-date">Released: ${released}</span></div>
+      <div class="badges">${platforms}</div>
+    </div>
+  </div>`;
+
 
   return `
     <div class="card">

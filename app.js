@@ -2,14 +2,13 @@
 // Gamerly – Final Stable Version (Apple/Netflix feel)
 // One RAWG fetch → local filtering for platform/date/sort/search.
 //
-
 const API_BASE = "/api/games";
 const listEl = document.getElementById("game-list");
 const sortEl = document.getElementById("sort");
 const searchEl = document.getElementById("search");
 const dateEl = document.getElementById("date-range");
 
-// ---------- Platform Toggles (top row) ----------
+// ---------- Platform Toggles ----------
 const platformRow = document.createElement("div");
 platformRow.className = "platform-row";
 document.querySelector(".toolbar").before(platformRow);
@@ -29,9 +28,9 @@ let allGames = [];
 platformRow.innerHTML = platforms
   .map(
     (p) => `
-    <button class="platform-btn" data-id="${p.id}">
-      ${p.label}<span class="checkmark">✓</span>
-    </button>`
+      <button class="platform-btn" data-id="${p.id}">
+        ${p.label}<span class="checkmark">✓</span>
+      </button>`
   )
   .join("");
 
@@ -80,25 +79,31 @@ async function fetchGames() {
   }
 }
 
-// ---------- Render ----------
-return `
-  <div class="card" onclick="window.location='/game.html?slug=${game.slug}'" title="${game.name}">
-    ${img
-      ? `<div class="card-img"><img src="${img}" alt="${game.name}" loading="lazy"></div>`
-      : `<div class="safe-preview">Preview Unavailable</div>`}
-    <div class="card-body">
-      <div class="card-title">${game.name}</div>
-      <div class="meta-row">${meta}<span class="release-date">Released: ${released}</span></div>
-      <div class="badges">${platforms}</div>
-    </div>
-  </div>`;
+// ---------- Render Single Card ----------
+function renderGameCard(game) {
+  const released = game.released || "TBA";
+  const img = game.background_image || game.short_screenshots?.[0]?.image || "";
+  const platformsHTML =
+    game.parent_platforms
+      ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
+      .join(" ") || "";
 
+  const meta =
+    game.metacritic != null
+      ? `<span class="badge-meta ${
+          game.metacritic >= 75
+            ? "meta-good"
+            : game.metacritic >= 50
+            ? "meta-mid"
+            : "meta-bad"
+        }">${game.metacritic}</span>`
+      : `<span class="badge-meta meta-na">N/A</span>`;
 
   return `
-    <div class="card">
+    <div class="card" onclick="window.location='/game.html?slug=${game.slug}'" title="${game.name}">
       ${
         img
-          ? `<div class="card-img"><img src="${img}" alt="${game.name}" loading="lazy"></div>`
+          ? `<div class="card-img fade-in"><img src="${img}" alt="${game.name}" loading="lazy"></div>`
           : `<div class="safe-preview">Preview Unavailable</div>`
       }
       <div class="card-body">
@@ -109,19 +114,23 @@ return `
     </div>`;
 }
 
+// ---------- Render List ----------
 function renderList() {
   let visible = [...allGames];
 
   // --- Platforms ---
   if (activePlatforms.size) {
     visible = visible.filter((g) =>
-      g.parent_platforms?.some((p) => activePlatforms.has(p.platform.slug))
+      g.parent_platforms?.some((p) =>
+        activePlatforms.has(p.platform.slug || p.platform.name?.toLowerCase())
+      )
     );
   }
 
   // --- Date Range ---
   const range = dateEl.value;
-  if (range && range !== "all") visible = visible.filter((g) => withinRange(g.released, range));
+  if (range && range !== "all")
+    visible = visible.filter((g) => withinRange(g.released, range));
 
   // --- Search ---
   const q = searchEl.value.trim().toLowerCase();
@@ -142,6 +151,15 @@ function renderList() {
       ? visible.map(renderGameCard).join("")
       : `<div style="padding:40px;text-align:center;color:#777;">No games found.</div>`;
     listEl.style.opacity = 1;
+
+    // lazy fade-in
+    document.querySelectorAll(".fade-in").forEach((el) => {
+      el.style.opacity = 0;
+      setTimeout(() => {
+        el.style.transition = "opacity 0.8s ease";
+        el.style.opacity = 1;
+      }, 100);
+    });
   }, 150);
 }
 

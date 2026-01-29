@@ -8,7 +8,11 @@ export default async function handler(req, res) {
     start.setMonth(today.getMonth() - 6); // 6-month rolling window
 
     const url = new URL("https://api.rawg.io/api/games");
+    const fbUrl = `https://api.rawg.io/api/games?key=${RAWG_KEY}&page_size=40&ordering=-released&dates=${fbStartStr},${fbEndStr}&languages=en`;
+
     url.searchParams.set("key", RAWG_KEY);
+    url.searchParams.set("languages", "en");
+
     url.searchParams.set("page_size", req.query.page_size || "80");
     url.searchParams.set("ordering", "-released");
     url.searchParams.set("dates", `${start.toISOString().slice(0, 10)},${today

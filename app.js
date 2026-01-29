@@ -1,6 +1,6 @@
 //
-// Gamerly app.js — FINAL RAWG release filtering (Verified Build)
-// Filters out unreleased, blank, or placeholder titles reliably.
+// Gamerly app.js — ultra-stable minimal build (final filter fix)
+// Stripped down to verified RAWG behavior + local release-date validation
 //
 
 const API_BASE = "/api/games";
@@ -12,41 +12,19 @@ const dateEl = document.getElementById("date-range");
 
 let allGames = [];
 
-// ==================== AGE GATE ====================
-function showAgeGate() {
-  if (sessionStorage.getItem("ageVerified")) return;
-  const overlay = document.createElement("div");
-  overlay.style = `
-    position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);
-    display:flex;align-items:center;justify-content:center;
-    color:white;font-family:system-ui;text-align:center;backdrop-filter:blur(8px);
-  `;
-  overlay.innerHTML = `
-    <div style="max-width:320px;background:#111827;padding:24px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.4);">
-      <h2 style="margin-bottom:12px;font-weight:800;">Are you 18 or older?</h2>
-      <p style="color:#ccc;margin-bottom:20px;">Gamerly may include mature-rated content.</p>
-      <button id="yesBtn" style="padding:10px 20px;font-weight:700;background:#22c55e;border:none;border-radius:8px;color:white;cursor:pointer;">Yes, Enter</button>
-    </div>`;
-  document.body.appendChild(overlay);
-  document.getElementById("yesBtn").onclick = () => {
-    sessionStorage.setItem("ageVerified", "true");
-    overlay.remove();
-  };
-}
-showAgeGate();
-
-// ==================== HELPERS ====================
+// =============== HELPERS ===============
 function formatDate(date) {
   return date.toISOString().split("T")[0];
 }
 
 function getDateRange() {
   const today = new Date();
-  let start = new Date(today);
+  let start = new Date("2000-01-01");
   let end = new Date(today);
 
   switch (dateEl.value) {
     case "today":
+      start = new Date(today);
       break;
     case "week":
       start.setDate(today.getDate() - 7);
@@ -55,13 +33,13 @@ function getDateRange() {
       start.setFullYear(today.getFullYear() - 1);
       break;
     default:
-      start = new Date("2000-01-01");
       break;
   }
+
   return `${formatDate(start)},${formatDate(end)}`;
 }
 
-// ==================== FETCH GAMES ====================
+// =============== FETCH GAMES ===============
 async function fetchGames() {
   const platform = platformEl.value;
   const sort = sortEl.value;
@@ -79,118 +57,83 @@ async function fetchGames() {
     const res = await fetch(url, { cache: "no-store" });
     const data = await res.json();
 
-    if (!res.ok || !data?.results) {
-      console.error("RAWG Error:", data);
-      return [];
-    }
+    if (!res.ok || !data?.results) return [];
 
-    // ==================== FINAL FILTER FIX ====================
     const now = new Date();
 
-    const filtered = data.results.filter(g => {
-      if (!g) return false;
-
-      const releasedDate = g.released ? new Date(g.released) : null;
-      const isTBA = g.tba === true;
-      const validRelease =
-        releasedDate &&
-        !isNaN(releasedDate) &&
-        releasedDate <= now &&
-        releasedDate.getFullYear() >= 2000;
-
-      return validRelease && !isTBA;
-    });
-
-    // Ensure newest first
-    filtered.sort((a, b) => new Date(b.released) - new Date(a.released));
-
-    return filtered;
+    // ✅ Strictest possible filtering:
+    return data.results
+      .filter(g => {
+        if (!g?.released) return false;
+        const rel = new Date(g.released);
+        return (
+          !g.tba &&
+          rel <= now &&
+          rel.getFullYear() >= 2000 &&
+          rel.toString() !== "Invalid Date"
+        );
+      })
+      .sort((a, b) => new Date(b.released) - new Date(a.released));
   } catch (err) {
-    console.error("Fetch error:", err);
+    console.error(err);
     return [];
   }
 }
 
-// ==================== RENDER GAME CARD ====================
+// =============== RENDER ===============
 function renderGameCard(game) {
   const released = game.released || "TBA";
-  const isNew =
-    game.released &&
-    (new Date() - new Date(game.released)) < 7 * 24 * 60 * 60 * 1000;
-
-  const imgSrc = game.background_image || (game.short_screenshots?.[0]?.image ?? "");
-  const imgHTML = imgSrc
-    ? `<div class="card-img"><img src="${imgSrc}" alt="${game.name}" loading="lazy"></div>`
-    : `<div class="safe-preview">Preview Unavailable</div>`;
-
+  const img = game.background_image || (game.short_screenshots?.[0]?.image ?? "");
   const platforms =
     game.parent_platforms?.map(p => `<span class="badge">${p.platform.name}</span>`).join(" ") || "";
-
-  const meta = game.metacritic != null
-    ? `<span class="badge-meta ${
-        game.metacritic >= 75 ? "meta-good" :
-        game.metacritic >= 50 ? "meta-mid" : "meta-bad"
-      }">${game.metacritic}</span>`
-    : `<span class="badge-meta meta-na">N/A</span>`;
+  const meta =
+    game.metacritic != null
+      ? `<span class="badge-meta ${
+          game.metacritic >= 75 ? "meta-good" :
+          game.metacritic >= 50 ? "meta-mid" : "meta-bad"
+        }">${game.metacritic}</span>`
+      : `<span class="badge-meta meta-na">N/A</span>`;
 
   return `
-    <div class="card" onclick="openGame('${game.slug}')">
-      ${imgHTML}
+    <div class="card">
+      ${img
+        ? `<div class="card-img"><img src="${img}" alt="${game.name}" loading="lazy"></div>`
+        : `<div class="safe-preview">Preview Unavailable</div>`}
       <div class="card-body">
-        <div class="card-title">
-          ${game.name}${isNew ? ` <span class="badge-new">NEW</span>` : ""}
-        </div>
-        <div class="meta-row">
-          ${meta}
-          <span class="release-date">Released: ${released}</span>
-        </div>
+        <div class="card-title">${game.name}</div>
+        <div class="meta-row">${meta}<span class="release-date">Released: ${released}</span></div>
         <div class="badges">${platforms}</div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-// ==================== RENDER LIST ====================
 function renderList() {
   let visible = [...allGames];
   const q = searchEl.value.trim().toLowerCase();
   if (q) visible = visible.filter(g => g.name.toLowerCase().includes(q));
 
-  if (!visible.length) {
-    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">No games found for this filter.</div>`;
-    return;
-  }
-
-  listEl.innerHTML = visible.map(renderGameCard).join("");
+  listEl.innerHTML = visible.length
+    ? visible.map(renderGameCard).join("")
+    : `<div style="padding:40px;text-align:center;color:#777;">No games found.</div>`;
 }
 
-// ==================== LOAD GAMES ====================
+// =============== LOAD ===============
 async function loadGames() {
   listEl.innerHTML = `
     <div class="shimmer"></div>
     <div class="shimmer"></div>
     <div class="shimmer"></div>
   `;
-  try {
-    const games = await fetchGames();
-    allGames = games;
-    renderList();
-  } catch (err) {
-    console.error(err);
-    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">Error loading games.</div>`;
-  }
+  const games = await fetchGames();
+  allGames = games;
+  renderList();
 }
 
-// ==================== NAVIGATION ====================
-function openGame(slug) {
-  window.location.href = `/game.html?slug=${slug}`;
-}
-
-// ==================== EVENTS ====================
+// =============== EVENTS ===============
 platformEl.addEventListener("change", loadGames);
 sortEl.addEventListener("change", loadGames);
 dateEl.addEventListener("change", loadGames);
 searchEl.addEventListener("input", renderList);
 
-// ==================== INIT ====================
+// =============== INIT ===============
 loadGames();

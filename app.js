@@ -1,5 +1,5 @@
 //
-// Gamerly app.js v8 — Fixed filters, 18+ popup, no design change
+// Gamerly app.js — Stable filters restored (from working v4) + 18+ popup
 //
 
 const API_BASE = "/api/games";
@@ -12,9 +12,7 @@ const dateEl = document.getElementById("date-range");
 
 let allGames = [];
 
-// =========================
-//  🔹 18+ AGE GATE
-// =========================
+// ==================== AGE GATE ====================
 function showAgeGate() {
   if (sessionStorage.getItem("ageVerified")) return;
   const overlay = document.createElement("div");
@@ -37,20 +35,15 @@ function showAgeGate() {
 }
 showAgeGate();
 
-// =========================
-//  🔹 Date Helpers
-// =========================
+// ==================== HELPERS ====================
 function formatDate(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return date.toISOString().split("T")[0];
 }
 
 function getDateRange() {
   const today = new Date();
-  let start = new Date();
-  let end = new Date();
+  let start = new Date(today);
+  let end = new Date(today);
 
   switch (dateEl.value) {
     case "today":
@@ -68,36 +61,30 @@ function getDateRange() {
   return `${formatDate(start)},${formatDate(end)}`;
 }
 
-// =========================
-//  🔹 Fetch Games
-// =========================
+// ==================== FETCH GAMES ====================
 async function fetchGames() {
   const platform = platformEl.value;
   const sort = sortEl.value;
-  const dates = getDateRange();
-
   const ordering =
     sort === "released" ? "-released" :
     sort === "-rating" ? "-rating" :
     sort === "name" ? "name" : "-released";
 
-  const url = `${API_BASE}?platform=${platform}&ordering=${ordering}&dates=${dates}&page_size=30`;
+  const dates = getDateRange();
+  const url = `${API_BASE}?platform=${platform}&dates=${dates}&ordering=${ordering}&page_size=30`;
 
-  console.log("Fetching:", url);
+  console.log("Fetching games:", url);
   const res = await fetch(url, { cache: "no-store" });
   const data = await res.json();
-  if (!res.ok) throw new Error(data?.error || "Failed to load");
 
-  return data.results || [];
+  if (!res.ok || !data?.results) return [];
+  return data.results;
 }
 
-// =========================
-//  🔹 Render Game Cards
-// =========================
+// ==================== RENDER GAME CARD ====================
 function renderGameCard(game) {
   const released = game.released || "TBA";
   const isNew = game.released && (new Date() - new Date(game.released)) < 7 * 24 * 60 * 60 * 1000;
-
   const imgSrc = game.background_image || (game.short_screenshots?.[0]?.image ?? "");
   const imgHTML = imgSrc
     ? `<div class="card-img"><img src="${imgSrc}" alt="${game.name}" loading="lazy"></div>`
@@ -117,33 +104,34 @@ function renderGameCard(game) {
     <div class="card" onclick="openGame('${game.slug}')">
       ${imgHTML}
       <div class="card-body">
-        <div class="card-title">${game.name}${isNew ? ` <span class="badge-new">NEW</span>` : ""}</div>
-        <div class="meta-row">${meta}<span class="release-date">Released: ${released}</span></div>
+        <div class="card-title">
+          ${game.name}${isNew ? ` <span class="badge-new">NEW</span>` : ""}
+        </div>
+        <div class="meta-row">
+          ${meta}
+          <span class="release-date">Released: ${released}</span>
+        </div>
         <div class="badges">${platforms}</div>
       </div>
     </div>
   `;
 }
 
-// =========================
-//  🔹 Render + Search
-// =========================
+// ==================== RENDER LIST ====================
 function renderList() {
   let visible = [...allGames];
   const q = searchEl.value.trim().toLowerCase();
   if (q) visible = visible.filter(g => g.name.toLowerCase().includes(q));
 
   if (!visible.length) {
-    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">No games found.</div>`;
+    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:#777;">No games found for this filter.</div>`;
     return;
   }
 
   listEl.innerHTML = visible.map(renderGameCard).join("");
 }
 
-// =========================
-//  🔹 Load Games
-// =========================
+// ==================== LOAD GAMES ====================
 async function loadGames() {
   listEl.innerHTML = `<div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>`;
   try {
@@ -156,22 +144,16 @@ async function loadGames() {
   }
 }
 
-// =========================
-//  🔹 Navigation
-// =========================
+// ==================== NAVIGATION ====================
 function openGame(slug) {
   window.location.href = `/game.html?slug=${slug}`;
 }
 
-// =========================
-//  🔹 Event Listeners
-// =========================
+// ==================== EVENTS ====================
 platformEl.addEventListener("change", loadGames);
 sortEl.addEventListener("change", loadGames);
 dateEl.addEventListener("change", loadGames);
 searchEl.addEventListener("input", renderList);
 
-// =========================
-//  🔹 Init
-// =========================
+// ==================== INIT ====================
 loadGames();

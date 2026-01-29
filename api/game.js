@@ -1,4 +1,5 @@
-// /api/game.js
+// /api/game.js — Final English-enforced version
+
 export default async function handler(req, res) {
   const { slug } = req.query;
   const RAWG_KEY = process.env.RAWG_KEY;
@@ -17,41 +18,55 @@ export default async function handler(req, res) {
       cache: "no-store",
     });
 
-    const data = await response.json();
     if (!response.ok) {
-      return res.status(500).json({ error: "Failed to fetch game detail" });
+      const errText = await response.text();
+      console.error("RAWG error:", errText);
+      return res.status(response.status).json({ error: "Failed to fetch game detail" });
     }
 
-    let description = data.description_raw || "";
+    const data = await response.json();
+    let description = data.description_raw || data.description || "";
 
-    // ⚡ Auto-translate if non-English detected
-    if (/[^\x00-\x7F]/.test(description)) {
+    // --- Clean up HTML entities like &#1072; (Cyrillic letters) ---
+    const temp = document ? document.createElement("textarea") : null;
+    if (temp) {
+      temp.innerHTML = description;
+      description = temp.value;
+    } else {
+      description = description.replace(/&#(\d+);/g, (m, c) =>
+        String.fromCharCode(c)
+      );
+    }
+
+    // --- Strip HTML tags just in case ---
+    description = description.replace(/<\/?[^>]+(>|$)/g, "");
+
+    // --- Detect non-English content robustly ---
+    const isEnglish = /^[\x00-\x7F\s.,;:'"!?()\-–—]+$/.test(description);
+
+    // --- Auto-translate only if clearly not English ---
+    if (!isEnglish) {
       try {
         const translateRes = await fetch("https://libretranslate.com/translate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            q: description,
+            q: description.slice(0, 4000), // avoid API limits
             source: "auto",
             target: "en",
-            format: "text"
           }),
         });
-        const translateJson = await translateRes.json();
-        if (translateJson.translatedText) {
-          description = translateJson.translatedText;
-        }
+        const json = await translateRes.json();
+        if (json.translatedText) description = json.translatedText;
       } catch (tErr) {
-        console.warn("Translate API failed:", tErr);
+        console.warn("Translation skipped:", tErr);
       }
     }
 
-    // Return everything with English description override
     res.status(200).json({
       ...data,
-      description_raw: description
+      description_raw: description || "No English description available.",
     });
-
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });

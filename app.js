@@ -1,14 +1,18 @@
 //
-// Gamerly – Final Stable Version (Apple/Netflix feel)
-// One RAWG fetch → local filtering for platform/date/sort/search.
+// Gamerly — Fast-cache build (Apple/Netflix-feel foundation)
+// Keeps aesthetics & filters identical, adds local caching and instant reload
 //
+
 const API_BASE = "/api/games";
+const CACHE_KEY = "gamerly_cache_v1";
+const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours
+
 const listEl = document.getElementById("game-list");
 const sortEl = document.getElementById("sort");
 const searchEl = document.getElementById("search");
 const dateEl = document.getElementById("date-range");
 
-// ---------- Platform Toggles ----------
+// ---------- Platform Buttons ----------
 const platformRow = document.createElement("div");
 platformRow.className = "platform-row";
 document.querySelector(".toolbar").before(platformRow);
@@ -59,27 +63,78 @@ const withinRange = (dateStr, range) => {
   return true;
 };
 
-// ---------- Fetch once ----------
-async function fetchGames() {
+// ---------- Cache Helpers ----------
+function loadCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+    if (!cached) return null;
+    const age = Date.now() - cached.timestamp;
+    if (age > CACHE_TTL) return null;
+    return cached.data;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache(data) {
+  localStorage.setItem(
+    CACHE_KEY,
+    JSON.stringify({ timestamp: Date.now(), data })
+  );
+}
+
+// ---------- Fetch ----------
+async function fetchGames(force = false) {
+  if (!force) {
+    const cached = loadCache();
+    if (cached?.length) {
+      console.log("Loaded from cache ✅");
+      allGames = cached;
+      renderList();
+      refreshInBackground(); // silently refresh newer data
+      return;
+    }
+  }
+
   listEl.innerHTML =
     `<div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>`;
+
   try {
     const res = await fetch(`${API_BASE}?page_size=80`, { cache: "no-store" });
     const data = await res.json();
-    if (!res.ok || !Array.isArray(data.results)) return [];
-    return data.results.filter(
+    if (!res.ok || !Array.isArray(data.results)) throw new Error("Bad data");
+    const clean = data.results.filter(
       (g) =>
         g.released &&
         !/sex|porn|hentai|erotic|nsfw|lewd|nude/i.test(g.name || "") &&
         !/sex|porn|hentai|erotic|nsfw|lewd|nude/i.test(g.slug || "")
     );
+    allGames = clean;
+    saveCache(clean);
+    renderList();
   } catch (err) {
     console.error("fetch error:", err);
-    return [];
+    listEl.innerHTML =
+      `<div style="padding:40px;text-align:center;color:#777;">Error loading games.</div>`;
   }
 }
 
-// ---------- Render Single Card ----------
+// ---------- Background refresh ----------
+async function refreshInBackground() {
+  try {
+    const res = await fetch(`${API_BASE}?page_size=80`, { cache: "no-store" });
+    const data = await res.json();
+    if (Array.isArray(data.results) && data.results.length) {
+      const clean = data.results.filter((g) => g.released);
+      saveCache(clean);
+      console.log("Cache refreshed 🔁");
+    }
+  } catch (err) {
+    console.warn("Background refresh failed:", err);
+  }
+}
+
+// ---------- Render ----------
 function renderGameCard(game) {
   const released = game.released || "TBA";
   const img = game.background_image || game.short_screenshots?.[0]?.image || "";
@@ -114,7 +169,6 @@ function renderGameCard(game) {
     </div>`;
 }
 
-// ---------- Render List ----------
 function renderList() {
   let visible = [...allGames];
 
@@ -151,22 +205,12 @@ function renderList() {
       ? visible.map(renderGameCard).join("")
       : `<div style="padding:40px;text-align:center;color:#777;">No games found.</div>`;
     listEl.style.opacity = 1;
-
-    // lazy fade-in
-    document.querySelectorAll(".fade-in").forEach((el) => {
-      el.style.opacity = 0;
-      setTimeout(() => {
-        el.style.transition = "opacity 0.8s ease";
-        el.style.opacity = 1;
-      }, 100);
-    });
   }, 150);
 }
 
 // ---------- Init ----------
 async function init() {
-  allGames = await fetchGames();
-  renderList();
+  await fetchGames();
 }
 
 sortEl.addEventListener("change", renderList);

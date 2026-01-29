@@ -1,9 +1,8 @@
 //
-// Gamerly app.js — Stable filters restored (from working v4) + 18+ popup
+// Gamerly app.js — final stable filters (RAWG verified Jan 2026) + 18+ popup
 //
 
 const API_BASE = "/api/games";
-
 const listEl = document.getElementById("game-list");
 const platformEl = document.getElementById("platform");
 const sortEl = document.getElementById("sort");
@@ -65,20 +64,38 @@ function getDateRange() {
 async function fetchGames() {
   const platform = platformEl.value;
   const sort = sortEl.value;
+  const dates = getDateRange();
+
   const ordering =
     sort === "released" ? "-released" :
     sort === "-rating" ? "-rating" :
     sort === "name" ? "name" : "-released";
 
-  const dates = getDateRange();
-  const url = `${API_BASE}?platform=${platform}&dates=${dates}&ordering=${ordering}&page_size=30`;
+  const url = `${API_BASE}?platform=${platform}&dates=${dates}&ordering=${ordering}&page_size=40`;
 
-  console.log("Fetching games:", url);
-  const res = await fetch(url, { cache: "no-store" });
-  const data = await res.json();
+  console.log("Fetching:", url);
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    const data = await res.json();
 
-  if (!res.ok || !data?.results) return [];
-  return data.results;
+    if (!res.ok || !data?.results) {
+      console.error("RAWG Error:", data);
+      return [];
+    }
+
+    // Filter out unreleased future titles beyond today
+    const now = new Date();
+    const filtered = data.results.filter(g => {
+      if (!g.released) return false;
+      const r = new Date(g.released);
+      return r <= now;
+    });
+
+    return filtered;
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return [];
+  }
 }
 
 // ==================== RENDER GAME CARD ====================
@@ -133,7 +150,11 @@ function renderList() {
 
 // ==================== LOAD GAMES ====================
 async function loadGames() {
-  listEl.innerHTML = `<div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>`;
+  listEl.innerHTML = `
+    <div class="shimmer"></div>
+    <div class="shimmer"></div>
+    <div class="shimmer"></div>
+  `;
   try {
     const games = await fetchGames();
     allGames = games;

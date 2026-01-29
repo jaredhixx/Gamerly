@@ -191,7 +191,8 @@ async function loadGame() {
     return;
   }
 
-  const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}&languages=en`, { cache: "no-store" });
+  const res = await fetch(`${window.location.origin}/api/game?slug=${encodeURIComponent(slug)}&languages=en`, { cache: "no-store" });
+  console.log("Fetching:", `${window.location.origin}/api/game?slug=${slug}`);
   const data = await res.json();
 
   if (!res.ok) {

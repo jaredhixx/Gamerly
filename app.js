@@ -1,5 +1,6 @@
 //
-// Gamerly app.js — final stable filters (RAWG verified Jan 2026) + 18+ popup
+// Gamerly app.js — RAWG verified filtering (Feb 2026 final build)
+// Keeps full Apple aesthetic, 18+ popup, fixed filters
 //
 
 const API_BASE = "/api/games";
@@ -57,6 +58,7 @@ function getDateRange() {
       start = new Date("2000-01-01");
       break;
   }
+  // ✅ RAWG needs oldest first, newest last
   return `${formatDate(start)},${formatDate(end)}`;
 }
 
@@ -64,16 +66,17 @@ function getDateRange() {
 async function fetchGames() {
   const platform = platformEl.value;
   const sort = sortEl.value;
-  const dates = getDateRange();
-
   const ordering =
     sort === "released" ? "-released" :
     sort === "-rating" ? "-rating" :
     sort === "name" ? "name" : "-released";
 
+  // ✅ RAWG official format: &dates=<past>,<today>
+  const dates = getDateRange();
   const url = `${API_BASE}?platform=${platform}&dates=${dates}&ordering=${ordering}&page_size=40`;
 
   console.log("Fetching:", url);
+
   try {
     const res = await fetch(url, { cache: "no-store" });
     const data = await res.json();
@@ -83,14 +86,16 @@ async function fetchGames() {
       return [];
     }
 
-    // Filter out unreleased future titles beyond today
+    // ✅ Explicitly filter out any game released in the future
     const now = new Date();
     const filtered = data.results.filter(g => {
       if (!g.released) return false;
-      const r = new Date(g.released);
-      return r <= now;
+      const rel = new Date(g.released);
+      return rel <= now && rel.getFullYear() >= 2000;
     });
 
+    // ✅ Sort descending by release date manually (just in case)
+    filtered.sort((a, b) => new Date(b.released) - new Date(a.released));
     return filtered;
   } catch (err) {
     console.error("Fetch error:", err);
@@ -121,9 +126,7 @@ function renderGameCard(game) {
     <div class="card" onclick="openGame('${game.slug}')">
       ${imgHTML}
       <div class="card-body">
-        <div class="card-title">
-          ${game.name}${isNew ? ` <span class="badge-new">NEW</span>` : ""}
-        </div>
+        <div class="card-title">${game.name}${isNew ? ` <span class="badge-new">NEW</span>` : ""}</div>
         <div class="meta-row">
           ${meta}
           <span class="release-date">Released: ${released}</span>

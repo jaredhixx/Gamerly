@@ -1,36 +1,40 @@
-// /api/game.js
 export default async function handler(req, res) {
+  const { slug } = req.query;
+  const RAWG_KEY = process.env.RAWG_KEY;
+
+  if (!RAWG_KEY) {
+    return res.status(500).json({ error: "Missing RAWG_KEY" });
+  }
+
+  if (!slug) {
+    return res.status(400).json({ error: "Missing slug parameter" });
+  }
+
   try {
-    const RAWG_KEY = process.env.RAWG_KEY;
-    if (!RAWG_KEY) return res.status(500).json({ error: "Missing RAWG_KEY" });
+    const url = `https://api.rawg.io/api/games/${slug}?key=${RAWG_KEY}&language=en`;
 
-    const { slug } = req.query;
-    if (!slug) return res.status(400).json({ error: "Missing slug parameter" });
-
-    const url = new URL(`https://api.rawg.io/api/games/${slug}`);
-    url.searchParams.set("key", RAWG_KEY);
-    url.searchParams.set("languages", "en");
-
-    const resp = await fetch(url.toString(), {
+    const response = await fetch(url, {
       headers: { Accept: "application/json", "User-Agent": "GamerlyApp/1.0" },
       cache: "no-store",
     });
-    const data = await resp.json();
 
-    if (!resp.ok) {
-      console.error("RAWG detail error", data);
-      return res.status(500).json({ error: "Failed to fetch game detail" });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("RAWG error:", errorText);
+      return res.status(response.status).json({ error: "Failed to fetch game detail" });
     }
 
-    // Minimal cleanup
-    const safe =
-      !/sex|porn|hentai|erotic|nsfw|nude|lewd/i.test(data.name || "") &&
-      !/sex|porn|hentai|erotic|nsfw|nude|lewd/i.test(data.slug || "");
-    if (!safe) return res.status(404).json({ error: "Game blocked by content filter" });
+    const data = await response.json();
 
-    res.status(200).json(data);
+    // Remove non-English or unsafe descriptions if any slipped through
+    const cleanDesc = data.description_raw?.replace(/<\/?[^>]+(>|$)/g, "") || "";
+
+    res.status(200).json({
+      ...data,
+      description_raw: cleanDesc,
+    });
   } catch (err) {
-    console.error("Server detail fetch error:", err);
-    res.status(500).json({ error: "Server error fetching game" });
+    console.error("Server error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 }

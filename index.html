@@ -290,6 +290,48 @@
       .modal button:hover {
         background: #ea580c;
       }
+      .platform-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.platform-btn {
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  background: white;
+  color: #333;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.platform-btn:hover {
+  background: #f3f3f3;
+}
+
+.platform-btn.active {
+  background: #0b0b0c;
+  color: white;
+  border-color: #0b0b0c;
+}
+
+.platform-btn .checkmark {
+  opacity: 0;
+  font-size: 0.8rem;
+}
+
+.platform-btn.active .checkmark {
+  opacity: 1;
+}
+
     </style>
   </head>
 
@@ -363,3 +405,4 @@
     <script src="app.js"></script>
   </body>
 </html>
+

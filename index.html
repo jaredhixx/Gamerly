@@ -7,20 +7,47 @@
     <meta name="description" content="Discover the newest PC, console, and mobile game releases with clean, safe previews and modern Apple-inspired design." />
     <style>
       /* ===== Base ===== */
-      * {
-        box-sizing: border-box;
-      }
-
+      * { box-sizing: border-box; }
       body {
         margin: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: #f9fafb;
         color: #111;
-        transition: background 0.4s ease, color 0.4s ease;
+        overflow-x: hidden;
+        min-height: 100vh;
+        position: relative;
+      }
+
+      /* ===== Subtle breathing gradient background ===== */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+          circle at 20% 30%,
+          rgba(249,115,22,0.07),
+          transparent 50%
+        ),
+        radial-gradient(
+          circle at 80% 70%,
+          rgba(59,130,246,0.06),
+          transparent 50%
+        );
+        animation: breathe 12s ease-in-out infinite alternate;
+        z-index: -1;
+      }
+
+      @keyframes breathe {
+        0% { transform: scale(1); opacity: 0.7; }
+        50% { transform: scale(1.05); opacity: 0.9; }
+        100% { transform: scale(1); opacity: 0.7; }
       }
 
       @media (prefers-color-scheme: dark) {
         body { background: #0e0e10; color: #f3f4f6; }
+        body::before {
+          background: radial-gradient(circle at 20% 30%, rgba(249,115,22,0.08), transparent 50%),
+                      radial-gradient(circle at 80% 70%, rgba(59,130,246,0.08), transparent 50%);
+        }
       }
 
       /* ===== Header ===== */
@@ -68,9 +95,7 @@
         transition: opacity 0.2s;
       }
 
-      header a:hover {
-        opacity: 1;
-      }
+      header a:hover { opacity: 1; }
 
       /* ===== Toolbar ===== */
       main {
@@ -100,23 +125,58 @@
       }
 
       select:hover,
-      input[type="text"]:hover {
-        border-color: #aaa;
-      }
+      input[type="text"]:hover { border-color: #aaa; }
 
-      input[type="text"] {
-        min-width: 220px;
-      }
+      input[type="text"] { min-width: 220px; }
 
       @media (prefers-color-scheme: dark) {
         select, input[type="text"] { background: #18181b; color: white; border-color: #333; }
       }
+
+      /* ===== Platform Row ===== */
+      .platform-row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .platform-btn {
+        border: 1px solid #ddd;
+        border-radius: 999px;
+        background: white;
+        color: #333;
+        padding: 8px 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .platform-btn:hover { background: #f3f3f3; }
+      .platform-btn.active {
+        background: #0b0b0c;
+        color: white;
+        border-color: #0b0b0c;
+      }
+
+      .platform-btn .checkmark {
+        opacity: 0;
+        font-size: 0.8rem;
+      }
+
+      .platform-btn.active .checkmark { opacity: 1; }
 
       /* ===== Cards ===== */
       .grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 24px;
+        transition: opacity 0.3s ease;
       }
 
       .card {
@@ -128,29 +188,13 @@
         cursor: pointer;
       }
 
-      .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 18px rgba(0,0,0,0.12);
-      }
+      .card:hover { transform: translateY(-4px); box-shadow: 0 8px 18px rgba(0,0,0,0.12); }
+      .card-img img { width: 100%; height: 200px; object-fit: cover; }
 
-      .card-img img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-      }
-
-      .card-body {
-        padding: 14px 16px 16px;
-      }
-
+      .card-body { padding: 14px 16px 16px; }
       .card-title {
         font-weight: 700;
         font-size: 1rem;
-        color: #111;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
         text-align: center;
       }
 
@@ -184,16 +228,6 @@
         color: #333;
         border: 1px solid #e0e0e0;
         margin: 2px;
-        display: inline-block;
-      }
-
-      .badge-new {
-        background: #0ea5e9;
-        color: white;
-        font-size: 0.7rem;
-        border-radius: 8px;
-        padding: 2px 6px;
-        margin-left: 4px;
       }
 
       .badges {
@@ -203,10 +237,7 @@
         margin-top: 8px;
       }
 
-      .release-date {
-        font-size: 0.85rem;
-        color: #555;
-      }
+      .release-date { font-size: 0.85rem; color: #555; }
 
       .safe-preview {
         height: 200px;
@@ -226,10 +257,7 @@
         background-size: 200% 100%;
         animation: shimmer 1.5s infinite;
       }
-
-      @keyframes shimmer {
-        100% { background-position: -200% 0; }
-      }
+      @keyframes shimmer { 100% { background-position: -200% 0; } }
 
       footer {
         text-align: center;
@@ -252,11 +280,7 @@
         visibility: visible;
         transition: opacity 0.4s ease, visibility 0.4s ease;
       }
-
-      .overlay.hidden {
-        opacity: 0;
-        visibility: hidden;
-      }
+      .overlay.hidden { opacity: 0; visibility: hidden; }
 
       .modal {
         background: rgba(255,255,255,0.1);
@@ -269,12 +293,7 @@
         backdrop-filter: blur(20px);
       }
 
-      .modal h2 {
-        margin-top: 0;
-        font-size: 1.6rem;
-        font-weight: 800;
-      }
-
+      .modal h2 { margin-top: 0; font-size: 1.6rem; font-weight: 800; }
       .modal button {
         margin-top: 20px;
         padding: 10px 20px;
@@ -286,52 +305,7 @@
         cursor: pointer;
         transition: background 0.2s;
       }
-
-      .modal button:hover {
-        background: #ea580c;
-      }
-      .platform-row {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.platform-btn {
-  border: 1px solid #ddd;
-  border-radius: 999px;
-  background: white;
-  color: #333;
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.platform-btn:hover {
-  background: #f3f3f3;
-}
-
-.platform-btn.active {
-  background: #0b0b0c;
-  color: white;
-  border-color: #0b0b0c;
-}
-
-.platform-btn .checkmark {
-  opacity: 0;
-  font-size: 0.8rem;
-}
-
-.platform-btn.active .checkmark {
-  opacity: 1;
-}
-
+      .modal button:hover { background: #ea580c; }
     </style>
   </head>
 
@@ -346,17 +320,7 @@
     </header>
 
     <main>
-      <!-- Toolbar -->
       <div class="toolbar">
-        <select id="platform">
-          <option value="pc">PC</option>
-          <option value="playstation">PlayStation</option>
-          <option value="xbox">Xbox</option>
-          <option value="nintendo">Nintendo</option>
-          <option value="ios">iOS</option>
-          <option value="android">Android</option>
-        </select>
-
         <select id="sort">
           <option value="released">Newest</option>
           <option value="-rating">Highest Rated</option>
@@ -388,14 +352,10 @@
     </div>
 
     <script>
-      // ===== 18+ Modal logic =====
       const overlay = document.getElementById("ageOverlay");
       const confirmBtn = document.getElementById("confirmAge");
-      if (!localStorage.getItem("gamerly_age_verified")) {
-        overlay.classList.remove("hidden");
-      } else {
-        overlay.classList.add("hidden");
-      }
+      if (!localStorage.getItem("gamerly_age_verified")) overlay.classList.remove("hidden");
+      else overlay.classList.add("hidden");
       confirmBtn.addEventListener("click", () => {
         localStorage.setItem("gamerly_age_verified", "true");
         overlay.classList.add("hidden");
@@ -405,4 +365,3 @@
     <script src="app.js"></script>
   </body>
 </html>
-

@@ -1,17 +1,16 @@
 //
-// Gamerly app.js v5 — API-accurate filters + Apple-style layout
+// Gamerly app.js v6 — Smart Filters, Caching, and Apple-Polished
 //
 
 const API_BASE = "/api/games";
 
-// Safe filtering keywords
+// 🔞 NSFW keyword blacklist
 const NSFW_KEYWORDS = [
   "sex","porn","hentai","nsfw","xxx","ecchi","boob","tits","nude","nudity",
   "strip","lewd","fetish","bdsm","adult","erotic","sexual","explicit","18+",
   "uncensored","dating sim","waifu","mistress","brothel"
 ];
 
-// DOM references
 const listEl = document.getElementById("game-list");
 const platformEl = document.getElementById("platform");
 const sortEl = document.getElementById("sort");
@@ -19,10 +18,9 @@ const searchEl = document.getElementById("search");
 const dateEl = document.getElementById("date-range");
 
 let allGames = [];
+let cache = {};
 
-// ==========================
-// 🔹 Build API URL Dynamically
-// ==========================
+// =============== 🔹 Build API URL ===============
 function buildApiUrl() {
   const platform = platformEl.value;
   const sort = sortEl.value;
@@ -47,31 +45,16 @@ function buildApiUrl() {
   }
 
   const dateRange = startDate && endDate ? `&dates=${startDate},${endDate}` : "";
-  const ordering = sort === "released" ? "-released" :
-                   sort === "-rating" ? "-rating" :
-                   sort === "name" ? "name" : "-released";
+  const ordering =
+    sort === "released" ? "-released" :
+    sort === "-rating" ? "-rating" :
+    sort === "name" ? "name" : "-released";
 
-  return `${API_BASE}?platform=${platform}&ordering=${ordering}${dateRange}`;
+  // RAWG needs platform IDs not names, but your API proxy may handle this
+  return `${API_BASE}?platform=${platform}&ordering=${ordering}${dateRange}&page_size=30`;
 }
 
-// ==========================
-// 🔹 Fetch Games from RAWG
-// ==========================
-async function fetchGames() {
-  try {
-    const url = buildApiUrl();
-    const res = await fetch(url, { cache: "no-store" });
-    const data = await res.json();
-    return data?.results || [];
-  } catch (err) {
-    console.error("API error:", err);
-    return [];
-  }
-}
-
-// ==========================
-// 🔹 Safe Filter
-// ==========================
+// =============== 🔹 NSFW Filter ===============
 function isSafe(game) {
   const fields = [
     game.name,
@@ -86,14 +69,68 @@ function isSafe(game) {
   for (const bad of NSFW_KEYWORDS) if (fields.includes(bad)) return false;
   const esrb = game.esrb_rating?.name?.toLowerCase() || "";
   if (esrb.includes("adult") || esrb.includes("mature 18")) return false;
+
   const img = (game.background_image || "").toLowerCase();
   if (img.match(/adult|hentai|sex|erotic/)) return false;
+
   return true;
 }
 
-// ==========================
-// 🔹 Render Each Game Card
-// ==========================
+// =============== 🔹 Smart Cache (5min) ===============
+function getCacheKey() {
+  return `${platformEl.value}-${sortEl.value}-${dateEl.value}`;
+}
+
+function getCachedResults() {
+  const key = getCacheKey();
+  const entry = cache[key];
+  if (!entry) return null;
+  const age = Date.now() - entry.timestamp;
+  if (age > 5 * 60 * 1000) return null; // 5 min expiry
+  return entry.data;
+}
+
+function setCachedResults(data) {
+  const key = getCacheKey();
+  cache[key] = { data, timestamp: Date.now() };
+}
+
+// =============== 🔹 Fetch & Filter Games ===============
+async function fetchGames() {
+  const cached = getCachedResults();
+  if (cached) return cached;
+
+  try {
+    const url = buildApiUrl();
+    const res = await fetch(url, { cache: "no-store" });
+    const data = await res.json();
+    let results = (data?.results || []).filter(isSafe);
+
+    // Strict recheck: filter by release window locally too
+    const now = new Date();
+    const dateFilter = dateEl.value;
+    if (dateFilter !== "all") {
+      results = results.filter(g => {
+        if (!g.released) return false;
+        const release = new Date(g.released);
+        const diffDays = (now - release) / (1000 * 60 * 60 * 24);
+        if (dateFilter === "today") return diffDays <= 1 && diffDays >= 0;
+        if (dateFilter === "week") return diffDays <= 7 && diffDays >= 0;
+        if (dateFilter === "year") return diffDays <= 365 && diffDays >= 0;
+        return true;
+      });
+    }
+
+    // Store in cache
+    setCachedResults(results);
+    return results;
+  } catch (err) {
+    console.error("API error:", err);
+    return [];
+  }
+}
+
+// =============== 🔹 Render Cards ===============
 function renderGameCard(game) {
   const released = game.released || "TBA";
   const isNew = game.released &&
@@ -134,11 +171,9 @@ function renderGameCard(game) {
   `;
 }
 
-// ==========================
-// 🔹 Render All Games
-// ==========================
+// =============== 🔹 Render List ===============
 function renderList() {
-  let visible = allGames;
+  let visible = [...allGames];
   const q = searchEl.value.trim().toLowerCase();
   if (q) visible = visible.filter(g => g.name.toLowerCase().includes(q));
 
@@ -150,33 +185,24 @@ function renderList() {
   listEl.innerHTML = visible.map(renderGameCard).join("");
 }
 
-// ==========================
-// 🔹 Load and Display Games
-// ==========================
+// =============== 🔹 Load Games ===============
 async function loadGames() {
   listEl.innerHTML = `<div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>`;
   let games = await fetchGames();
-  games = games.filter(isSafe);
   allGames = games;
   renderList();
 }
 
-// ==========================
-// 🔹 Open Game Page
-// ==========================
+// =============== 🔹 Open Game ===============
 function openGame(slug) {
   window.location.href = `/game.html?slug=${slug}`;
 }
 
-// ==========================
-// 🔹 Event Listeners
-// ==========================
+// =============== 🔹 Event Listeners ===============
 platformEl.addEventListener("change", loadGames);
 sortEl.addEventListener("change", loadGames);
 dateEl.addEventListener("change", loadGames);
 searchEl.addEventListener("input", renderList);
 
-// ==========================
-// 🔹 Init
-// ==========================
+// =============== 🔹 Init ===============
 loadGames();

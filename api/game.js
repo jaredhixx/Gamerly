@@ -1,5 +1,4 @@
-// /api/game.js — Final English-enforced version
-
+// /api/game.js — Final Node-safe English version (stable)
 export default async function handler(req, res) {
   const { slug } = req.query;
   const RAWG_KEY = process.env.RAWG_KEY;
@@ -12,6 +11,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Fetch base game info
     const url = `https://api.rawg.io/api/games/${slug}?key=${RAWG_KEY}`;
     const response = await fetch(url, {
       headers: { Accept: "application/json", "User-Agent": "GamerlyApp/1.0" },
@@ -27,39 +27,40 @@ export default async function handler(req, res) {
     const data = await response.json();
     let description = data.description_raw || data.description || "";
 
-    // --- Clean up HTML entities like &#1072; (Cyrillic letters) ---
-    const temp = document ? document.createElement("textarea") : null;
-    if (temp) {
-      temp.innerHTML = description;
-      description = temp.value;
-    } else {
-      description = description.replace(/&#(\d+);/g, (m, c) =>
-        String.fromCharCode(c)
-      );
-    }
+    // --- Decode HTML entities manually (no browser APIs) ---
+    description = description
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(code));
 
-    // --- Strip HTML tags just in case ---
+    // --- Strip remaining HTML tags ---
     description = description.replace(/<\/?[^>]+(>|$)/g, "");
 
-    // --- Detect non-English content robustly ---
+    // --- Detect non-English ---
     const isEnglish = /^[\x00-\x7F\s.,;:'"!?()\-–—]+$/.test(description);
 
-    // --- Auto-translate only if clearly not English ---
-    if (!isEnglish) {
+    // --- Translate only if not English ---
+    if (!isEnglish && description.trim().length > 0) {
       try {
         const translateRes = await fetch("https://libretranslate.com/translate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            q: description.slice(0, 4000), // avoid API limits
+            q: description.slice(0, 4000),
             source: "auto",
             target: "en",
           }),
         });
+
         const json = await translateRes.json();
-        if (json.translatedText) description = json.translatedText;
-      } catch (tErr) {
-        console.warn("Translation skipped:", tErr);
+        if (json.translatedText) {
+          description = json.translatedText;
+        }
+      } catch (err) {
+        console.warn("Translation skipped:", err.message);
       }
     }
 

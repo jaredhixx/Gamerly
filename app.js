@@ -1,6 +1,6 @@
 //
-// Gamerly app.js — RAWG verified filtering (Feb 2026 final build)
-// Keeps full Apple aesthetic, 18+ popup, fixed filters
+// Gamerly app.js — FINAL RAWG release filtering (Verified Build)
+// Filters out unreleased, blank, or placeholder titles reliably.
 //
 
 const API_BASE = "/api/games";
@@ -58,7 +58,6 @@ function getDateRange() {
       start = new Date("2000-01-01");
       break;
   }
-  // ✅ RAWG needs oldest first, newest last
   return `${formatDate(start)},${formatDate(end)}`;
 }
 
@@ -71,7 +70,6 @@ async function fetchGames() {
     sort === "-rating" ? "-rating" :
     sort === "name" ? "name" : "-released";
 
-  // ✅ RAWG official format: &dates=<past>,<today>
   const dates = getDateRange();
   const url = `${API_BASE}?platform=${platform}&dates=${dates}&ordering=${ordering}&page_size=40`;
 
@@ -86,16 +84,26 @@ async function fetchGames() {
       return [];
     }
 
-    // ✅ Explicitly filter out any game released in the future
+    // ==================== FINAL FILTER FIX ====================
     const now = new Date();
+
     const filtered = data.results.filter(g => {
-      if (!g.released) return false;
-      const rel = new Date(g.released);
-      return rel <= now && rel.getFullYear() >= 2000;
+      if (!g) return false;
+
+      const releasedDate = g.released ? new Date(g.released) : null;
+      const isTBA = g.tba === true;
+      const validRelease =
+        releasedDate &&
+        !isNaN(releasedDate) &&
+        releasedDate <= now &&
+        releasedDate.getFullYear() >= 2000;
+
+      return validRelease && !isTBA;
     });
 
-    // ✅ Sort descending by release date manually (just in case)
+    // Ensure newest first
     filtered.sort((a, b) => new Date(b.released) - new Date(a.released));
+
     return filtered;
   } catch (err) {
     console.error("Fetch error:", err);
@@ -106,7 +114,10 @@ async function fetchGames() {
 // ==================== RENDER GAME CARD ====================
 function renderGameCard(game) {
   const released = game.released || "TBA";
-  const isNew = game.released && (new Date() - new Date(game.released)) < 7 * 24 * 60 * 60 * 1000;
+  const isNew =
+    game.released &&
+    (new Date() - new Date(game.released)) < 7 * 24 * 60 * 60 * 1000;
+
   const imgSrc = game.background_image || (game.short_screenshots?.[0]?.image ?? "");
   const imgHTML = imgSrc
     ? `<div class="card-img"><img src="${imgSrc}" alt="${game.name}" loading="lazy"></div>`
@@ -126,7 +137,9 @@ function renderGameCard(game) {
     <div class="card" onclick="openGame('${game.slug}')">
       ${imgHTML}
       <div class="card-body">
-        <div class="card-title">${game.name}${isNew ? ` <span class="badge-new">NEW</span>` : ""}</div>
+        <div class="card-title">
+          ${game.name}${isNew ? ` <span class="badge-new">NEW</span>` : ""}
+        </div>
         <div class="meta-row">
           ${meta}
           <span class="release-date">Released: ${released}</span>

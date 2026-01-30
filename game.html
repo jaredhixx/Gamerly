@@ -10,72 +10,62 @@ async function loadGame() {
   }
 
   try {
-    const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
+    // ✅ Force English language
+    const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}&languages=en`, { cache: "no-store" });
     const data = await res.json();
 
     if (!res.ok || !data) {
-      statusEl.textContent = "Error loading game.";
+      statusEl.textContent = "Error loading game data.";
+      console.error("Invalid response:", data);
       return;
     }
 
-    // --- Basic fields ---
+    // --- Core fields ---
     const name = data.name || "Untitled";
     const released = data.released || "TBA";
     const website = data.website || "";
-    const description =
-      data.description_raw || data.description || "No description available.";
+    const description = (data.description_raw || data.description || "No description available.").replace(/<[^>]+>/g, "");
     const img = data.background_image || "";
 
-    // --- Trailer logic ---
-    const trailer =
-      (data.clip && (data.clip.clip || data.clip.video)) ||
-      (Array.isArray(data.movies) && data.movies[0]?.data?.max) ||
-      null;
+    // --- Trailer detection (covers all RAWG formats) ---
+    let trailer = null;
+    if (data.clip?.clip) trailer = data.clip.clip;
+    else if (Array.isArray(data.movies) && data.movies.length) {
+      trailer = data.movies[0]?.data?.max || data.movies[0]?.data?.["480"] || data.movies[0]?.preview || null;
+    }
 
-    // --- Screenshot logic ---
-    const screenshots =
-      Array.isArray(data.screenshots) && data.screenshots.length > 0
-        ? data.screenshots
-        : Array.isArray(data.short_screenshots)
-        ? data.short_screenshots
-        : [];
+    // --- Screenshots fallback-safe ---
+    let screenshots = [];
+    try {
+      if (Array.isArray(data.screenshots) && data.screenshots.length) {
+        screenshots = data.screenshots;
+      } else if (Array.isArray(data.short_screenshots) && data.short_screenshots.length) {
+        screenshots = data.short_screenshots;
+      }
+    } catch (e) {
+      console.warn("screenshot parse fail:", e);
+    }
 
-    // --- Store buttons ---
+    // --- Stores ---
     const stores = Array.isArray(data.stores) ? data.stores : [];
-    const storeLinks = stores
-      .map(
-        (s) =>
-          `<a href="${s.url}" target="_blank" class="store-btn">Buy on ${
-            s.store?.name || "Store"
-          }</a>`
-      )
-      .join("");
+    const storeLinks = stores.map(
+      (s) => `<a href="${s.url}" target="_blank" class="store-btn">Buy on ${s.store?.name || "Store"}</a>`
+    ).join("");
 
-    // --- Platform & genre badges ---
-    const platforms = (data.platforms || [])
-      .map((p) => p.platform?.name)
-      .filter(Boolean);
-    const genres = (data.genres || [])
-      .map((g) => g.name)
-      .filter(Boolean);
-    const badges = [...platforms, ...genres]
-      .slice(0, 12)
-      .map((x) => `<span class="badge">${x}</span>`)
-      .join("");
+    // --- Platforms & genres ---
+    const platforms = (data.platforms || []).map(p => p.platform?.name).filter(Boolean);
+    const genres = (data.genres || []).map(g => g.name).filter(Boolean);
+    const badges = [...platforms, ...genres].slice(0, 12).map(x => `<span class="badge">${x}</span>`).join("");
 
     // --- Metacritic ---
     let metacritic = data.metacritic ?? null;
     if (!metacritic && Array.isArray(data.metacritic_platforms)) {
-      const scores = data.metacritic_platforms
-        .map((p) => p.metascore)
-        .filter((s) => typeof s === "number");
-      if (scores.length)
-        metacritic = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+      const scores = data.metacritic_platforms.map(p => p.metascore).filter(s => typeof s === "number");
+      if (scores.length) metacritic = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
     }
-    const metaColor =
-      metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
+    const metaColor = metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
 
-    // --- Build content ---
+    // --- Hero section ---
     const hero = `
       <div class="hero-banner" style="background-image:url('${img}')">
         <div class="overlay-gradient"></div>
@@ -93,6 +83,7 @@ async function loadGame() {
         </div>
       </div>`;
 
+    // --- Trailer ---
     const trailerBlock = trailer
       ? `
         <div class="trailer-container">
@@ -103,9 +94,9 @@ async function loadGame() {
         </div>`
       : "";
 
-    const screenshotBlock =
-      screenshots.length > 0
-        ? `
+    // --- Screenshots carousel ---
+    const screenshotBlock = screenshots.length
+      ? `
         <div class="screenshot-row">
           ${screenshots
             .map(
@@ -114,14 +105,16 @@ async function loadGame() {
             )
             .join("")}
         </div>`
-        : "";
+      : "";
 
+    // --- About ---
     const about = `
       <div class="panel">
         <h2>About</h2>
         <p>${description}</p>
       </div>`;
 
+    // --- Render everything ---
     contentEl.innerHTML = hero + trailerBlock + screenshotBlock + about;
     statusEl.remove();
     contentEl.style.display = "block";
@@ -136,20 +129,20 @@ async function loadGame() {
       });
     }
 
-    // --- Screenshot auto-scroll (Netflix feel) ---
+    // --- Netflix-style auto-scroll ---
     const row = document.querySelector(".screenshot-row");
     if (row) {
       let scrollSpeed = 1.4;
       function scrollLoop() {
-        row.scrollLeft =
-          (row.scrollLeft + scrollSpeed) % (row.scrollWidth - row.clientWidth + 1);
+        row.scrollLeft = (row.scrollLeft + scrollSpeed) % (row.scrollWidth - row.clientWidth + 1);
         requestAnimationFrame(scrollLoop);
       }
       scrollLoop();
     }
+
   } catch (err) {
-    console.error(err);
-    document.getElementById("status").textContent = "Error loading game data.";
+    console.error("loadGame error:", err);
+    statusEl.textContent = "Error loading game data.";
   }
 }
 

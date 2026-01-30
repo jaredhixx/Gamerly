@@ -1,5 +1,5 @@
 //
-// Gamerly – Final Stable Version with Quick Preview (Apple / Netflix Feel)
+// Gamerly – Hover + Click Quick Preview (Apple / Netflix Feel)
 //
 const API_BASE = "/api/games";
 const listEl = document.getElementById("game-list");
@@ -159,6 +159,8 @@ function renderList() {
         el.style.opacity = 1;
       }, 100);
     });
+
+    attachPreviewListeners();
   }, 150);
 }
 
@@ -179,27 +181,52 @@ const modal = document.getElementById("preview-modal");
 const closeBtn = document.getElementById("close-preview");
 const previewBody = document.getElementById("preview-body");
 
-document.body.addEventListener("click", (e) => {
-  const card = e.target.closest(".card");
-  if (!card || !card.dataset.slug) return;
+let hoverTimer = null;
+let currentHoverSlug = null;
 
-  const game = allGames.find((g) => g.slug === card.dataset.slug);
-  if (!game) return;
+function attachPreviewListeners() {
+  document.querySelectorAll(".card").forEach((card) => {
+    // Hover start
+    card.addEventListener("mouseenter", () => {
+      if (window.innerWidth < 768) return; // mobile skip hover
+      const slug = card.dataset.slug;
+      hoverTimer = setTimeout(() => {
+        if (currentHoverSlug !== slug) {
+          const game = allGames.find((g) => g.slug === slug);
+          if (game) showPreview(game, true);
+          currentHoverSlug = slug;
+        }
+      }, 400);
+    });
 
-  showPreview(game);
-});
+    // Hover leave
+    card.addEventListener("mouseleave", () => {
+      if (hoverTimer) clearTimeout(hoverTimer);
+      hoverTimer = null;
+    });
+
+    // Click (mobile)
+    card.addEventListener("click", () => {
+      const slug = card.dataset.slug;
+      const game = allGames.find((g) => g.slug === slug);
+      if (game) showPreview(game, false);
+    });
+  });
+}
 
 closeBtn.addEventListener("click", () => {
   modal.classList.add("hidden");
+  currentHoverSlug = null;
 });
 
 modal.addEventListener("click", (e) => {
   if (e.target.classList.contains("preview-backdrop")) {
     modal.classList.add("hidden");
+    currentHoverSlug = null;
   }
 });
 
-function showPreview(game) {
+function showPreview(game, auto = false) {
   const img = game.background_image || game.short_screenshots?.[0]?.image || "";
   const desc = (game.description_raw || game.name || "")
     .slice(0, 220)
@@ -229,4 +256,16 @@ function showPreview(game) {
   `;
 
   modal.classList.remove("hidden");
+
+  if (auto) {
+    // For hover previews, auto-close when leaving modal area
+    modal.addEventListener(
+      "mouseleave",
+      () => {
+        modal.classList.add("hidden");
+        currentHoverSlug = null;
+      },
+      { once: true }
+    );
+  }
 }

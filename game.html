@@ -6,27 +6,21 @@
     <title>Gamerly – Game</title>
     <style>
       body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         margin: 0;
-        padding: 0;
-        background: #f9fafb;
-        color: #111;
+        background: #0e0e10;
+        color: #fff;
       }
 
       header {
-        background: #111827;
-        color: white;
-        padding: 24px;
-      }
-
-      main {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 24px;
+        background: rgba(15,15,15,0.85);
+        backdrop-filter: blur(20px);
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.4);
       }
 
       a {
-        color: #2563eb;
+        color: #f97316;
         text-decoration: none;
         font-weight: 600;
       }
@@ -35,12 +29,10 @@
         text-decoration: underline;
       }
 
-      .panel {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 16px;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+      main {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 24px;
       }
 
       .hero-banner {
@@ -56,7 +48,7 @@
       .overlay-gradient {
         position: absolute;
         inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1));
+        background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.2));
       }
 
       .hero-content {
@@ -77,7 +69,7 @@
         opacity: 0.9;
       }
 
-      .hero-content .score {
+      .score {
         display: inline-block;
         margin-top: 6px;
         padding: 4px 8px;
@@ -85,164 +77,147 @@
         font-weight: 700;
       }
 
-      .trailer {
-        width: 100%;
-        max-height: 400px;
-        border-radius: 14px;
-        margin-bottom: 24px;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-      }
-
       .store-btn {
         display: inline-block;
-        background: #0b0b0c;
+        background: #f97316;
         color: white;
         padding: 8px 14px;
         border-radius: 8px;
         text-decoration: none;
         font-weight: 600;
-        margin: 6px 6px 0 0;
+        margin-top: 10px;
         transition: all 0.2s ease;
       }
 
       .store-btn:hover {
-        background: #f97316;
-        color: white;
+        background: #ea580c;
       }
 
-      .badges {
+      /* ===== Carousel ===== */
+      .carousel-container {
+        position: relative;
+        margin: 20px 0 40px;
+        overflow: hidden;
+      }
+
+      .carousel {
         display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 10px;
+        gap: 12px;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
       }
 
-      .badge {
-        font-size: 0.75rem;
-        color: #374151;
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
-        padding: 3px 8px;
-        border-radius: 999px;
+      .carousel::-webkit-scrollbar { display: none; }
+
+      .carousel img {
+        width: 320px;
+        height: 180px;
+        border-radius: 12px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        cursor: pointer;
       }
 
-      .desc {
-        white-space: pre-wrap;
-        line-height: 1.5;
-        color: #111;
+      .carousel img:hover {
+        transform: scale(1.05);
+      }
+
+      .carousel-fade-left,
+      .carousel-fade-right {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 80px;
+        pointer-events: none;
+      }
+
+      .carousel-fade-left {
+        left: 0;
+        background: linear-gradient(to right, #0e0e10 0%, transparent 100%);
+      }
+
+      .carousel-fade-right {
+        right: 0;
+        background: linear-gradient(to left, #0e0e10 0%, transparent 100%);
+      }
+
+      .panel {
+        background: rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 20px;
+        line-height: 1.6;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
       }
     </style>
   </head>
 
   <body>
     <header>
-      <div style="max-width: 900px; margin: 0 auto;">
-        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-          <a href="/" style="color: white; text-decoration: none; font-weight: 900;">Gamerly 🔥</a>
-          <span style="opacity: 0.6;">/</span>
-          <a href="/" style="color: white; opacity: 0.9; text-decoration: none;">⬅ Back to New Releases</a>
-        </div>
-      </div>
+      <a href="/" style="font-weight:900;color:white;">🔥 Gamerly</a>
     </header>
 
     <main>
       <div id="status" class="panel">Loading…</div>
-      <div id="content" style="display: none;"></div>
+      <div id="content" style="display:none;"></div>
     </main>
 
     <script>
 async function loadGame() {
   const slug = new URLSearchParams(window.location.search).get("slug");
-  if (!slug) {
-    document.getElementById("status").textContent = "Missing slug in URL.";
-    return;
-  }
+  if (!slug) return document.getElementById("status").textContent = "Missing slug.";
 
-  try {
-    const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
-    const data = await res.json();
+  const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
+  const data = await res.json();
+  if (!res.ok) return document.getElementById("status").textContent = "Error loading game.";
 
-    if (!res.ok) {
-      document.getElementById("status").textContent = data?.error || "Error loading game.";
-      return;
-    }
+  const name = data?.name || "Untitled";
+  const released = data?.released || "TBA";
+  const img = data?.background_image || "";
+  const screenshots = data?.short_screenshots || [];
+  const description = data?.description_raw || "No description available.";
 
-    const name = data?.name || "Untitled";
-    const released = data?.released || "TBA";
-    const img = data?.background_image || "";
-    const website = data?.website || "";
-    const description = data?.description_raw || "No description available.";
-    const clip = data?.clip?.clip || null;
-    const stores = Array.isArray(data?.stores) ? data.stores : [];
+  const metacritic = data?.metacritic || null;
+  const metaColor = metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
 
-    const platforms = Array.isArray(data?.platforms)
-      ? data.platforms.map(p => p?.platform?.name).filter(Boolean).slice(0, 10)
-      : [];
-    const genres = Array.isArray(data?.genres)
-      ? data.genres.map(g => g?.name).filter(Boolean).slice(0, 10)
-      : [];
+  const carousel = screenshots.map(s => `<img src="${s.image}" alt="Screenshot">`).join("");
+  const carouselHTML = screenshots.length ? `
+    <div class="carousel-container">
+      <div class="carousel">${carousel}</div>
+      <div class="carousel-fade-left"></div>
+      <div class="carousel-fade-right"></div>
+    </div>` : "";
 
-    const badges = [...platforms, ...genres]
-      .slice(0, 16)
-      .map(x => `<span class="badge">${x}</span>`)
-      .join("");
-
-    let metacritic = data?.metacritic ?? null;
-    if (!metacritic && Array.isArray(data.metacritic_platforms)) {
-      const allScores = data.metacritic_platforms
-        .map(p => p.metascore)
-        .filter(s => typeof s === "number");
-      if (allScores.length)
-        metacritic = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
-    }
-
-    const metaColor =
-      metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
-
-    const storeLinks = stores
-      .map(
-        (s) => `
-        <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="store-btn">
-          Buy on ${s.store?.name || "Store"}
-        </a>`
-      )
-      .join("");
-
-    const trailer = clip
-      ? `<video controls poster="${img}" class="trailer"><source src="${clip}" type="video/mp4" /></video>`
-      : "";
-
-    const content = `
-      <div class="hero-banner" style="background-image:url('${img}')">
-        <div class="overlay-gradient"></div>
-        <div class="hero-content">
-          <h1>${name}</h1>
-          <div class="meta">Released: ${released}</div>
-          <div class="score" style="background:${metaColor}">
-            ${metacritic ? `Metacritic: ${metacritic}` : "No Score"}
-          </div>
-          <div class="badges">${badges}</div>
-          <div class="links">
-            ${website ? `<a href="${website}" target="_blank" class="store-btn">Official Site</a>` : ""}
-            ${storeLinks}
-          </div>
-        </div>
+  document.getElementById("content").style.display = "block";
+  document.getElementById("content").innerHTML = `
+    <div class="hero-banner" style="background-image:url('${img}')">
+      <div class="overlay-gradient"></div>
+      <div class="hero-content">
+        <h1>${name}</h1>
+        <div class="meta">Released: ${released}</div>
+        <div class="score" style="background:${metaColor};">${metacritic ? `Metacritic: ${metacritic}` : "N/A"}</div>
       </div>
+    </div>
+    ${carouselHTML}
+    <div class="panel">
+      <h2>About</h2>
+      <p>${description}</p>
+    </div>
+  `;
+  document.getElementById("status").remove();
 
-      ${trailer}
-
-      <div class="panel">
-        <h2>About</h2>
-        <p>${description}</p>
-      </div>
-    `;
-
-    document.getElementById("content").style.display = "block";
-    document.getElementById("content").innerHTML = content;
-    document.getElementById("status").remove();
-  } catch (err) {
-    console.error("Error loading game:", err);
-    document.getElementById("status").textContent = "Error loading game data.";
+  // Auto-scroll carousel
+  const carouselEl = document.querySelector(".carousel");
+  if (carouselEl) {
+    let scrollAmount = 0;
+    setInterval(() => {
+      if (carouselEl.scrollLeft + carouselEl.clientWidth >= carouselEl.scrollWidth) {
+        carouselEl.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        scrollAmount += 340;
+        carouselEl.scrollBy({ left: 340, behavior: "smooth" });
+      }
+    }, 2800);
   }
 }
 

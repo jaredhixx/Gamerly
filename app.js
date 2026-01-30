@@ -1,18 +1,13 @@
 //
-// Gamerly — Fast-cache build (Apple/Netflix-feel foundation)
-// Keeps aesthetics & filters identical, adds local caching and instant reload
+// Gamerly – Final Stable Version with Quick Preview (Apple / Netflix Feel)
 //
-
 const API_BASE = "/api/games";
-const CACHE_KEY = "gamerly_cache_v1";
-const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours
-
 const listEl = document.getElementById("game-list");
 const sortEl = document.getElementById("sort");
 const searchEl = document.getElementById("search");
 const dateEl = document.getElementById("date-range");
 
-// ---------- Platform Buttons ----------
+// ---------- Platform Toggles ----------
 const platformRow = document.createElement("div");
 platformRow.className = "platform-row";
 document.querySelector(".toolbar").before(platformRow);
@@ -63,78 +58,27 @@ const withinRange = (dateStr, range) => {
   return true;
 };
 
-// ---------- Cache Helpers ----------
-function loadCache() {
-  try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
-    if (!cached) return null;
-    const age = Date.now() - cached.timestamp;
-    if (age > CACHE_TTL) return null;
-    return cached.data;
-  } catch {
-    return null;
-  }
-}
-
-function saveCache(data) {
-  localStorage.setItem(
-    CACHE_KEY,
-    JSON.stringify({ timestamp: Date.now(), data })
-  );
-}
-
-// ---------- Fetch ----------
-async function fetchGames(force = false) {
-  if (!force) {
-    const cached = loadCache();
-    if (cached?.length) {
-      console.log("Loaded from cache ✅");
-      allGames = cached;
-      renderList();
-      refreshInBackground(); // silently refresh newer data
-      return;
-    }
-  }
-
+// ---------- Fetch once ----------
+async function fetchGames() {
   listEl.innerHTML =
     `<div class="shimmer"></div><div class="shimmer"></div><div class="shimmer"></div>`;
-
   try {
     const res = await fetch(`${API_BASE}?page_size=80`, { cache: "no-store" });
     const data = await res.json();
-    if (!res.ok || !Array.isArray(data.results)) throw new Error("Bad data");
-    const clean = data.results.filter(
+    if (!res.ok || !Array.isArray(data.results)) return [];
+    return data.results.filter(
       (g) =>
         g.released &&
         !/sex|porn|hentai|erotic|nsfw|lewd|nude/i.test(g.name || "") &&
         !/sex|porn|hentai|erotic|nsfw|lewd|nude/i.test(g.slug || "")
     );
-    allGames = clean;
-    saveCache(clean);
-    renderList();
   } catch (err) {
     console.error("fetch error:", err);
-    listEl.innerHTML =
-      `<div style="padding:40px;text-align:center;color:#777;">Error loading games.</div>`;
+    return [];
   }
 }
 
-// ---------- Background refresh ----------
-async function refreshInBackground() {
-  try {
-    const res = await fetch(`${API_BASE}?page_size=80`, { cache: "no-store" });
-    const data = await res.json();
-    if (Array.isArray(data.results) && data.results.length) {
-      const clean = data.results.filter((g) => g.released);
-      saveCache(clean);
-      console.log("Cache refreshed 🔁");
-    }
-  } catch (err) {
-    console.warn("Background refresh failed:", err);
-  }
-}
-
-// ---------- Render ----------
+// ---------- Render Single Card ----------
 function renderGameCard(game) {
   const released = game.released || "TBA";
   const img = game.background_image || game.short_screenshots?.[0]?.image || "";
@@ -155,7 +99,7 @@ function renderGameCard(game) {
       : `<span class="badge-meta meta-na">N/A</span>`;
 
   return `
-    <div class="card" onclick="window.location='/game.html?slug=${game.slug}'" title="${game.name}">
+    <div class="card" data-slug="${game.slug}" title="${game.name}">
       ${
         img
           ? `<div class="card-img fade-in"><img src="${img}" alt="${game.name}" loading="lazy"></div>`
@@ -169,6 +113,7 @@ function renderGameCard(game) {
     </div>`;
 }
 
+// ---------- Render List ----------
 function renderList() {
   let visible = [...allGames];
 
@@ -205,12 +150,22 @@ function renderList() {
       ? visible.map(renderGameCard).join("")
       : `<div style="padding:40px;text-align:center;color:#777;">No games found.</div>`;
     listEl.style.opacity = 1;
+
+    // lazy fade-in
+    document.querySelectorAll(".fade-in").forEach((el) => {
+      el.style.opacity = 0;
+      setTimeout(() => {
+        el.style.transition = "opacity 0.8s ease";
+        el.style.opacity = 1;
+      }, 100);
+    });
   }, 150);
 }
 
 // ---------- Init ----------
 async function init() {
-  await fetchGames();
+  allGames = await fetchGames();
+  renderList();
 }
 
 sortEl.addEventListener("change", renderList);
@@ -218,3 +173,60 @@ searchEl.addEventListener("input", renderList);
 dateEl.addEventListener("change", renderList);
 
 init();
+
+// ---------- Quick Preview Modal ----------
+const modal = document.getElementById("preview-modal");
+const closeBtn = document.getElementById("close-preview");
+const previewBody = document.getElementById("preview-body");
+
+document.body.addEventListener("click", (e) => {
+  const card = e.target.closest(".card");
+  if (!card || !card.dataset.slug) return;
+
+  const game = allGames.find((g) => g.slug === card.dataset.slug);
+  if (!game) return;
+
+  showPreview(game);
+});
+
+closeBtn.addEventListener("click", () => {
+  modal.classList.add("hidden");
+});
+
+modal.addEventListener("click", (e) => {
+  if (e.target.classList.contains("preview-backdrop")) {
+    modal.classList.add("hidden");
+  }
+});
+
+function showPreview(game) {
+  const img = game.background_image || game.short_screenshots?.[0]?.image || "";
+  const desc = (game.description_raw || game.name || "")
+    .slice(0, 220)
+    .replace(/<\/?[^>]+(>|$)/g, "") + "…";
+  const platforms =
+    game.parent_platforms
+      ?.map((p) => `<span>${p.platform.name}</span>`)
+      .join("") || "";
+  const meta = game.metacritic
+    ? `<span style="background:${
+        game.metacritic >= 75
+          ? "#16a34a"
+          : game.metacritic >= 50
+          ? "#facc15"
+          : "#dc2626"
+      };padding:4px 8px;border-radius:8px;margin-left:8px;">${game.metacritic}</span>`
+    : "";
+
+  previewBody.innerHTML = `
+    <div class="preview-body">
+      ${img ? `<img src="${img}" alt="${game.name}" />` : ""}
+      <div class="preview-title">${game.name}${meta}</div>
+      <div class="preview-desc">${desc}</div>
+      <div class="preview-badges">${platforms}</div>
+      <a href="/game.html?slug=${game.slug}" class="view-btn">View Full Details</a>
+    </div>
+  `;
+
+  modal.classList.remove("hidden");
+}

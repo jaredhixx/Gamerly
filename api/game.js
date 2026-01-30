@@ -1,4 +1,4 @@
-// /api/game.js — Stable Build (pre-screenshot)
+// /api/game.js — Stable confirmed version (working before screenshots)
 export default async function handler(req, res) {
   try {
     const { slug } = req.query;
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         .json({ error: data?.error || "RAWG fetch failed" });
     }
 
-    // Clean up description formatting
+    // Optionally clean up language noise if RAWG returns mixed locale text
     if (data?.description_raw) {
       data.description_raw = data.description_raw.replace(/\n{3,}/g, "\n\n");
     }

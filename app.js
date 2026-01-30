@@ -1,8 +1,12 @@
+//
+// Gamerly – Subtle Apple-Style Hover Preview (stable)
+//
 const API_BASE = "/api/games";
 const listEl = document.getElementById("game-list");
 const sortEl = document.getElementById("sort");
 const searchEl = document.getElementById("search");
 const dateEl = document.getElementById("date-range");
+const hoverPreview = document.getElementById("hoverPreview");
 
 // Platform toggles
 const platformRow = document.createElement("div");
@@ -22,8 +26,12 @@ let activePlatforms = new Set();
 let allGames = [];
 
 platformRow.innerHTML = platforms
-  .map((p) => `<button class="platform-btn" data-id="${p.id}">
-    ${p.label}<span class="checkmark">✓</span></button>`)
+  .map(
+    (p) =>
+      `<button class="platform-btn" data-id="${p.id}">
+        ${p.label}<span class="checkmark">✓</span>
+      </button>`
+  )
   .join("");
 
 platformRow.addEventListener("click", (e) => {
@@ -37,7 +45,11 @@ platformRow.addEventListener("click", (e) => {
 });
 
 // Helpers
-const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
+const daysAgo = (n) => {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d;
+};
 const withinRange = (dateStr, range) => {
   const d = new Date(dateStr);
   if (range === "today") return d >= daysAgo(1);
@@ -54,7 +66,8 @@ async function fetchGames() {
     const data = await res.json();
     if (!res.ok || !Array.isArray(data.results)) return [];
     return data.results.filter(
-      (g) => g.released &&
+      (g) =>
+        g.released &&
         !/sex|porn|hentai|erotic|nsfw|lewd|nude/i.test(g.name || "") &&
         !/sex|porn|hentai|erotic|nsfw|lewd|nude/i.test(g.slug || "")
     );
@@ -69,25 +82,26 @@ function renderGameCard(game) {
   const released = game.released || "TBA";
   const img = game.background_image || "";
   const platformsHTML =
-    game.parent_platforms?.map(p => `<span class="badge">${p.platform.name}</span>`).join(" ") || "";
+    game.parent_platforms
+      ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
+      .join(" ") || "";
 
-  const meta = game.metacritic != null
-    ? `<span class="badge-meta ${
-        game.metacritic >= 75 ? "meta-good" :
-        game.metacritic >= 50 ? "meta-mid" : "meta-bad"
-      }">${game.metacritic}</span>`
-    : `<span class="badge-meta meta-na">N/A</span>`;
-
-  const previewVideo = game.clip?.clip || null;
-  const previewHTML = previewVideo
-    ? `<div class="preview-box"><video src="${previewVideo}" autoplay muted loop></video>
-        <button class="view-btn" onclick="window.location='/game.html?slug=${game.slug}'">View</button></div>`
-    : "";
+  const meta =
+    game.metacritic != null
+      ? `<span class="badge-meta ${
+          game.metacritic >= 75
+            ? "meta-good"
+            : game.metacritic >= 50
+            ? "meta-mid"
+            : "meta-bad"
+        }">${game.metacritic}</span>`
+      : `<span class="badge-meta meta-na">N/A</span>`;
 
   return `
-    <div class="card" onclick="window.location='/game.html?slug=${game.slug}'" title="${game.name}">
-      <div class="card-img"><img src="${img}" alt="${game.name}" loading="lazy"></div>
-      ${previewHTML}
+    <div class="card" data-slug="${game.slug}" title="${game.name}">
+      <div class="card-img">
+        <img src="${img}" alt="${game.name}" loading="lazy">
+      </div>
       <div class="card-body">
         <div class="card-title">${game.name}</div>
         <div class="meta-row">${meta}<span class="release-date">Released: ${released}</span></div>
@@ -107,7 +121,9 @@ function renderList() {
     );
   }
   const range = dateEl.value;
-  if (range && range !== "all") visible = visible.filter((g) => withinRange(g.released, range));
+  if (range && range !== "all")
+    visible = visible.filter((g) => withinRange(g.released, range));
+
   const q = searchEl.value.trim().toLowerCase();
   if (q) visible = visible.filter((g) => g.name.toLowerCase().includes(q));
 
@@ -119,6 +135,50 @@ function renderList() {
   listEl.innerHTML = visible.length
     ? visible.map(renderGameCard).join("")
     : `<div style="padding:40px;text-align:center;color:#777;">No games found.</div>`;
+
+  setupHoverPreviews();
+}
+
+// Hover preview logic
+function setupHoverPreviews() {
+  const cards = document.querySelectorAll(".card");
+  cards.forEach((card) => {
+    card.addEventListener("mouseenter", (e) => showPreview(card));
+    card.addEventListener("mouseleave", hidePreview);
+    card.addEventListener("click", () => {
+      window.location = `/game.html?slug=${card.dataset.slug}`;
+    });
+  });
+}
+
+function showPreview(card) {
+  const slug = card.dataset.slug;
+  const game = allGames.find((g) => g.slug === slug);
+  if (!game) return;
+
+  const rect = card.getBoundingClientRect();
+  const clip = game.clip?.clip || null;
+  const img = game.background_image || game.short_screenshots?.[0]?.image || "";
+  const src = clip || img;
+
+  hoverPreview.innerHTML = `
+    ${clip
+      ? `<video src="${src}" autoplay muted loop playsinline></video>`
+      : `<img src="${src}" alt="${game.name}">`}
+    <div class="info">
+      <span>${game.name}</span>
+      <span>${game.metacritic ? `${game.metacritic}★` : ""}</span>
+    </div>`;
+
+  hoverPreview.style.top = `${window.scrollY + rect.top - 20}px`;
+  hoverPreview.style.left = `${rect.left + rect.width / 2 - 160}px`;
+  hoverPreview.classList.add("visible");
+  hoverPreview.classList.remove("hidden");
+}
+
+function hidePreview() {
+  hoverPreview.classList.remove("visible");
+  setTimeout(() => hoverPreview.classList.add("hidden"), 150);
 }
 
 // Init

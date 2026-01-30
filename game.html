@@ -1,11 +1,11 @@
 <script>
-async function loadGame() {
+document.addEventListener("DOMContentLoaded", async () => {
   const slug = new URLSearchParams(window.location.search).get("slug");
   const statusEl = document.getElementById("status");
   const contentEl = document.getElementById("content");
 
   if (!slug) {
-    statusEl.textContent = "Missing slug in URL.";
+    if (statusEl) statusEl.textContent = "Missing slug in URL.";
     return;
   }
 
@@ -14,11 +14,10 @@ async function loadGame() {
     const data = await res.json();
 
     if (!res.ok || !data) {
-      statusEl.textContent = "Error loading game.";
+      if (statusEl) statusEl.textContent = "Error loading game.";
       return;
     }
 
-    // --- Basic fields ---
     const name = data.name || "Untitled";
     const released = data.released || "TBA";
     const website = data.website || "";
@@ -26,13 +25,11 @@ async function loadGame() {
       data.description_raw || data.description || "No description available.";
     const img = data.background_image || "";
 
-    // --- Trailer ---
     const trailer =
       (data.clip && (data.clip.clip || data.clip.video)) ||
       (Array.isArray(data.movies) && data.movies[0]?.data?.max) ||
       null;
 
-    // --- Screenshots ---
     const screenshots =
       Array.isArray(data.screenshots) && data.screenshots.length
         ? data.screenshots
@@ -40,7 +37,6 @@ async function loadGame() {
         ? data.short_screenshots
         : [];
 
-    // --- Store links ---
     const stores = Array.isArray(data.stores) ? data.stores : [];
     const storeLinks = stores
       .map(
@@ -51,19 +47,13 @@ async function loadGame() {
       )
       .join("");
 
-    // --- Badges ---
-    const platforms = (data.platforms || [])
-      .map((p) => p.platform?.name)
-      .filter(Boolean);
-    const genres = (data.genres || [])
-      .map((g) => g.name)
-      .filter(Boolean);
+    const platforms = (data.platforms || []).map((p) => p.platform?.name).filter(Boolean);
+    const genres = (data.genres || []).map((g) => g.name).filter(Boolean);
     const badges = [...platforms, ...genres]
       .slice(0, 12)
       .map((x) => `<span class="badge">${x}</span>`)
       .join("");
 
-    // --- Metacritic ---
     let metacritic = data.metacritic ?? null;
     if (!metacritic && Array.isArray(data.metacritic_platforms)) {
       const scores = data.metacritic_platforms
@@ -75,7 +65,6 @@ async function loadGame() {
     const metaColor =
       metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
 
-    // --- Hero banner ---
     const hero = `
       <div class="hero-banner" style="background-image:url('${img}')">
         <div class="overlay-gradient"></div>
@@ -93,7 +82,6 @@ async function loadGame() {
         </div>
       </div>`;
 
-    // --- Trailer block ---
     const trailerBlock = trailer
       ? `
         <div class="trailer-container">
@@ -104,7 +92,6 @@ async function loadGame() {
         </div>`
       : "";
 
-    // --- Screenshot carousel ---
     const screenshotBlock = screenshots.length
       ? `
         <div class="screenshot-carousel">
@@ -117,18 +104,18 @@ async function loadGame() {
         </div>`
       : `<div class="panel" style="text-align:center;color:#777;">No screenshots available.</div>`;
 
-    // --- About section ---
     const about = `
       <div class="panel">
         <h2>About</h2>
         <p>${description}</p>
       </div>`;
 
-    contentEl.innerHTML = hero + trailerBlock + screenshotBlock + about;
-    statusEl.remove();
-    contentEl.style.display = "block";
+    if (contentEl) {
+      contentEl.innerHTML = hero + trailerBlock + screenshotBlock + about;
+      if (statusEl) statusEl.remove();
+      contentEl.style.display = "block";
+    }
 
-    // --- Sound toggle ---
     const video = document.getElementById("gameTrailer");
     const btn = document.getElementById("soundToggle");
     if (video && btn) {
@@ -138,7 +125,6 @@ async function loadGame() {
       });
     }
 
-    // --- Auto-scroll carousel ---
     const row = document.querySelector(".screenshot-carousel");
     if (row) {
       let speed = 0.6;
@@ -150,10 +136,8 @@ async function loadGame() {
       scrollLoop();
     }
   } catch (err) {
-    console.error(err);
-    document.getElementById("status").textContent = "Error loading game data.";
+    console.error("loadGame error:", err);
+    if (statusEl) statusEl.textContent = "Error loading game data.";
   }
-}
-
-loadGame();
+});
 </script>

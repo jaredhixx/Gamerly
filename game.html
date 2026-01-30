@@ -1,30 +1,157 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gamerly – Game</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
+<script>
+async function loadGame() {
+  const slug = new URLSearchParams(window.location.search).get("slug");
+  const statusEl = document.getElementById("status");
+  const contentEl = document.getElementById("content");
 
-  <body>
-    <header>
-      <div style="max-width:900px;margin:0 auto;">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <a href="/" style="color:white;text-decoration:none;font-weight:900;">🔥 Gamerly</a>
-          <span style="opacity:0.6;">/</span>
-          <a href="/" style="color:white;opacity:0.9;text-decoration:none;">⬅ Back to New Releases</a>
+  if (!slug) {
+    statusEl.textContent = "Missing slug in URL.";
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
+    const data = await res.json();
+
+    if (!res.ok || !data) {
+      statusEl.textContent = "Error loading game.";
+      return;
+    }
+
+    // --- Basic fields ---
+    const name = data.name || "Untitled";
+    const released = data.released || "TBA";
+    const website = data.website || "";
+    const description =
+      data.description_raw || data.description || "No description available.";
+    const img = data.background_image || "";
+
+    // --- Trailer logic ---
+    const trailer =
+      (data.clip && (data.clip.clip || data.clip.video)) ||
+      (Array.isArray(data.movies) && data.movies[0]?.data?.max) ||
+      null;
+
+    // --- Screenshot logic ---
+    const screenshots =
+      Array.isArray(data.screenshots) && data.screenshots.length > 0
+        ? data.screenshots
+        : Array.isArray(data.short_screenshots)
+        ? data.short_screenshots
+        : [];
+
+    // --- Store buttons ---
+    const stores = Array.isArray(data.stores) ? data.stores : [];
+    const storeLinks = stores
+      .map(
+        (s) =>
+          `<a href="${s.url}" target="_blank" class="store-btn">Buy on ${
+            s.store?.name || "Store"
+          }</a>`
+      )
+      .join("");
+
+    // --- Platform & genre badges ---
+    const platforms = (data.platforms || [])
+      .map((p) => p.platform?.name)
+      .filter(Boolean);
+    const genres = (data.genres || [])
+      .map((g) => g.name)
+      .filter(Boolean);
+    const badges = [...platforms, ...genres]
+      .slice(0, 12)
+      .map((x) => `<span class="badge">${x}</span>`)
+      .join("");
+
+    // --- Metacritic ---
+    let metacritic = data.metacritic ?? null;
+    if (!metacritic && Array.isArray(data.metacritic_platforms)) {
+      const scores = data.metacritic_platforms
+        .map((p) => p.metascore)
+        .filter((s) => typeof s === "number");
+      if (scores.length)
+        metacritic = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    }
+    const metaColor =
+      metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
+
+    // --- Build content ---
+    const hero = `
+      <div class="hero-banner" style="background-image:url('${img}')">
+        <div class="overlay-gradient"></div>
+        <div class="hero-content">
+          <h1>${name}</h1>
+          <div class="meta">Released: ${released}</div>
+          <div class="score" style="background:${metaColor}">
+            ${metacritic ? `Metacritic: ${metacritic}` : "No Score"}
+          </div>
+          <div class="badges">${badges}</div>
+          <div class="links">
+            ${website ? `<a href="${website}" target="_blank" class="store-btn">Official Site</a>` : ""}
+            ${storeLinks}
+          </div>
         </div>
-      </div>
-    </header>
+      </div>`;
 
-    <main>
-      <div id="status" class="panel">Loading…</div>
-      <div id="content" style="display:none;"></div>
-    </main>
+    const trailerBlock = trailer
+      ? `
+        <div class="trailer-container">
+          <video id="gameTrailer" autoplay muted loop playsinline poster="${img}">
+            <source src="${trailer}" type="video/mp4" />
+          </video>
+          <button id="soundToggle" class="sound-btn">🔇</button>
+        </div>`
+      : "";
 
-    <footer>© 2026 Gamerly — Built for gamers ❤️</footer>
+    const screenshotBlock =
+      screenshots.length > 0
+        ? `
+        <div class="screenshot-row">
+          ${screenshots
+            .map(
+              (s) =>
+                `<img src="${s.image}" alt="Screenshot" loading="lazy" class="screenshot-thumb" />`
+            )
+            .join("")}
+        </div>`
+        : "";
 
-    <script src="game.js"></script>
-  </body>
-</html>
+    const about = `
+      <div class="panel">
+        <h2>About</h2>
+        <p>${description}</p>
+      </div>`;
+
+    contentEl.innerHTML = hero + trailerBlock + screenshotBlock + about;
+    statusEl.remove();
+    contentEl.style.display = "block";
+
+    // --- Sound toggle ---
+    const video = document.getElementById("gameTrailer");
+    const btn = document.getElementById("soundToggle");
+    if (video && btn) {
+      btn.addEventListener("click", () => {
+        video.muted = !video.muted;
+        btn.textContent = video.muted ? "🔇" : "🔊";
+      });
+    }
+
+    // --- Screenshot auto-scroll (Netflix feel) ---
+    const row = document.querySelector(".screenshot-row");
+    if (row) {
+      let scrollSpeed = 1.4;
+      function scrollLoop() {
+        row.scrollLeft =
+          (row.scrollLeft + scrollSpeed) % (row.scrollWidth - row.clientWidth + 1);
+        requestAnimationFrame(scrollLoop);
+      }
+      scrollLoop();
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById("status").textContent = "Error loading game data.";
+  }
+}
+
+loadGame();
+</script>

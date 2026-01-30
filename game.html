@@ -1,270 +1,159 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gamerly – Game</title>
-  <link rel="stylesheet" href="/style.css" />
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      background: #f9fafb;
-      color: #111;
-    }
-    header {
-      background: #111827;
-      color: white;
-      padding: 24px;
-    }
-    header a {
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    main {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-    .panel {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
-    }
-    .hero-banner {
-      position: relative;
-      height: 380px;
-      background-size: cover;
-      background-position: center;
-      border-radius: 16px;
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
-    .overlay-gradient {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1));
-    }
-    .hero-content {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      color: white;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-    }
-    .hero-content h1 { font-size: 2rem; margin: 0 0 6px 0; }
-    .hero-content .meta { font-size: 1rem; opacity: 0.9; }
-    .score {
-      display: inline-block;
-      margin-top: 6px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-weight: 700;
-    }
-    .store-btn {
-      display: inline-block;
-      background: #0b0b0c;
-      color: white;
-      padding: 8px 14px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      margin: 6px 6px 0 0;
-      transition: all 0.2s ease;
-    }
-    .store-btn:hover { background: #f97316; }
-    .badge {
-      font-size: 0.75rem;
-      color: #374151;
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
-      padding: 3px 8px;
-      border-radius: 999px;
-    }
-    .screenshot-row {
-      display: flex;
-      overflow-x: auto;
-      gap: 10px;
-      padding: 8px 0;
-      scroll-behavior: smooth;
-    }
-    .screenshot-thumb {
-      flex: 0 0 auto;
-      height: 140px;
-      border-radius: 8px;
-      transition: transform 0.2s ease;
-    }
-    .screenshot-thumb:hover { transform: scale(1.05); }
-    .sound-btn {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      border: none;
-      background: rgba(0,0,0,0.5);
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1.2rem;
-      padding: 6px 8px;
-    }
-    .trailer-container {
-      position: relative;
-      width: 100%;
-      border-radius: 14px;
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
-    video { width: 100%; display: block; border-radius: 14px; }
-  </style>
-</head>
+<script>
+async function loadGame() {
+  const slug = new URLSearchParams(window.location.search).get("slug");
+  const statusEl = document.getElementById("status");
+  const contentEl = document.getElementById("content");
 
-<body>
-  <header>
-    <div style="max-width:900px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-      <a href="/">🔥 Gamerly</a>
-      <span style="opacity:0.6;">/</span>
-      <a href="/">⬅ Back to New Releases</a>
-    </div>
-  </header>
+  if (!slug) {
+    statusEl.textContent = "Missing slug in URL.";
+    return;
+  }
 
-  <main>
-    <div id="status" class="panel">Loading…</div>
-    <div id="content" style="display:none;"></div>
-  </main>
+  try {
+    const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
+    const data = await res.json();
 
-  <footer style="text-align:center;padding:20px;color:#777;">
-    © 2026 Gamerly — Built for gamers ❤️
-  </footer>
-
-  <script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    const statusEl = document.getElementById("status");
-    const contentEl = document.getElementById("content");
-    const slug = new URLSearchParams(window.location.search).get("slug");
-
-    if (!slug) {
-      if (statusEl) statusEl.textContent = "Missing slug in URL.";
+    if (!res.ok || !data) {
+      statusEl.textContent = "Error loading game.";
       return;
     }
 
-    try {
-      const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}&languages=en`, { cache: "no-store" });
-      const data = await res.json();
+    // --- Basic fields ---
+    const name = data.name || "Untitled";
+    const released = data.released || "TBA";
+    const website = data.website || "";
+    const description =
+      data.description_raw || data.description || "No description available.";
+    const img = data.background_image || "";
 
-      if (!res.ok || !data) {
-        if (statusEl) statusEl.textContent = "Error loading game data.";
-        console.error("Invalid response:", data);
-        return;
-      }
+    // --- Trailer ---
+    const trailer =
+      (data.clip && (data.clip.clip || data.clip.video)) ||
+      (Array.isArray(data.movies) && data.movies[0]?.data?.max) ||
+      null;
 
-      const name = data.name || "Untitled";
-      const released = data.released || "TBA";
-      const website = data.website || "";
-      const description = (data.description_raw || data.description || "No description available.").replace(/<[^>]+>/g, "");
-      const img = data.background_image || "";
+    // --- Screenshots ---
+    const screenshots =
+      Array.isArray(data.screenshots) && data.screenshots.length
+        ? data.screenshots
+        : Array.isArray(data.short_screenshots)
+        ? data.short_screenshots
+        : [];
 
-      let trailer = null;
-      if (data.clip?.clip) trailer = data.clip.clip;
-      else if (Array.isArray(data.movies) && data.movies.length)
-        trailer = data.movies[0]?.data?.max || data.movies[0]?.data?.["480"] || data.movies[0]?.preview || null;
+    // --- Store links ---
+    const stores = Array.isArray(data.stores) ? data.stores : [];
+    const storeLinks = stores
+      .map(
+        (s) =>
+          `<a href="${s.url}" target="_blank" class="store-btn">Buy on ${
+            s.store?.name || "Store"
+          }</a>`
+      )
+      .join("");
 
-      let screenshots = [];
-      if (Array.isArray(data.screenshots) && data.screenshots.length)
-        screenshots = data.screenshots;
-      else if (Array.isArray(data.short_screenshots) && data.short_screenshots.length)
-        screenshots = data.short_screenshots;
+    // --- Badges ---
+    const platforms = (data.platforms || [])
+      .map((p) => p.platform?.name)
+      .filter(Boolean);
+    const genres = (data.genres || [])
+      .map((g) => g.name)
+      .filter(Boolean);
+    const badges = [...platforms, ...genres]
+      .slice(0, 12)
+      .map((x) => `<span class="badge">${x}</span>`)
+      .join("");
 
-      const stores = Array.isArray(data.stores) ? data.stores : [];
-      const storeLinks = stores
-        .map((s) => `<a href="${s.url}" target="_blank" class="store-btn">Buy on ${s.store?.name || "Store"}</a>`)
-        .join("");
-
-      const platforms = (data.platforms || []).map((p) => p.platform?.name).filter(Boolean);
-      const genres = (data.genres || []).map((g) => g.name).filter(Boolean);
-      const badges = [...platforms, ...genres]
-        .slice(0, 12)
-        .map((x) => `<span class="badge">${x}</span>`)
-        .join("");
-
-      let metacritic = data.metacritic ?? null;
-      if (!metacritic && Array.isArray(data.metacritic_platforms)) {
-        const scores = data.metacritic_platforms.map((p) => p.metascore).filter((s) => typeof s === "number");
-        if (scores.length) metacritic = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-      }
-      const metaColor = metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
-
-      const hero = `
-        <div class="hero-banner" style="background-image:url('${img}')">
-          <div class="overlay-gradient"></div>
-          <div class="hero-content">
-            <h1>${name}</h1>
-            <div class="meta">Released: ${released}</div>
-            <div class="score" style="background:${metaColor}">
-              ${metacritic ? `Metacritic: ${metacritic}` : "No Score"}
-            </div>
-            <div class="badges">${badges}</div>
-            <div class="links">
-              ${website ? `<a href="${website}" target="_blank" class="store-btn">Official Site</a>` : ""}
-              ${storeLinks}
-            </div>
-          </div>
-        </div>`;
-
-      const trailerBlock = trailer
-        ? `
-          <div class="trailer-container">
-            <video id="gameTrailer" autoplay muted loop playsinline poster="${img}">
-              <source src="${trailer}" type="video/mp4" />
-            </video>
-            <button id="soundToggle" class="sound-btn">🔇</button>
-          </div>`
-        : "";
-
-      const screenshotBlock = screenshots.length
-        ? `
-          <div class="screenshot-row">
-            ${screenshots.map((s) => `<img src="${s.image}" alt="Screenshot" loading="lazy" class="screenshot-thumb" />`).join("")}
-          </div>`
-        : "";
-
-      const about = `
-        <div class="panel">
-          <h2>About</h2>
-          <p>${description}</p>
-        </div>`;
-
-      if (contentEl) {
-        contentEl.innerHTML = hero + trailerBlock + screenshotBlock + about;
-        statusEl.remove();
-        contentEl.style.display = "block";
-      }
-
-      const video = document.getElementById("gameTrailer");
-      const btn = document.getElementById("soundToggle");
-      if (video && btn) {
-        btn.addEventListener("click", () => {
-          video.muted = !video.muted;
-          btn.textContent = video.muted ? "🔇" : "🔊";
-        });
-      }
-
-      const row = document.querySelector(".screenshot-row");
-      if (row) {
-        let scrollSpeed = 1.4;
-        function scrollLoop() {
-          row.scrollLeft = (row.scrollLeft + scrollSpeed) % (row.scrollWidth - row.clientWidth + 1);
-          requestAnimationFrame(scrollLoop);
-        }
-        scrollLoop();
-      }
-    } catch (err) {
-      console.error("loadGame error:", err);
-      if (statusEl) statusEl.textContent = "Error loading game data.";
+    // --- Metacritic ---
+    let metacritic = data.metacritic ?? null;
+    if (!metacritic && Array.isArray(data.metacritic_platforms)) {
+      const scores = data.metacritic_platforms
+        .map((p) => p.metascore)
+        .filter((s) => typeof s === "number");
+      if (scores.length)
+        metacritic = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
     }
-  });
-  </script>
-</body>
-</html>
+    const metaColor =
+      metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
+
+    // --- Hero banner ---
+    const hero = `
+      <div class="hero-banner" style="background-image:url('${img}')">
+        <div class="overlay-gradient"></div>
+        <div class="hero-content">
+          <h1>${name}</h1>
+          <div class="meta">Released: ${released}</div>
+          <div class="score" style="background:${metaColor}">
+            ${metacritic ? `Metacritic: ${metacritic}` : "No Score"}
+          </div>
+          <div class="badges">${badges}</div>
+          <div class="links">
+            ${website ? `<a href="${website}" target="_blank" class="store-btn">Official Site</a>` : ""}
+            ${storeLinks}
+          </div>
+        </div>
+      </div>`;
+
+    // --- Trailer block ---
+    const trailerBlock = trailer
+      ? `
+        <div class="trailer-container">
+          <video id="gameTrailer" autoplay muted loop playsinline poster="${img}">
+            <source src="${trailer}" type="video/mp4" />
+          </video>
+          <button id="soundToggle" class="sound-btn">🔇</button>
+        </div>`
+      : "";
+
+    // --- Screenshot carousel ---
+    const screenshotBlock = screenshots.length
+      ? `
+        <div class="screenshot-carousel">
+          ${screenshots
+            .map(
+              (s) =>
+                `<img src="${s.image}" alt="Screenshot" class="screenshot-thumb" loading="lazy">`
+            )
+            .join("")}
+        </div>`
+      : `<div class="panel" style="text-align:center;color:#777;">No screenshots available.</div>`;
+
+    // --- About section ---
+    const about = `
+      <div class="panel">
+        <h2>About</h2>
+        <p>${description}</p>
+      </div>`;
+
+    contentEl.innerHTML = hero + trailerBlock + screenshotBlock + about;
+    statusEl.remove();
+    contentEl.style.display = "block";
+
+    // --- Sound toggle ---
+    const video = document.getElementById("gameTrailer");
+    const btn = document.getElementById("soundToggle");
+    if (video && btn) {
+      btn.addEventListener("click", () => {
+        video.muted = !video.muted;
+        btn.textContent = video.muted ? "🔇" : "🔊";
+      });
+    }
+
+    // --- Auto-scroll carousel ---
+    const row = document.querySelector(".screenshot-carousel");
+    if (row) {
+      let speed = 0.6;
+      function scrollLoop() {
+        row.scrollLeft =
+          (row.scrollLeft + speed) % (row.scrollWidth - row.clientWidth + 1);
+        requestAnimationFrame(scrollLoop);
+      }
+      scrollLoop();
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById("status").textContent = "Error loading game data.";
+  }
+}
+
+loadGame();
+</script>

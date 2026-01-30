@@ -1,71 +1,60 @@
 <script>
-async function loadGame() {
-  const slug = new URLSearchParams(window.location.search).get("slug");
+document.addEventListener("DOMContentLoaded", async () => {
   const statusEl = document.getElementById("status");
   const contentEl = document.getElementById("content");
+  const slug = new URLSearchParams(window.location.search).get("slug");
 
   if (!slug) {
-    statusEl.textContent = "Missing slug in URL.";
+    if (statusEl) statusEl.textContent = "Missing slug in URL.";
     return;
   }
 
   try {
-    // ✅ Force English language
     const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}&languages=en`, { cache: "no-store" });
     const data = await res.json();
 
     if (!res.ok || !data) {
-      statusEl.textContent = "Error loading game data.";
+      if (statusEl) statusEl.textContent = "Error loading game data.";
       console.error("Invalid response:", data);
       return;
     }
 
-    // --- Core fields ---
     const name = data.name || "Untitled";
     const released = data.released || "TBA";
     const website = data.website || "";
     const description = (data.description_raw || data.description || "No description available.").replace(/<[^>]+>/g, "");
     const img = data.background_image || "";
 
-    // --- Trailer detection (covers all RAWG formats) ---
     let trailer = null;
     if (data.clip?.clip) trailer = data.clip.clip;
-    else if (Array.isArray(data.movies) && data.movies.length) {
+    else if (Array.isArray(data.movies) && data.movies.length)
       trailer = data.movies[0]?.data?.max || data.movies[0]?.data?.["480"] || data.movies[0]?.preview || null;
-    }
 
-    // --- Screenshots fallback-safe ---
     let screenshots = [];
-    try {
-      if (Array.isArray(data.screenshots) && data.screenshots.length) {
-        screenshots = data.screenshots;
-      } else if (Array.isArray(data.short_screenshots) && data.short_screenshots.length) {
-        screenshots = data.short_screenshots;
-      }
-    } catch (e) {
-      console.warn("screenshot parse fail:", e);
-    }
+    if (Array.isArray(data.screenshots) && data.screenshots.length)
+      screenshots = data.screenshots;
+    else if (Array.isArray(data.short_screenshots) && data.short_screenshots.length)
+      screenshots = data.short_screenshots;
 
-    // --- Stores ---
     const stores = Array.isArray(data.stores) ? data.stores : [];
-    const storeLinks = stores.map(
-      (s) => `<a href="${s.url}" target="_blank" class="store-btn">Buy on ${s.store?.name || "Store"}</a>`
-    ).join("");
+    const storeLinks = stores
+      .map((s) => `<a href="${s.url}" target="_blank" class="store-btn">Buy on ${s.store?.name || "Store"}</a>`)
+      .join("");
 
-    // --- Platforms & genres ---
-    const platforms = (data.platforms || []).map(p => p.platform?.name).filter(Boolean);
-    const genres = (data.genres || []).map(g => g.name).filter(Boolean);
-    const badges = [...platforms, ...genres].slice(0, 12).map(x => `<span class="badge">${x}</span>`).join("");
+    const platforms = (data.platforms || []).map((p) => p.platform?.name).filter(Boolean);
+    const genres = (data.genres || []).map((g) => g.name).filter(Boolean);
+    const badges = [...platforms, ...genres]
+      .slice(0, 12)
+      .map((x) => `<span class="badge">${x}</span>`)
+      .join("");
 
-    // --- Metacritic ---
     let metacritic = data.metacritic ?? null;
     if (!metacritic && Array.isArray(data.metacritic_platforms)) {
-      const scores = data.metacritic_platforms.map(p => p.metascore).filter(s => typeof s === "number");
+      const scores = data.metacritic_platforms.map((p) => p.metascore).filter((s) => typeof s === "number");
       if (scores.length) metacritic = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
     }
     const metaColor = metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
 
-    // --- Hero section ---
     const hero = `
       <div class="hero-banner" style="background-image:url('${img}')">
         <div class="overlay-gradient"></div>
@@ -83,7 +72,6 @@ async function loadGame() {
         </div>
       </div>`;
 
-    // --- Trailer ---
     const trailerBlock = trailer
       ? `
         <div class="trailer-container">
@@ -94,32 +82,23 @@ async function loadGame() {
         </div>`
       : "";
 
-    // --- Screenshots carousel ---
     const screenshotBlock = screenshots.length
       ? `
         <div class="screenshot-row">
-          ${screenshots
-            .map(
-              (s) =>
-                `<img src="${s.image}" alt="Screenshot" loading="lazy" class="screenshot-thumb" />`
-            )
-            .join("")}
+          ${screenshots.map((s) => `<img src="${s.image}" alt="Screenshot" loading="lazy" class="screenshot-thumb" />`).join("")}
         </div>`
       : "";
 
-    // --- About ---
     const about = `
       <div class="panel">
         <h2>About</h2>
         <p>${description}</p>
       </div>`;
 
-    // --- Render everything ---
     contentEl.innerHTML = hero + trailerBlock + screenshotBlock + about;
     statusEl.remove();
     contentEl.style.display = "block";
 
-    // --- Sound toggle ---
     const video = document.getElementById("gameTrailer");
     const btn = document.getElementById("soundToggle");
     if (video && btn) {
@@ -129,7 +108,6 @@ async function loadGame() {
       });
     }
 
-    // --- Netflix-style auto-scroll ---
     const row = document.querySelector(".screenshot-row");
     if (row) {
       let scrollSpeed = 1.4;
@@ -139,12 +117,10 @@ async function loadGame() {
       }
       scrollLoop();
     }
-
   } catch (err) {
     console.error("loadGame error:", err);
-    statusEl.textContent = "Error loading game data.";
+    if (statusEl) statusEl.textContent = "Error loading game data.";
   }
-}
-
-loadGame();
+});
 </script>
+

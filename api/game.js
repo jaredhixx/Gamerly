@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
     // RAWG endpoints
     const base = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}`;
-    const mainURL = `${base}?key=${RAWG_KEY}`;
+    const mainURL = `${base}?key=${RAWG_KEY}&languages=en`;
     const moviesURL = `${base}/movies?key=${RAWG_KEY}`;
     const screenshotsURL = `${base}/screenshots?key=${RAWG_KEY}`;
 
@@ -46,18 +46,25 @@ export default async function handler(req, res) {
         .json({ error: mainData?.error || "RAWG fetch failed" });
     }
 
-    // 🧩 Merge results cleanly
+    // 🧩 Merge results cleanly with fallback logic
     const merged = {
       ...mainData,
-      movies: moviesData?.results || [],
-      screenshots: screenshotsData?.results || [],
+      movies: Array.isArray(moviesData?.results) ? moviesData.results : [],
+      screenshots: Array.isArray(screenshotsData?.results) && screenshotsData.results.length
+        ? screenshotsData.results
+        : Array.isArray(mainData?.short_screenshots)
+        ? mainData.short_screenshots
+        : [],
     };
 
-    // Clean up formatting
+    // 🌍 Clean & enforce English
     if (merged.description_raw) {
-      merged.description_raw = merged.description_raw.replace(/\n{3,}/g, "\n\n");
+      merged.description_raw = merged.description_raw
+        .replace(/\n{3,}/g, "\n\n")
+        .replace(/\[.*?\]/g, ""); // strip leftover markup
     }
 
+    // ✅ Return unified response
     res.status(200).json(merged);
   } catch (err) {
     console.error("Server error in /api/game:", err);

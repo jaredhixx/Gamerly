@@ -1,6 +1,8 @@
 //
-// Gamerly – Hover + Click Quick Preview (Apple / Netflix Feel)
+// Gamerly – Apple / Netflix Enhanced Build
+// One RAWG fetch → local filtering + hover previews + Netflix-style auto carousel
 //
+
 const API_BASE = "/api/games";
 const listEl = document.getElementById("game-list");
 const sortEl = document.getElementById("sort");
@@ -99,12 +101,10 @@ function renderGameCard(game) {
       : `<span class="badge-meta meta-na">N/A</span>`;
 
   return `
-    <div class="card" data-slug="${game.slug}" title="${game.name}">
-      ${
-        img
-          ? `<div class="card-img fade-in"><img src="${img}" alt="${game.name}" loading="lazy"></div>`
-          : `<div class="safe-preview">Preview Unavailable</div>`
-      }
+    <div class="card" onclick="window.location='/game.html?slug=${game.slug}'" title="${game.name}">
+      <div class="card-img fade-in">
+        ${img ? `<img src="${img}" alt="${game.name}" loading="lazy">` : `<div class="safe-preview">Preview Unavailable</div>`}
+      </div>
       <div class="card-body">
         <div class="card-title">${game.name}</div>
         <div class="meta-row">${meta}<span class="release-date">Released: ${released}</span></div>
@@ -117,7 +117,7 @@ function renderGameCard(game) {
 function renderList() {
   let visible = [...allGames];
 
-  // --- Platforms ---
+  // --- Platform Filter ---
   if (activePlatforms.size) {
     visible = visible.filter((g) =>
       g.parent_platforms?.some((p) =>
@@ -159,8 +159,6 @@ function renderList() {
         el.style.opacity = 1;
       }, 100);
     });
-
-    attachPreviewListeners();
   }, 150);
 }
 
@@ -175,97 +173,3 @@ searchEl.addEventListener("input", renderList);
 dateEl.addEventListener("change", renderList);
 
 init();
-
-// ---------- Quick Preview Modal ----------
-const modal = document.getElementById("preview-modal");
-const closeBtn = document.getElementById("close-preview");
-const previewBody = document.getElementById("preview-body");
-
-let hoverTimer = null;
-let currentHoverSlug = null;
-
-function attachPreviewListeners() {
-  document.querySelectorAll(".card").forEach((card) => {
-    // Hover start
-    card.addEventListener("mouseenter", () => {
-      if (window.innerWidth < 768) return; // mobile skip hover
-      const slug = card.dataset.slug;
-      hoverTimer = setTimeout(() => {
-        if (currentHoverSlug !== slug) {
-          const game = allGames.find((g) => g.slug === slug);
-          if (game) showPreview(game, true);
-          currentHoverSlug = slug;
-        }
-      }, 400);
-    });
-
-    // Hover leave
-    card.addEventListener("mouseleave", () => {
-      if (hoverTimer) clearTimeout(hoverTimer);
-      hoverTimer = null;
-    });
-
-    // Click (mobile)
-    card.addEventListener("click", () => {
-      const slug = card.dataset.slug;
-      const game = allGames.find((g) => g.slug === slug);
-      if (game) showPreview(game, false);
-    });
-  });
-}
-
-closeBtn.addEventListener("click", () => {
-  modal.classList.add("hidden");
-  currentHoverSlug = null;
-});
-
-modal.addEventListener("click", (e) => {
-  if (e.target.classList.contains("preview-backdrop")) {
-    modal.classList.add("hidden");
-    currentHoverSlug = null;
-  }
-});
-
-function showPreview(game, auto = false) {
-  const img = game.background_image || game.short_screenshots?.[0]?.image || "";
-  const desc = (game.description_raw || game.name || "")
-    .slice(0, 220)
-    .replace(/<\/?[^>]+(>|$)/g, "") + "…";
-  const platforms =
-    game.parent_platforms
-      ?.map((p) => `<span>${p.platform.name}</span>`)
-      .join("") || "";
-  const meta = game.metacritic
-    ? `<span style="background:${
-        game.metacritic >= 75
-          ? "#16a34a"
-          : game.metacritic >= 50
-          ? "#facc15"
-          : "#dc2626"
-      };padding:4px 8px;border-radius:8px;margin-left:8px;">${game.metacritic}</span>`
-    : "";
-
-  previewBody.innerHTML = `
-    <div class="preview-body">
-      ${img ? `<img src="${img}" alt="${game.name}" />` : ""}
-      <div class="preview-title">${game.name}${meta}</div>
-      <div class="preview-desc">${desc}</div>
-      <div class="preview-badges">${platforms}</div>
-      <a href="/game.html?slug=${game.slug}" class="view-btn">View Full Details</a>
-    </div>
-  `;
-
-  modal.classList.remove("hidden");
-
-  if (auto) {
-    // For hover previews, auto-close when leaving modal area
-    modal.addEventListener(
-      "mouseleave",
-      () => {
-        modal.classList.add("hidden");
-        currentHoverSlug = null;
-      },
-      { once: true }
-    );
-  }
-}

@@ -7,32 +7,58 @@ export default async function handler(req, res) {
     if (!RAWG_KEY) {
       return res.status(500).json({ error: "Missing RAWG_KEY in environment." });
     }
-
     if (!slug) {
       return res.status(400).json({ error: "Missing slug parameter." });
     }
 
-    // Construct proper RAWG endpoint
-    const url = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}?key=${RAWG_KEY}`;
+    // RAWG endpoints
+    const base = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}`;
+    const mainURL = `${base}?key=${RAWG_KEY}`;
+    const moviesURL = `${base}/movies?key=${RAWG_KEY}`;
+    const screenshotsURL = `${base}/screenshots?key=${RAWG_KEY}`;
 
-    const resp = await fetch(url, {
-      headers: { Accept: "application/json", "User-Agent": "Gamerly/1.0" },
-      cache: "no-store",
-    });
+    // Fetch all three in parallel
+    const [mainRes, moviesRes, screenshotsRes] = await Promise.all([
+      fetch(mainURL, {
+        headers: { Accept: "application/json", "User-Agent": "Gamerly/1.0" },
+        cache: "no-store",
+      }),
+      fetch(moviesURL, {
+        headers: { Accept: "application/json", "User-Agent": "Gamerly/1.0" },
+        cache: "no-store",
+      }),
+      fetch(screenshotsURL, {
+        headers: { Accept: "application/json", "User-Agent": "Gamerly/1.0" },
+        cache: "no-store",
+      }),
+    ]);
 
-    const data = await resp.json();
+    const [mainData, moviesData, screenshotsData] = await Promise.all([
+      mainRes.json(),
+      moviesRes.json(),
+      screenshotsRes.json(),
+    ]);
 
-    if (!resp.ok) {
-      console.error("RAWG error:", data);
-      return res.status(resp.status).json({ error: data?.error || "RAWG fetch failed" });
+    if (!mainRes.ok) {
+      console.error("RAWG error:", mainData);
+      return res
+        .status(mainRes.status)
+        .json({ error: mainData?.error || "RAWG fetch failed" });
     }
 
-    // Optionally clean up language noise if RAWG returns mixed locale text
-    if (data?.description_raw) {
-      data.description_raw = data.description_raw.replace(/\n{3,}/g, "\n\n");
+    // 🧩 Merge results cleanly
+    const merged = {
+      ...mainData,
+      movies: moviesData?.results || [],
+      screenshots: screenshotsData?.results || [],
+    };
+
+    // Clean up formatting
+    if (merged.description_raw) {
+      merged.description_raw = merged.description_raw.replace(/\n{3,}/g, "\n\n");
     }
 
-    res.status(200).json(data);
+    res.status(200).json(merged);
   } catch (err) {
     console.error("Server error in /api/game:", err);
     res.status(500).json({ error: "Internal server error." });

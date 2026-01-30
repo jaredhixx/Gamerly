@@ -14,9 +14,21 @@ async function loadGame() {
     const released = data?.released || "TBA";
     const img = data?.background_image || "";
     const website = data?.website || "";
-    const description = data?.description_raw || "No description available.";
-    const clip = data?.clip?.clip || null;
-    const screenshots = data?.screenshots || data?.short_screenshots || [];
+
+    // 🔹 Description fallback
+    const description =
+      data?.description_raw || data?.description || "No description available.";
+
+    // 🔹 Trailer (try multiple possible sources)
+    const clip =
+      data?.clip?.clip ||
+      data?.clip?.video ||
+      (data?.movies?.length ? data.movies[0].data.max : null);
+
+    // 🔹 Screenshots fallback
+    const screenshots =
+      data?.screenshots || data?.short_screenshots || [];
+
     const stores = Array.isArray(data?.stores) ? data.stores : [];
 
     const platforms = Array.isArray(data?.platforms)
@@ -52,6 +64,7 @@ async function loadGame() {
       )
       .join("");
 
+    // 🔹 Trailer section (muted autoplay, toggle sound)
     const trailer = clip
       ? `
         <div class="trailer-container">
@@ -62,6 +75,7 @@ async function loadGame() {
         </div>`
       : "";
 
+    // 🔹 Screenshot carousel
     const screenshotRow =
       screenshots.length > 0
         ? `
@@ -106,7 +120,7 @@ async function loadGame() {
     document.getElementById("status").remove();
     container.style.display = "block";
 
-    // --- Sound toggle ---
+    // 🔹 Sound toggle
     const videoEl = document.getElementById("gameTrailer");
     const soundBtn = document.getElementById("soundToggle");
     if (videoEl && soundBtn) {
@@ -116,7 +130,7 @@ async function loadGame() {
       });
     }
 
-    // --- Auto-scroll horizontal screenshots ---
+    // 🔹 Auto-scroll screenshots
     const row = document.querySelector(".screenshot-row");
     if (row) {
       let scrollSpeed = 1.2;

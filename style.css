@@ -232,4 +232,46 @@ footer {
   padding: 32px 0;
   font-size: 0.85rem;
 }
+/* ---- Game Details Enhancements ---- */
+.trailer-container {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 24px 0;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+.trailer-container video {
+  width: 100%;
+  max-height: 400px;
+  display: block;
+  object-fit: cover;
+}
+.sound-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(255,255,255,0.8);
+  border: none;
+  border-radius: 50%;
+  padding: 8px 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.screenshot-row {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  margin: 16px 0 32px;
+  scroll-behavior: smooth;
+}
+.screenshot-thumb {
+  flex: 0 0 auto;
+  width: 240px;
+  height: 135px;
+  border-radius: 10px;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+.screenshot-thumb:hover { transform: scale(1.05); }
+
 

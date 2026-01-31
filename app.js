@@ -1,9 +1,9 @@
-// app.js — Gamerly v4.2a
-// Adds Gamerly-branded entry popup, fixes button logic, keeps hover + accurate filters
+// app.js — Gamerly v4.2b
+// Combines existing age gate popup + Gamerly branding
+// Fixes popup button event, image fallback, and all filters
 
 document.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("overlay");
-  const enterBtn = document.getElementById("enterSite");
   const listEl = document.getElementById("games");
   const statusEl = document.getElementById("status");
   const sortEl = document.getElementById("sort");
@@ -14,21 +14,22 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentRange = "3months";
   let currentPlatform = "";
 
-  // --- 🧠 Entry Popup ---
-  if (overlay && enterBtn) {
+  // --- 🧠 Gamerly + Age Gate Overlay ---
+  if (overlay) {
     overlay.innerHTML = `
       <div class="overlay-content">
-        <h1 class="gamerly-title">🎮 Gamerly</h1>
-        <p class="tagline">Discover the latest, greatest, and most-played games — all in one place.</p>
-        <button id="enterSite" class="enter-btn">Enter Site</button>
+        <h1 class="gamerly-title fade-in">🎮 Gamerly</h1>
+        <p class="tagline">The home for all new and upcoming games.</p>
+        <p class="age-warning">This site may contain mature game content.<br>Please confirm your age to continue.</p>
+        <button id="ageConfirmBtn" class="enter-btn">Yes, I am 18+</button>
       </div>`;
     overlay.style.display = "flex";
 
-    const btn = overlay.querySelector("#enterSite");
+    const btn = overlay.querySelector("#ageConfirmBtn");
     btn.addEventListener("click", () => {
       overlay.classList.add("fade-out");
       setTimeout(() => overlay.remove(), 400);
-      fetchGames();
+      fetchGames(); // Trigger game load only after confirmation
     });
   }
 
@@ -100,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
       game.background_image ||
       (game.short_screenshots && game.short_screenshots[0]?.image) ||
       (game.screenshots && game.screenshots[0]?.image) ||
-      "/placeholder.webp"; // optional static fallback
+      "/placeholder.webp";
 
     const platformsHTML =
       game.parent_platforms
@@ -167,9 +168,9 @@ document.addEventListener("DOMContentLoaded", () => {
   platformBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       platformBtns.forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentPlatform = btn.dataset.platform || "";
-    fetchGames();
+      btn.classList.add("active");
+      currentPlatform = btn.dataset.platform || "";
+      fetchGames();
     });
   });
 });

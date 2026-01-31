@@ -1,13 +1,15 @@
 //
-// Gamerly – Apple-Style Hover Preview (stable, error-free)
+// Gamerly – Stable v4 (Filter Accuracy + Highest Rated Fix)
 //
+
 const API_BASE = "/api/games";
 const listEl = document.getElementById("game-list");
 const sortEl = document.getElementById("sort");
 const searchEl = document.getElementById("search");
 const dateEl = document.getElementById("date-range");
+const hoverPreview = document.getElementById("hoverPreview");
 
-// ---------- Platform Toggles ----------
+// ---- Platform Buttons ---- //
 const platformRow = document.createElement("div");
 platformRow.className = "platform-row";
 document.querySelector(".toolbar").before(platformRow);
@@ -27,9 +29,9 @@ let allGames = [];
 platformRow.innerHTML = platforms
   .map(
     (p) => `
-      <button class="platform-btn" data-id="${p.id}">
-        ${p.label}<span class="checkmark">✓</span>
-      </button>`
+    <button class="platform-btn" data-id="${p.id}">
+      ${p.label}<span class="checkmark">✓</span>
+    </button>`
   )
   .join("");
 
@@ -43,7 +45,7 @@ platformRow.addEventListener("click", (e) => {
   renderList();
 });
 
-// ---------- Helpers ----------
+// ---- Helpers ---- //
 const daysAgo = (n) => {
   const d = new Date();
   d.setDate(d.getDate() - n);
@@ -57,13 +59,21 @@ const withinRange = (dateStr, range) => {
   return true;
 };
 
-// ---------- Fetch Games ----------
+// ---- Fetch Games (Improved) ---- //
 async function fetchGames() {
   listEl.innerHTML = `<div class="shimmer"></div><div class="shimmer"></div>`;
   try {
-    const res = await fetch(`${API_BASE}?page_size=80`, { cache: "no-store" });
+    const sortValue = sortEl.value === "-rating" ? "-metacritic" : sortEl.value;
+    const rangeValue = dateEl.value || "all";
+
+    const res = await fetch(
+      `${API_BASE}?page_size=80&ordering=${sortValue}&range=${rangeValue}`,
+      { cache: "no-store" }
+    );
+
     const data = await res.json();
     if (!res.ok || !Array.isArray(data.results)) return [];
+
     return data.results.filter(
       (g) =>
         g.released &&
@@ -76,7 +86,7 @@ async function fetchGames() {
   }
 }
 
-// ---------- Render Cards ----------
+// ---- Render Game Cards ---- //
 function renderGameCard(game) {
   const released = game.released || "TBA";
   const img = game.background_image || "";
@@ -109,26 +119,28 @@ function renderGameCard(game) {
     </div>`;
 }
 
-// ---------- Render List ----------
+// ---- Render List ---- //
 function renderList() {
   let visible = [...allGames];
+
+  // Platform filtering
   if (activePlatforms.size) {
     visible = visible.filter((g) =>
-      g.parent_platforms?.some((p) =>
-        activePlatforms.has(p.platform.slug || p.platform.name?.toLowerCase())
-      )
+      g.parent_platforms?.some((p) => {
+        const slug = (p.platform.slug || p.platform.name || "").toLowerCase();
+        return [...activePlatforms].some((id) => slug.includes(id));
+      })
     );
   }
-  const range = dateEl.value;
-  if (range && range !== "all") visible = visible.filter((g) => withinRange(g.released, range));
 
+  // Date filtering (client-side backup)
+  const range = dateEl.value;
+  if (range && range !== "all")
+    visible = visible.filter((g) => withinRange(g.released, range));
+
+  // Search filter
   const q = searchEl.value.trim().toLowerCase();
   if (q) visible = visible.filter((g) => g.name.toLowerCase().includes(q));
-
-  const sort = sortEl.value;
-  if (sort === "released") visible.sort((a, b) => new Date(b.released) - new Date(a.released));
-  if (sort === "-rating") visible.sort((a, b) => (b.metacritic || 0) - (a.metacritic || 0));
-  if (sort === "name") visible.sort((a, b) => a.name.localeCompare(b.name));
 
   listEl.innerHTML = visible.length
     ? visible.map(renderGameCard).join("")
@@ -137,7 +149,7 @@ function renderList() {
   setupHoverPreviews();
 }
 
-// ---------- Hover Preview ----------
+// ---- Hover Previews ---- //
 function setupHoverPreviews() {
   const cards = document.querySelectorAll(".card");
   cards.forEach((card) => {
@@ -150,12 +162,9 @@ function setupHoverPreviews() {
 }
 
 function showPreview(card) {
-  const hoverPreview = document.getElementById("hoverPreview");
-  if (!hoverPreview) return;
-
   const slug = card.dataset.slug;
   const game = allGames.find((g) => g.slug === slug);
-  if (!game) return;
+  if (!game || !hoverPreview) return;
 
   const rect = card.getBoundingClientRect();
   const clip = game.clip?.clip || null;
@@ -178,23 +187,28 @@ function showPreview(card) {
 }
 
 function hidePreview() {
-  const hoverPreview = document.getElementById("hoverPreview");
   if (!hoverPreview) return;
   hoverPreview.classList.remove("visible");
   setTimeout(() => hoverPreview.classList.add("hidden"), 150);
 }
 
-// ---------- Init ----------
+// ---- Init ---- //
 async function init() {
   allGames = await fetchGames();
   renderList();
 }
-sortEl.addEventListener("change", renderList);
+sortEl.addEventListener("change", async () => {
+  allGames = await fetchGames();
+  renderList();
+});
 searchEl.addEventListener("input", renderList);
-dateEl.addEventListener("change", renderList);
+dateEl.addEventListener("change", async () => {
+  allGames = await fetchGames();
+  renderList();
+});
 init();
 
-// ---------- 18+ Modal ----------
+// ---- Age Modal ---- //
 const overlay = document.getElementById("ageOverlay");
 const confirmBtn = document.getElementById("confirmAge");
 if (!localStorage.getItem("gamerly_age_verified")) overlay.classList.remove("hidden");

@@ -1,6 +1,5 @@
-// app.js — Gamerly v4.2b
-// Combines existing age gate popup + Gamerly branding
-// Fixes popup button event, image fallback, and all filters
+// app.js — Gamerly v4.2 Final
+// Fixes popup event binding, ensures games load properly, keeps all filters + visuals
 
 document.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("overlay");
@@ -14,35 +13,46 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentRange = "3months";
   let currentPlatform = "";
 
-  // --- 🧠 Gamerly + Age Gate Overlay ---
+  // 🧠 --- Build Gamerly Overlay Dynamically ---
   if (overlay) {
     overlay.innerHTML = `
       <div class="overlay-content">
         <h1 class="gamerly-title fade-in">🎮 Gamerly</h1>
         <p class="tagline">The home for all new and upcoming games.</p>
         <p class="age-warning">This site may contain mature game content.<br>Please confirm your age to continue.</p>
-        <button id="ageConfirmBtn" class="enter-btn">Yes, I am 18+</button>
-      </div>`;
+        <button id="confirm-age-btn" class="enter-btn">Yes, I am 18+</button>
+      </div>
+    `;
     overlay.style.display = "flex";
-
-    const btn = overlay.querySelector("#ageConfirmBtn");
-    btn.addEventListener("click", () => {
-      overlay.classList.add("fade-out");
-      setTimeout(() => overlay.remove(), 400);
-      fetchGames(); // Trigger game load only after confirmation
-    });
+    overlay.style.opacity = "1";
   }
 
-  // --- Fetch Games ---
+  // ✅ --- Wait for Button then Handle Click ---
+  document.addEventListener("click", (event) => {
+    if (event.target && event.target.id === "confirm-age-btn") {
+      const overlay = document.getElementById("overlay");
+      if (overlay) {
+        overlay.classList.add("fade-out");
+        setTimeout(() => {
+          overlay.remove();
+          fetchGames(); // Only run once overlay is gone
+        }, 400);
+      }
+    }
+  });
+
+  // 🧩 --- Fetch Games ---
   async function fetchGames() {
     if (statusEl) statusEl.textContent = "Loading...";
     if (listEl) listEl.innerHTML = "";
 
     try {
       const sortValue =
-        currentSort === "-rating" ? "-metacritic" :
-        currentSort === "released" ? "-released" :
-        currentSort;
+        currentSort === "-rating"
+          ? "-metacritic"
+          : currentSort === "released"
+          ? "-released"
+          : currentSort;
 
       const url = new URL("/api/games", window.location.origin);
       url.searchParams.set("ordering", sortValue);
@@ -76,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Render Game Cards ---
+  // 🎮 --- Render Game Cards ---
   function renderGameList(games) {
     const html = games.map((game) => renderGameCard(game)).join("");
     listEl.innerHTML = html;
@@ -92,11 +102,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Game Card Template ---
+  // 🧩 --- Game Card Template ---
   function renderGameCard(game) {
     const released = game.released || "TBA";
 
-    // ✅ Smart fallback image logic
+    // Smart fallback image logic
     const img =
       game.background_image ||
       (game.short_screenshots && game.short_screenshots[0]?.image) ||
@@ -134,14 +144,12 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   }
 
-  // --- Hover Preview Logic ---
+  // 💫 --- Hover Preview Effects ---
   let previewTimer;
   function showPreview(e) {
     const card = e.currentTarget;
     clearTimeout(previewTimer);
-    previewTimer = setTimeout(() => {
-      card.classList.add("hover");
-    }, 200);
+    previewTimer = setTimeout(() => card.classList.add("hover"), 200);
   }
 
   function hidePreview(e) {
@@ -150,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     card.classList.remove("hover");
   }
 
-  // --- Event Listeners ---
+  // 🔘 --- Event Listeners for Sort, Range, Platform ---
   if (sortEl) {
     sortEl.addEventListener("change", (e) => {
       currentSort = e.target.value;

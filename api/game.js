@@ -1,75 +1,66 @@
-// /api/game.js — Hybrid RAWG + IGDB integration (2026 build)
-import { CONFIG } from "./config.js";
-
+// /api/game.js
 export default async function handler(req, res) {
   try {
     const { slug } = req.query;
-    if (!slug) return res.status(400).json({ error: "Missing slug" });
+    const RAWG_KEY = process.env.RAWG_KEY || "ac669b002b534781818c488babf5aae4";
+    const IGDB_CLIENT_ID = "7udxvmbguftujpbxqguez86hmzoe1a";
+    const IGDB_ACCESS_TOKEN = "3n7ejvrxnchji3v53gmf9mzyw6r3h2";
 
-    const RAWG_KEY = CONFIG.RAWG_KEY;
-    const IGDB_ID = CONFIG.IGDB_CLIENT_ID;
-    const IGDB_TOKEN = CONFIG.IGDB_ACCESS_TOKEN;
-
-    // --- RAWG Base Info ---
-    const rawgUrl = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}?key=${RAWG_KEY}`;
-    const rawgRes = await fetch(rawgUrl);
-    const rawgData = await rawgRes.json();
-
-    if (!rawgRes.ok) {
-      console.error("RAWG fetch error:", rawgData);
-      return res.status(rawgRes.status).json({ error: "RAWG fetch failed" });
+    if (!slug) {
+      return res.status(400).json({ error: "Missing slug parameter." });
     }
 
-    // --- IGDB Supplement (adds images/trailers if missing) ---
+    // 1️⃣ RAWG API (base data)
+    const base = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}?key=${RAWG_KEY}`;
+    const rawgRes = await fetch(base, { headers: { Accept: "application/json" } });
+    const rawgData = await rawgRes.json();
+
+    // 2️⃣ IGDB API (screenshots)
+    const igdbQuery = `fields name, screenshots.image_id; search "${rawgData.name}"; limit 1;`;
     const igdbRes = await fetch("https://api.igdb.com/v4/games", {
       method: "POST",
       headers: {
-        "Client-ID": IGDB_ID,
-        Authorization: `Bearer ${IGDB_TOKEN}`,
-        "Content-Type": "text/plain",
+        "Client-ID": IGDB_CLIENT_ID,
+        "Authorization": `bearer ${IGDB_ACCESS_TOKEN}`,
+        "Content-Type": "application/json"
       },
-      body: `fields name, cover.image_id, screenshots.image_id, artworks.image_id, summary, genres.name, platforms.name, videos.video_id, url; search "${rawgData.name}"; limit 1;`,
+      body: igdbQuery
     });
 
     let igdbData = [];
     try {
       igdbData = await igdbRes.json();
     } catch (e) {
-      console.warn("IGDB JSON parse error:", e);
+      console.warn("IGDB JSON parse failed:", e);
     }
 
-    const igdb = igdbData?.[0] || {};
+    const igdbScreenshots =
+      igdbData?.[0]?.screenshots?.map(
+        (s) => `https://images.igdb.com/igdb/image/upload/t_1080p/${s.image_id}.jpg`
+      ) || [];
 
-    // --- Merge IGDB Data ---
+    // 3️⃣ Merge screenshots from RAWG + IGDB
     const screenshots =
-      (rawgData.short_screenshots && rawgData.short_screenshots.length)
-        ? rawgData.short_screenshots.map(s => s.image)
-        : igdb.screenshots
-        ? igdb.screenshots.map(s => `https://images.igdb.com/igdb/image/upload/t_screenshot_big/${s.image_id}.jpg`)
-        : [];
+      (rawgData.short_screenshots?.map((s) => s.image) || []).concat(igdbScreenshots);
 
-    const cover = igdb.cover
-      ? `https://images.igdb.com/igdb/image/upload/t_1080p/${igdb.cover.image_id}.jpg`
-      : rawgData.background_image;
-
+    // 4️⃣ Final merged result
     const merged = {
       id: rawgData.id,
       slug: rawgData.slug,
       name: rawgData.name,
       released: rawgData.released,
-      description: rawgData.description_raw || igdb.summary || "No description available.",
-      genres: rawgData.genres?.length ? rawgData.genres : igdb.genres || [],
-      platforms: rawgData.platforms?.length ? rawgData.platforms : igdb.platforms || [],
-      metacritic: rawgData.metacritic || null,
-      background_image: cover,
-      screenshots,
+      description_raw: rawgData.description_raw || rawgData.description || "",
+      background_image: rawgData.background_image,
+      metacritic: rawgData.metacritic,
       stores: rawgData.stores || [],
-      website: rawgData.website || igdb.url || "",
+      genres: rawgData.genres || [],
+      platforms: rawgData.platforms || [],
+      screenshots
     };
 
     res.status(200).json(merged);
   } catch (err) {
-    console.error("Hybrid fetch error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Server error in /api/game:", err);
+    res.status(500).json({ error: "Internal server error." });
   }
 }

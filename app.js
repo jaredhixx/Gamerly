@@ -1,8 +1,34 @@
-// app.js — Gamerly v4.2 Final
-// Fixes popup event binding, ensures games load properly, keeps all filters + visuals
+// app.js — Gamerly v4.3
+// Fully fixes overlay conflict (.overlay vs #overlay), ensures button works, keeps all features.
 
 document.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("overlay");
+  // Create unified overlay dynamically (removes CSS conflicts)
+  let overlay = document.createElement("div");
+  overlay.id = "gamerly-overlay";
+  overlay.innerHTML = `
+    <div class="overlay-content">
+      <h1 class="gamerly-title fade-in">🎮 Gamerly</h1>
+      <p class="tagline">Your home for all new and upcoming games.</p>
+      <p class="age-warning">This site may contain mature game content.<br>Please confirm your age to continue.</p>
+      <button id="confirm-age-btn" class="enter-btn">Yes, I am 18+</button>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  overlay.style.display = "flex";
+
+  // Click handler for confirmation
+  document.addEventListener("click", (event) => {
+    if (event.target && event.target.id === "confirm-age-btn") {
+      const o = document.getElementById("gamerly-overlay");
+      if (o) {
+        o.classList.add("fade-out");
+        setTimeout(() => o.remove(), 400);
+        fetchGames(); // Load content after fade-out
+      }
+    }
+  });
+
+  // Core elements
   const listEl = document.getElementById("games");
   const statusEl = document.getElementById("status");
   const sortEl = document.getElementById("sort");
@@ -13,35 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentRange = "3months";
   let currentPlatform = "";
 
-  // 🧠 --- Build Gamerly Overlay Dynamically ---
-  if (overlay) {
-    overlay.innerHTML = `
-      <div class="overlay-content">
-        <h1 class="gamerly-title fade-in">🎮 Gamerly</h1>
-        <p class="tagline">The home for all new and upcoming games.</p>
-        <p class="age-warning">This site may contain mature game content.<br>Please confirm your age to continue.</p>
-        <button id="confirm-age-btn" class="enter-btn">Yes, I am 18+</button>
-      </div>
-    `;
-    overlay.style.display = "flex";
-    overlay.style.opacity = "1";
-  }
-
-  // ✅ --- Wait for Button then Handle Click ---
-  document.addEventListener("click", (event) => {
-    if (event.target && event.target.id === "confirm-age-btn") {
-      const overlay = document.getElementById("overlay");
-      if (overlay) {
-        overlay.classList.add("fade-out");
-        setTimeout(() => {
-          overlay.remove();
-          fetchGames(); // Only run once overlay is gone
-        }, 400);
-      }
-    }
-  });
-
-  // 🧩 --- Fetch Games ---
+  // Fetch Games
   async function fetchGames() {
     if (statusEl) statusEl.textContent = "Loading...";
     if (listEl) listEl.innerHTML = "";
@@ -86,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 🎮 --- Render Game Cards ---
+  // Render Game List
   function renderGameList(games) {
     const html = games.map((game) => renderGameCard(game)).join("");
     listEl.innerHTML = html;
@@ -102,11 +100,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 🧩 --- Game Card Template ---
+  // Card Template
   function renderGameCard(game) {
     const released = game.released || "TBA";
-
-    // Smart fallback image logic
     const img =
       game.background_image ||
       (game.short_screenshots && game.short_screenshots[0]?.image) ||
@@ -144,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   }
 
-  // 💫 --- Hover Preview Effects ---
+  // Hover Previews
   let previewTimer;
   function showPreview(e) {
     const card = e.currentTarget;
@@ -158,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     card.classList.remove("hover");
   }
 
-  // 🔘 --- Event Listeners for Sort, Range, Platform ---
+  // Dropdown + Platform events
   if (sortEl) {
     sortEl.addEventListener("change", (e) => {
       currentSort = e.target.value;

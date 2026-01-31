@@ -24,7 +24,6 @@ header {
   justify-content: space-between;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
-
 header h1 {
   font-size: 1.7rem;
   font-weight: 800;
@@ -117,11 +116,39 @@ select:hover, input[type="text"]:hover { border-color: #aaa; }
   transform: translateY(-4px);
   box-shadow: 0 8px 18px rgba(0,0,0,0.12);
 }
+.card-img {
+  position: relative;
+}
 .card-img img {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  filter: blur(8px);
+  opacity: 0;
+  transform: scale(1.05);
+  transition: opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease;
 }
+.card-img img.loaded {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+
+/* --- Missing Image Overlay --- */
+.no-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.85);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  border-radius: 12px;
+}
+
 .card-body { padding: 14px 16px 16px; }
 .card-title {
   font-weight: 700;
@@ -189,32 +216,6 @@ select:hover, input[type="text"]:hover { border-color: #aaa; }
   border-radius: 6px;
   padding: 4px 8px;
   font-weight: 600;
-  cursor: pointer;
-}
-
-/* ---- Game Details Enhancements ---- */
-.trailer-container {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  margin: 24px 0;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-}
-.trailer-container video {
-  width: 100%;
-  max-height: 400px;
-  display: block;
-  object-fit: cover;
-}
-.sound-btn {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  background: rgba(255,255,255,0.8);
-  border: none;
-  border-radius: 50%;
-  padding: 8px 10px;
-  font-size: 1.1rem;
   cursor: pointer;
 }
 
@@ -305,35 +306,29 @@ footer {
   text-align: center;
   transition: opacity 0.4s ease-in-out;
 }
-
 #gamerly-overlay.fade-out {
   opacity: 0;
   pointer-events: none;
 }
-
 #gamerly-overlay .overlay-content {
   max-width: 480px;
   padding: 2rem;
 }
-
 .gamerly-title {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
-
 .tagline {
   font-size: 1.1rem;
   color: #ccc;
   margin-bottom: 1rem;
 }
-
 .age-warning {
   font-size: 1rem;
   color: #bbb;
   margin-bottom: 1.5rem;
 }
-
 .enter-btn {
   background: linear-gradient(90deg, #ff3b3b, #ff8000);
   color: #fff;
@@ -348,11 +343,8 @@ footer {
   transform: scale(1.05);
   box-shadow: 0 0 20px rgba(255, 80, 0, 0.6);
 }
-
 .fade-in {
   opacity: 0;
   animation: fadeIn 1s ease forwards;
 }
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
+@keyframes fadeIn { to { opacity: 1; } }

@@ -363,6 +363,58 @@ footer {
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
 }
 
+/* Gamerly Entry Overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 30% 30%, #101010, #000);
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  flex-direction: column;
+  text-align: center;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.overlay-content {
+  max-width: 480px;
+  padding: 2rem;
+}
+
+.gamerly-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.tagline {
+  font-size: 1.1rem;
+  color: #ccc;
+  margin-bottom: 1.5rem;
+}
+
+.enter-btn {
+  background: linear-gradient(90deg, #ff3b3b, #ff8000);
+  color: #fff;
+  border: none;
+  padding: 0.9rem 2rem;
+  font-size: 1.1rem;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.enter-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 80, 0, 0.6);
+}
+
+.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
 
 
 

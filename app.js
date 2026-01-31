@@ -1,6 +1,6 @@
-// === Gamerly v4.6 Stable ===
-// Adds dynamic screenshot fallback for games missing images via RAWG API
-// Keeps all filters, fade-in, and overlay logic intact
+// === Gamerly v4.7 Stable ===
+// Fixes overlay not disappearing when screenshots load later
+// Keeps all filters, sorting, fade-in, and dynamic fallback intact
 
 document.addEventListener("DOMContentLoaded", () => {
   const overlayId = "gamerly-overlay";
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const now = new Date();
       games = games.filter((g) => g.released);
 
-      // --- Filter by date range ---
+      // --- Date range filter ---
       if (currentRange === "week") {
         const sevenDaysAgo = new Date(now);
         sevenDaysAgo.setDate(now.getDate() - 7);
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
         games = games.filter((g) => new Date(g.released) >= threeMonthsAgo);
       }
 
-      // --- Platform filter (normalize) ---
+      // --- Platform filter ---
       if (currentPlatform) {
         const platformMap = {
           pc: ["pc"],
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderGameList(games) {
     listEl.innerHTML = games.map(renderGameCard).join("");
 
-    // Fade-in animation
+    // Fade-in effect
     const imgs = listEl.querySelectorAll(".card-img img");
     imgs.forEach((img) => {
       img.addEventListener("load", () => img.classList.add("loaded"));
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Game Card Template (with live RAWG screenshot fetch) ---
+  // --- Game Card Template (with live screenshot fallback + overlay removal) ---
   function renderGameCard(game) {
     const released = game.released || "TBA";
 
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
       !img.includes("placeholder") &&
       !img.endsWith("null");
 
-    // 🧩 Try to auto-fetch screenshots from RAWG if missing
+    // Dynamic screenshot fetch
     if (!hasRealImage && game.id) {
       fetch(
         `https://api.rawg.io/api/games/${game.id}/screenshots?key=ac669b002b534781818c488babf5aae4`
@@ -148,15 +148,17 @@ document.addEventListener("DOMContentLoaded", () => {
         .then((data) => {
           if (data.results && data.results.length > 0) {
             const newImg = data.results[0].image;
-            const cardImg = document.querySelector(
-              `.card[data-slug="${game.slug}"] img`
+            const card = document.querySelector(
+              `.card[data-slug="${game.slug}"]`
             );
-            if (cardImg && newImg) {
-              cardImg.src = newImg;
-              cardImg.classList.add("loaded");
-              const overlay =
-                cardImg.parentElement.querySelector(".no-image-overlay");
-              if (overlay) overlay.remove();
+            if (card) {
+              const cardImg = card.querySelector("img");
+              const overlay = card.querySelector(".no-image-overlay");
+              if (cardImg && newImg) {
+                cardImg.src = newImg;
+                cardImg.classList.add("loaded");
+                if (overlay) overlay.remove();
+              }
             }
           }
         })

@@ -1,44 +1,32 @@
-// /api/games.js — Gamerly v4 (Accurate filtering, sorting, and range fixes)
+// /api/games.js — Gamerly v4.1 (accurate “Newest” & “Highest Rated” logic)
 
 export default async function handler(req, res) {
   try {
     const RAWG_KEY = process.env.RAWG_KEY;
-    if (!RAWG_KEY) {
-      return res.status(500).json({ error: "Missing RAWG_KEY in environment." });
-    }
+    if (!RAWG_KEY) return res.status(500).json({ error: "Missing RAWG_KEY" });
 
-    // Grab params from client (used in app.js)
     const { ordering = "-released", page_size = 80, range = "3months" } = req.query;
 
     const today = new Date();
-    let start = new Date();
+    const start = new Date();
 
-    // ----- Dynamic date range -----
-    switch (range) {
-      case "today":
-        start = new Date(today);
-        break;
-      case "week":
-        start.setDate(today.getDate() - 7);
-        break;
-      case "year":
-      case "3months":
-        start.setMonth(today.getMonth() - 3);
-        break;
-      case "all":
-        start = new Date("2000-01-01"); // show everything since Y2K
-        break;
-      default:
-        start.setMonth(today.getMonth() - 3);
-    }
+    // --- Dynamic date windows ---
+    if (range === "today") start.setDate(today.getDate() - 1);
+    else if (range === "week") start.setDate(today.getDate() - 7);
+    else if (range === "year" || range === "3months") start.setDate(today.getDate() - 120);
+    else if (range === "all") start.setFullYear(2000);
+    else start.setDate(today.getDate() - 120);
 
-    // ----- Build RAWG request -----
+    // --- Ensure RAWG ordering matches ---
+    const orderKey =
+      ordering === "-rating" || ordering === "-metacritic" ? "-metacritic" : "-released";
+
     const url = new URL("https://api.rawg.io/api/games");
     url.searchParams.set("key", RAWG_KEY);
     url.searchParams.set("languages", "en");
     url.searchParams.set("page_size", page_size);
     url.searchParams.set("exclude_additions", "true");
-    url.searchParams.set("ordering", ordering);
+    url.searchParams.set("ordering", orderKey);
     url.searchParams.set(
       "dates",
       `${start.toISOString().slice(0, 10)},${today.toISOString().slice(0, 10)}`
@@ -50,23 +38,24 @@ export default async function handler(req, res) {
     });
 
     const data = await resp.json();
-    if (!resp.ok) {
-      console.error("RAWG error:", data);
-      return res.status(resp.status).json({ error: data?.error || "RAWG fetch failed" });
-    }
+    if (!resp.ok) throw new Error(`RAWG error ${resp.status}`);
 
-    // ----- Filter out unwanted / NSFW entries -----
-    const results = (data.results || []).filter(
+    // --- Clean / Filter ---
+    let results = (data.results || []).filter(
       (g) =>
         g.released &&
         !/sex|porn|hentai|erotic|nsfw|nude|lewd/i.test(g.name || "") &&
         !/sex|porn|hentai|erotic|nsfw|nude|lewd/i.test(g.slug || "")
     );
 
-    res.status(200).json({
-      count: results.length,
-      results,
-    });
+    // --- Local sort fallback (RAWG sometimes ignores ordering) ---
+    if (orderKey === "-released") {
+      results = results.sort((a, b) => new Date(b.released) - new Date(a.released));
+    } else if (orderKey === "-metacritic") {
+      results = results.sort((a, b) => (b.metacritic || 0) - (a.metacritic || 0));
+    }
+
+    res.status(200).json({ count: results.length, results });
   } catch (err) {
     console.error("Server error in /api/games:", err);
     res.status(500).json({ error: "Internal server error." });

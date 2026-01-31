@@ -6,6 +6,7 @@
     <title>Gamerly – Game Details</title>
     <link rel="stylesheet" href="style.css" />
   </head>
+
   <body>
     <header>
       <div style="max-width: 900px; margin: 0 auto;">
@@ -42,18 +43,42 @@
             return;
           }
 
+          // Basic info
           const name = data.name || "Untitled";
           const released = data.released || "TBA";
-          const img = data.background_image || "";
+          const img = data.background_image || "https://placehold.co/900x400?text=No+Image";
           const website = data.website || "";
-          const description = data.description_raw || "No description available.";
           const clip = data.clip?.clip || null;
 
-          // ✅ Pull safe screenshots
-          const screenshots = Array.isArray(data.short_screenshots) ? data.short_screenshots : [];
+          // Description fallback: prefer HTML description if raw is empty
+          const description =
+            (data.description_raw && data.description_raw.trim() !== "")
+              ? data.description_raw
+              : data.description?.replace(/<\/?p>/g, "") || "No description available.";
 
-          // 🎬 Trailer
-          const trailer = clip
+          // Screenshot logic
+          const screenshots = data.short_screenshots?.length
+            ? data.short_screenshots
+            : data.screenshots?.length
+            ? data.screenshots
+            : (data.background_image_additional
+                ? [{ image: data.background_image_additional }]
+                : [{ image: data.background_image }]);
+
+          const screenshotRow = screenshots
+            .map(
+              (s) =>
+                `<img src="${s.image}" alt="Screenshot" loading="lazy" class="screenshot-thumb" />`
+            )
+            .join("");
+
+          const screenshotBlock = `
+            <div class="screenshot-row">
+              ${screenshotRow}
+            </div>`;
+
+          // Trailer block
+          const trailerBlock = clip
             ? `
               <div class="trailer-container">
                 <video id="gameTrailer" autoplay muted loop playsinline poster="${img}">
@@ -63,16 +88,7 @@
               </div>`
             : "";
 
-          // 🖼 Screenshot row
-          const screenshotRow = screenshots.length
-            ? `
-              <div class="screenshot-row">
-                ${screenshots
-                  .map((s) => `<img src="${s.image}" alt="Screenshot" loading="lazy" class="screenshot-thumb" />`)
-                  .join("")}
-              </div>`
-            : "";
-
+          // Assemble content
           const content = `
             <div class="hero-banner" style="background-image:url('${img}')">
               <div class="overlay-gradient"></div>
@@ -81,15 +97,15 @@
                 <div>Released: ${released}</div>
               </div>
             </div>
-            ${trailer}
-            ${screenshotRow}
+            ${trailerBlock}
+            ${screenshotBlock}
             <div class="panel"><h2>About</h2><p>${description}</p></div>`;
 
           contentEl.innerHTML = content;
           statusEl.remove();
           contentEl.style.display = "block";
 
-          // 🎧 Sound toggle
+          // Toggle sound
           const video = document.getElementById("gameTrailer");
           const btn = document.getElementById("soundToggle");
           if (video && btn) {
@@ -99,10 +115,10 @@
             });
           }
 
-          // 🎠 Auto-scroll screenshots
+          // Auto-scroll screenshots
           const row = document.querySelector(".screenshot-row");
-          if (row) {
-            let scrollSpeed = 0.7;
+          if (row && row.scrollWidth > row.clientWidth) {
+            let scrollSpeed = 0.8;
             function autoScroll() {
               if (row.scrollLeft + row.clientWidth >= row.scrollWidth) row.scrollLeft = 0;
               else row.scrollLeft += scrollSpeed;
@@ -115,6 +131,7 @@
           statusEl.textContent = "Error loading game data.";
         }
       }
+
       loadGame();
     </script>
   </body>

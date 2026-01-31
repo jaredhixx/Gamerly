@@ -1,5 +1,6 @@
-// === Gamerly v4.5 FINAL ===
-// Guaranteed screenshot fallback for missing images (DOM-safe)
+// === Gamerly v5.0 — IGDB Integration Build ===
+// Fetches curated data directly from IGDB (Twitch API)
+// Retains all existing filters, card layout, and overlay logic
 
 document.addEventListener("DOMContentLoaded", () => {
   const overlayId = "gamerly-overlay";
@@ -8,12 +9,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const sortEl = document.getElementById("sort");
   const rangeEl = document.getElementById("range");
   const platformBtns = document.querySelectorAll(".platform-filter");
+  const searchEl = document.getElementById("search");
 
   let currentSort = "-released";
   let currentRange = "3months";
   let currentPlatform = "";
+  let allGames = [];
 
-  // --- 🧠 Age Gate Overlay ---
+  // --- 🧠 Gamerly Age Gate Overlay ---
   if (!localStorage.getItem("gamerly_age_verified")) {
     const overlayEl = document.createElement("div");
     overlayEl.id = overlayId;
@@ -36,90 +39,102 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchGames();
   }
 
-  // --- Fetch Games ---
+  // === Fetch Games from IGDB (via Vercel API route) ===
   async function fetchGames() {
-    statusEl.textContent = "Loading...";
-    listEl.innerHTML = "";
+    if (statusEl) statusEl.textContent = "Loading...";
+    if (listEl) listEl.innerHTML = "";
 
     try {
-      let ordering = "-released";
-      if (currentSort === "-rating") ordering = "-metacritic";
-      else if (currentSort === "released") ordering = "-released";
-      else if (currentSort === "name") ordering = "name";
+      const url = new URL("/api/igdb", window.location.origin);
 
-      const url = new URL("/api/games", window.location.origin);
-      url.searchParams.set("ordering", ordering);
-      url.searchParams.set("page_size", 80);
+      // Sorting
+      if (currentSort === "-rating") url.searchParams.set("sort", "total_rating desc");
+      else url.searchParams.set("sort", "first_release_date desc");
 
+      // Search
+      if (searchEl && searchEl.value.trim()) url.searchParams.set("search", searchEl.value.trim());
+
+      // Fetch data
       const res = await fetch(url, { cache: "no-store" });
       const data = await res.json();
 
-      if (!res.ok || !data.results?.length) {
+      if (!Array.isArray(data) || !data.length) {
         listEl.innerHTML = `<p style="text-align:center;color:#888;">No games found.</p>`;
-        statusEl.textContent = "";
+        if (statusEl) statusEl.textContent = "";
         return;
       }
 
-      let games = data.results.filter((g) => g.released);
+      // Transform IGDB response into RAWG-like objects for compatibility
+      allGames = data.map((g) => ({
+        slug: g.id,
+        name: g.name,
+        released: g.first_release_date
+          ? new Date(g.first_release_date * 1000).toISOString().split("T")[0]
+          : "TBA",
+        background_image: g.cover
+          ? `https:${g.cover.url.replace("t_thumb", "t_1080p")}`
+          : g.screenshots?.[0]
+          ? `https://images.igdb.com/igdb/image/upload/t_1080p/${g.screenshots[0].image_id}.jpg`
+          : "/placeholder.webp",
+        screenshots: g.screenshots?.map(
+          (s) => `https://images.igdb.com/igdb/image/upload/t_1080p/${s.image_id}.jpg`
+        ),
+        metacritic: g.total_rating ? Math.round(g.total_rating) : null,
+        platforms: g.platforms?.map((p) => p.name) || [],
+        genres: g.genres?.map((gn) => gn.name) || [],
+      }));
 
-      // --- Date range filter ---
-      const now = new Date();
-      if (currentRange === "week") {
-        const weekAgo = new Date(now);
-        weekAgo.setDate(now.getDate() - 7);
-        games = games.filter((g) => new Date(g.released) >= weekAgo);
-      } else if (currentRange === "3months") {
-        const threeMonths = new Date(now);
-        threeMonths.setMonth(now.getMonth() - 3);
-        games = games.filter((g) => new Date(g.released) >= threeMonths);
-      }
-
-      // --- Platform filter ---
-      if (currentPlatform) {
-        const platformMap = {
-          pc: ["pc"],
-          playstation: ["playstation", "ps4", "ps5"],
-          xbox: ["xbox", "xbox-one", "xbox-series-x"],
-          nintendo: ["switch", "nintendo"],
-          ios: ["ios"],
-          android: ["android"],
-        };
-        const targets = platformMap[currentPlatform.toLowerCase()] || [];
-        games = games.filter((g) =>
-          g.parent_platforms?.some((p) =>
-            targets.includes(p.platform.slug?.toLowerCase())
-          )
-        );
-      }
-
-      // --- Sorting ---
-      if (currentSort === "-rating") {
-        games.sort(
-          (a, b) =>
-            (b.metacritic || b.rating || 0) - (a.metacritic || a.rating || 0)
-        );
-      } else if (currentSort === "released") {
-        games.sort((a, b) => new Date(b.released) - new Date(a.released));
-      }
-
-      renderGameList(games);
-      statusEl.textContent = "";
+      // Filter and render
+      renderList();
+      if (statusEl) statusEl.textContent = "";
     } catch (err) {
-      console.error("Fetch error:", err);
-      statusEl.textContent = "Error loading games.";
+      console.error("IGDB fetch error:", err);
+      if (statusEl) statusEl.textContent = "Error loading games.";
     }
   }
 
-  // --- Render Game Cards ---
-  function renderGameList(games) {
-    listEl.innerHTML = "";
-    games.forEach((game) => {
-      const card = createGameCard(game);
-      listEl.appendChild(card);
-      loadFallbackIfNeeded(game, card);
-    });
+  // === Filtering + Rendering ===
+  function renderList() {
+    let visible = [...allGames];
 
-    // Fade-in effect
+    // Range filter (date)
+    const now = new Date();
+    if (currentRange === "week") {
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      visible = visible.filter((g) => new Date(g.released) >= sevenDaysAgo);
+    } else if (currentRange === "3months") {
+      const threeMonthsAgo = new Date(now);
+      threeMonthsAgo.setMonth(now.getMonth() - 3);
+      visible = visible.filter((g) => new Date(g.released) >= threeMonthsAgo);
+    }
+
+    // Platform filter
+    if (currentPlatform) {
+      visible = visible.filter((g) =>
+        g.platforms.some((p) =>
+          p.toLowerCase().includes(currentPlatform.toLowerCase())
+        )
+      );
+    }
+
+    // Search filter
+    if (searchEl && searchEl.value.trim()) {
+      const q = searchEl.value.trim().toLowerCase();
+      visible = visible.filter((g) => g.name.toLowerCase().includes(q));
+    }
+
+    // Sort again (client-side if needed)
+    if (currentSort === "-rating") {
+      visible.sort((a, b) => (b.metacritic || 0) - (a.metacritic || 0));
+    } else if (currentSort === "released") {
+      visible.sort((a, b) => new Date(b.released) - new Date(a.released));
+    }
+
+    // Render
+    listEl.innerHTML = visible.map(renderGameCard).join("");
+
+    // Fade-in loaded images
     const imgs = listEl.querySelectorAll(".card-img img");
     imgs.forEach((img) => {
       img.addEventListener("load", () => img.classList.add("loaded"));
@@ -127,20 +142,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Card Template ---
-  function createGameCard(game) {
+  // === Game Card Template ===
+  function renderGameCard(game) {
     const released = game.released || "TBA";
-    const fallbackImg =
-      "https://media.rawg.io/media/screenshots/5e3/5e3a9b8e0472d358df9e99e64d7f9f0a.jpg";
-
-    const img =
-      game.background_image ||
-      (game.short_screenshots && game.short_screenshots[0]?.image) ||
-      (game.screenshots && game.screenshots[0]?.image) ||
-      fallbackImg;
-
-    const hasRealImage =
-      img && !img.includes("placeholder") && !img.endsWith("null");
+    const img = game.background_image || "/placeholder.webp";
 
     const meta =
       game.metacritic != null
@@ -154,68 +159,33 @@ document.addEventListener("DOMContentLoaded", () => {
         : `<span class="badge-meta meta-na">N/A</span>`;
 
     const platformsHTML =
-      game.parent_platforms
-        ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
-        .join(" ") || "";
+      game.platforms?.map((p) => `<span class="badge">${p}</span>`).join(" ") || "";
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.dataset.slug = game.slug;
-    card.title = game.name;
-    card.innerHTML = `
-      <div class="card-img">
-        <img src="${img}" alt="${game.name}" loading="lazy">
-        ${!hasRealImage ? `<div class="no-image-overlay">No Image Available</div>` : ""}
-      </div>
-      <div class="card-body">
-        <div class="card-title">${game.name}</div>
-        <div class="meta-row">
-          ${meta}<span class="release-date">Released: ${released}</span>
+    return `
+      <div class="card" data-slug="${game.slug}" title="${game.name}"
+           onclick="window.location='/game.html?slug=${game.slug}'">
+        <div class="card-img">
+          <img src="${img}" alt="${game.name}" loading="lazy" onerror="this.src='/placeholder.webp'">
         </div>
-        <div class="badges">${platformsHTML}</div>
+        <div class="card-body">
+          <div class="card-title">${game.name}</div>
+          <div class="meta-row">
+            ${meta}<span class="release-date">Released: ${released}</span>
+          </div>
+          <div class="badges">${platformsHTML}</div>
+        </div>
       </div>`;
-
-    card.addEventListener("click", () => {
-      window.location = `/game.html?slug=${game.slug}`;
-    });
-
-    return card;
   }
 
-  // --- Screenshot Fallback (runs after DOM insert) ---
-  function loadFallbackIfNeeded(game, card) {
-    if (game.background_image || !game.id) return;
-
-    fetch(
-      `https://api.rawg.io/api/games/${game.id}/screenshots?key=ac669b002b534781818c488babf5aae4`
-    )
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.results?.length) {
-          const newImg = data.results[0].image;
-          const imgEl = card.querySelector("img");
-          const overlay = card.querySelector(".no-image-overlay");
-          if (imgEl && newImg) {
-            imgEl.src = newImg;
-            imgEl.classList.add("loaded");
-            if (overlay) overlay.remove();
-          }
-        }
-      })
-      .catch((err) =>
-        console.warn(`Screenshot fallback failed for ${game.slug}:`, err)
-      );
-  }
-
-  // --- Event Listeners ---
+  // === Event Listeners ===
   sortEl?.addEventListener("change", (e) => {
     currentSort = e.target.value;
-    fetchGames();
+    renderList();
   });
 
   rangeEl?.addEventListener("change", (e) => {
     currentRange = e.target.value;
-    fetchGames();
+    renderList();
   });
 
   platformBtns.forEach((btn) => {
@@ -223,7 +193,9 @@ document.addEventListener("DOMContentLoaded", () => {
       platformBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       currentPlatform = btn.dataset.platform || "";
-      fetchGames();
+      renderList();
     });
   });
+
+  searchEl?.addEventListener("input", () => renderList());
 });

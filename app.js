@@ -1,7 +1,9 @@
-// app.js — Gamerly v4.2
-// Smooth hover previews + accurate filters + smart image fallback
+// app.js — Gamerly v4.2a
+// Adds Gamerly-branded entry popup, fixes button logic, keeps hover + accurate filters
 
 document.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("overlay");
+  const enterBtn = document.getElementById("enterSite");
   const listEl = document.getElementById("games");
   const statusEl = document.getElementById("status");
   const sortEl = document.getElementById("sort");
@@ -12,10 +14,28 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentRange = "3months";
   let currentPlatform = "";
 
+  // --- 🧠 Entry Popup ---
+  if (overlay && enterBtn) {
+    overlay.innerHTML = `
+      <div class="overlay-content">
+        <h1 class="gamerly-title">🎮 Gamerly</h1>
+        <p class="tagline">Discover the latest, greatest, and most-played games — all in one place.</p>
+        <button id="enterSite" class="enter-btn">Enter Site</button>
+      </div>`;
+    overlay.style.display = "flex";
+
+    const btn = overlay.querySelector("#enterSite");
+    btn.addEventListener("click", () => {
+      overlay.classList.add("fade-out");
+      setTimeout(() => overlay.remove(), 400);
+      fetchGames();
+    });
+  }
+
   // --- Fetch Games ---
   async function fetchGames() {
     if (statusEl) statusEl.textContent = "Loading...";
-    listEl.innerHTML = "";
+    if (listEl) listEl.innerHTML = "";
 
     try {
       const sortValue =
@@ -60,7 +80,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const html = games.map((game) => renderGameCard(game)).join("");
     listEl.innerHTML = html;
 
-    // Hover preview logic
     const cards = document.querySelectorAll(".card");
     cards.forEach((card) => {
       card.addEventListener("mouseenter", showPreview);
@@ -72,11 +91,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Individual Card Template ---
+  // --- Game Card Template ---
   function renderGameCard(game) {
     const released = game.released || "TBA";
 
-    // ✅ Smart fallback logic
+    // ✅ Smart fallback image logic
     const img =
       game.background_image ||
       (game.short_screenshots && game.short_screenshots[0]?.image) ||
@@ -148,12 +167,9 @@ document.addEventListener("DOMContentLoaded", () => {
   platformBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       platformBtns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentPlatform = btn.dataset.platform || "";
-      fetchGames();
+    btn.classList.add("active");
+    currentPlatform = btn.dataset.platform || "";
+    fetchGames();
     });
   });
-
-  // --- Initial Load ---
-  fetchGames();
 });

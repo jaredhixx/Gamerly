@@ -48,7 +48,7 @@
       .overlay-gradient {
         position: absolute;
         inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1));
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.1));
       }
 
       .hero-content {
@@ -56,7 +56,7 @@
         bottom: 20px;
         left: 20px;
         color: white;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
       }
 
       .hero-content h1 {
@@ -124,29 +124,26 @@
         color: #111;
       }
 
-      /* Screenshot Row */
-      .screenshot-row {
+      /* Screenshot Carousel */
+      .screenshot-carousel {
         display: flex;
         overflow-x: auto;
-        gap: 10px;
-        margin: 20px 0 32px;
-        padding-bottom: 8px;
+        gap: 12px;
+        padding: 10px 0;
         scroll-behavior: smooth;
       }
 
       .screenshot-thumb {
-        flex: 0 0 auto;
-        width: 240px;
-        height: 135px;
-        border-radius: 10px;
+        height: 200px;
+        border-radius: 12px;
+        flex-shrink: 0;
         object-fit: cover;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        transition: transform 0.2s ease-in-out;
       }
 
       .screenshot-thumb:hover {
         transform: scale(1.05);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
       }
     </style>
   </head>
@@ -184,59 +181,50 @@
           const released = data?.released || "TBA";
           const img = data?.background_image || "";
           const website = data?.website || "";
-          const description = data?.description_raw || data?.description || "No description available.";
-
+          const description =
+            data?.description_raw || data?.description || "No description available.";
           const stores = Array.isArray(data?.stores) ? data.stores : [];
           const platforms = Array.isArray(data?.platforms)
-            ? data.platforms.map(p => p?.platform?.name).filter(Boolean)
+            ? data.platforms.map((p) => p?.platform?.name).filter(Boolean)
             : [];
           const genres = Array.isArray(data?.genres)
-            ? data.genres.map(g => g?.name).filter(Boolean)
+            ? data.genres.map((g) => g?.name).filter(Boolean)
             : [];
-
           const badges = [...platforms, ...genres]
             .slice(0, 16)
-            .map(x => `<span class="badge">${x}</span>`)
+            .map((x) => `<span class="badge">${x}</span>`)
             .join("");
 
           let metacritic = data?.metacritic ?? null;
-          if (!metacritic && Array.isArray(data.metacritic_platforms)) {
-            const allScores = data.metacritic_platforms
-              .map(p => p.metascore)
-              .filter(s => typeof s === "number");
-            if (allScores.length)
-              metacritic = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
-          }
-
           const metaColor =
             metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
 
           const storeLinks = stores
             .map(
               (s) => `
-              <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="store-btn">
+              <a href="${s.url || "#"}" target="_blank" rel="noopener noreferrer" class="store-btn">
                 Buy on ${s.store?.name || "Store"}
               </a>`
             )
             .join("");
 
-          // 🔹 Multi-screenshot support (RAWG only)
-          const screenshots =
-            data.short_screenshots?.length
-              ? data.short_screenshots.map(s => s.image)
-              : [data.background_image].filter(Boolean);
-
-          const screenshotRow = screenshots.length
+          // 🎮 Screenshot carousel using merged IGDB + RAWG
+          const screenshotBlock = Array.isArray(data.screenshots) && data.screenshots.length > 0
             ? `
-              <div class="screenshot-row">
-                ${screenshots
+              <div class="screenshot-carousel">
+                ${data.screenshots
                   .map(
-                    s =>
-                      `<img src="${s}" alt="Screenshot" class="screenshot-thumb" loading="lazy">`
+                    (url) => `
+                      <img 
+                        src="${url}" 
+                        alt="Screenshot" 
+                        loading="lazy" 
+                        class="screenshot-thumb"
+                      >`
                   )
                   .join("")}
               </div>`
-            : "";
+            : `<div class="panel" style="text-align:center;color:#777;">No screenshots available.</div>`;
 
           const content = `
             <div class="hero-banner" style="background-image:url('${img}')">
@@ -255,7 +243,7 @@
               </div>
             </div>
 
-            ${screenshotRow}
+            ${screenshotBlock}
 
             <div class="panel">
               <h2>About</h2>
@@ -263,9 +251,10 @@
             </div>
           `;
 
-          document.getElementById("content").innerHTML = content;
+          const container = document.getElementById("content");
+          container.innerHTML = content;
           document.getElementById("status").remove();
-          document.getElementById("content").style.display = "block";
+          container.style.display = "block";
         } catch (err) {
           console.error(err);
           document.getElementById("status").textContent = "Error loading game data.";

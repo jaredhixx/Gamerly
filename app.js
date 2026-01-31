@@ -1,6 +1,5 @@
-// === Gamerly v4.8 Stable ===
-// Guaranteed fallback when RAWG missing main image or placeholder 404s
-// Removes "No Image Available" overlay as soon as screenshot loads
+// === Gamerly v4.9 Stable ===
+// Fixes RAWG fallback image injection timing (binds directly to card)
 
 document.addEventListener("DOMContentLoaded", () => {
   const overlayId = "gamerly-overlay";
@@ -114,62 +113,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Render Game List ---
   function renderGameList(games) {
-    listEl.innerHTML = games.map(renderGameCard).join("");
-
-    // Fade-in effect
-    const imgs = listEl.querySelectorAll(".card-img img");
-    imgs.forEach((img) => {
-      img.addEventListener("load", () => img.classList.add("loaded"));
-      if (img.complete) img.classList.add("loaded");
-    });
+    listEl.innerHTML = "";
+    games.forEach((game) => listEl.appendChild(createGameCard(game)));
   }
 
-  // --- Game Card Template (with screenshot fix) ---
-  function renderGameCard(game) {
+  // --- Create Game Card with local fetch binding ---
+  function createGameCard(game) {
     const released = game.released || "TBA";
 
-    // default placeholder hosted by RAWG (always exists)
-    let img =
+    const imgSrc =
       game.background_image ||
       (game.short_screenshots && game.short_screenshots[0]?.image) ||
       (game.screenshots && game.screenshots[0]?.image) ||
       "https://media.rawg.io/media/screenshots/5e3/5e3a9b8e0472d358df9e99e64d7f9f0a.jpg";
 
     const hasRealImage =
-      img &&
-      !img.includes("placeholder") &&
-      !img.endsWith("null") &&
-      !img.includes("favicon");
-
-    // 🧩 Always check RAWG screenshots if image looks generic
-    if ((!hasRealImage || img.includes("5e3a9b8")) && game.id) {
-      setTimeout(() => {
-        fetch(
-          `https://api.rawg.io/api/games/${game.id}/screenshots?key=ac669b002b534781818c488babf5aae4`
-        )
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.results && data.results.length > 0) {
-              const newImg = data.results[0].image;
-              const card = document.querySelector(
-                `.card[data-slug="${game.slug}"]`
-              );
-              if (card) {
-                const cardImg = card.querySelector("img");
-                const overlay = card.querySelector(".no-image-overlay");
-                if (cardImg && newImg) {
-                  cardImg.src = newImg;
-                  cardImg.classList.add("loaded");
-                  if (overlay) overlay.remove();
-                }
-              }
-            }
-          })
-          .catch((err) =>
-            console.warn(`Screenshot fetch fail for ${game.slug}:`, err)
-          );
-      }, 500); // wait for DOM to render card
-    }
+      imgSrc &&
+      !imgSrc.includes("placeholder") &&
+      !imgSrc.endsWith("null") &&
+      !imgSrc.includes("favicon");
 
     const meta =
       game.metacritic != null
@@ -187,21 +149,51 @@ document.addEventListener("DOMContentLoaded", () => {
         ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
         .join(" ") || "";
 
-    return `
-      <div class="card" data-slug="${game.slug}" title="${game.name}"
-           onclick="window.location='/game.html?slug=${game.slug}'">
-        <div class="card-img">
-          <img src="${img}" alt="${game.name}" loading="lazy">
-          ${!hasRealImage ? `<div class="no-image-overlay">No Image Available</div>` : ""}
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.slug = game.slug;
+    card.title = game.name;
+    card.innerHTML = `
+      <div class="card-img">
+        <img src="${imgSrc}" alt="${game.name}" loading="lazy">
+        ${!hasRealImage ? `<div class="no-image-overlay">No Image Available</div>` : ""}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${game.name}</div>
+        <div class="meta-row">
+          ${meta}<span class="release-date">Released: ${released}</span>
         </div>
-        <div class="card-body">
-          <div class="card-title">${game.name}</div>
-          <div class="meta-row">
-            ${meta}<span class="release-date">Released: ${released}</span>
-          </div>
-          <div class="badges">${platformsHTML}</div>
-        </div>
+        <div class="badges">${platformsHTML}</div>
       </div>`;
+
+    card.addEventListener("click", () => {
+      window.location = `/game.html?slug=${game.slug}`;
+    });
+
+    // --- 🧩 Screenshot Fallback (bound to this specific card) ---
+    if (!hasRealImage && game.id) {
+      fetch(
+        `https://api.rawg.io/api/games/${game.id}/screenshots?key=ac669b002b534781818c488babf5aae4`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.results && data.results.length > 0) {
+            const newImg = data.results[0].image;
+            const cardImg = card.querySelector("img");
+            const overlay = card.querySelector(".no-image-overlay");
+            if (cardImg && newImg) {
+              cardImg.src = newImg;
+              cardImg.classList.add("loaded");
+              if (overlay) overlay.remove();
+            }
+          }
+        })
+        .catch((err) =>
+          console.warn(`Screenshot fetch fail for ${game.slug}:`, err)
+        );
+    }
+
+    return card;
   }
 
   // --- Event Listeners ---

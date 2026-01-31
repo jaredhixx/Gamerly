@@ -3,8 +3,152 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gamerly – Game Details</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Gamerly – Game</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f9fafb;
+        color: #111;
+      }
+
+      header {
+        background: #111827;
+        color: white;
+        padding: 24px;
+      }
+
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      a {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .hero-banner {
+        position: relative;
+        height: 380px;
+        background-size: cover;
+        background-position: center;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 24px;
+      }
+
+      .overlay-gradient {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1));
+      }
+
+      .hero-content {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        color: white;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+      }
+
+      .hero-content h1 {
+        font-size: 2rem;
+        margin: 0 0 6px 0;
+      }
+
+      .hero-content .meta {
+        font-size: 1rem;
+        opacity: 0.9;
+      }
+
+      .hero-content .score {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+      }
+
+      .store-btn {
+        display: inline-block;
+        background: #0b0b0c;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        margin: 6px 6px 0 0;
+        transition: all 0.2s ease;
+      }
+
+      .store-btn:hover {
+        background: #f97316;
+        color: white;
+      }
+
+      .panel {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+      }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .badge {
+        font-size: 0.75rem;
+        color: #374151;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        padding: 3px 8px;
+        border-radius: 999px;
+      }
+
+      .desc {
+        white-space: pre-wrap;
+        line-height: 1.5;
+        color: #111;
+      }
+
+      /* Screenshot Row */
+      .screenshot-row {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        margin: 20px 0 32px;
+        padding-bottom: 8px;
+        scroll-behavior: smooth;
+      }
+
+      .screenshot-thumb {
+        flex: 0 0 auto;
+        width: 240px;
+        height: 135px;
+        border-radius: 10px;
+        object-fit: cover;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      }
+
+      .screenshot-thumb:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      }
+    </style>
   </head>
 
   <body>
@@ -24,119 +168,111 @@
     </main>
 
     <script>
-async function loadGame() {
-  const slug = new URLSearchParams(window.location.search).get("slug");
-  const statusEl = document.getElementById("status");
-  const contentEl = document.getElementById("content");
+      async function loadGame() {
+        const slug = new URLSearchParams(window.location.search).get("slug");
+        if (!slug) {
+          document.getElementById("status").textContent = "Missing slug in URL.";
+          return;
+        }
 
-  if (!slug) {
-    statusEl.textContent = "Missing slug in URL.";
-    return;
-  }
+        try {
+          const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
+          const data = await res.json();
+          if (!res.ok) throw new Error("Error loading game data.");
 
-  try {
-    const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
-    const data = await res.json();
-    if (!res.ok || !data || data.error) {
-      statusEl.textContent = "Error loading game data.";
-      console.error(data);
-      return;
-    }
+          const name = data?.name || "Untitled";
+          const released = data?.released || "TBA";
+          const img = data?.background_image || "";
+          const website = data?.website || "";
+          const description = data?.description_raw || data?.description || "No description available.";
 
-    // --- Core fields ---
-    const name = data.name || "Untitled";
-    const released = data.released || "TBA";
-    const img = data.background_image || "https://placehold.co/900x400?text=No+Image";
-    const website = data.website || "";
-    const clip = data.clip?.clip || null;
+          const stores = Array.isArray(data?.stores) ? data.stores : [];
+          const platforms = Array.isArray(data?.platforms)
+            ? data.platforms.map(p => p?.platform?.name).filter(Boolean)
+            : [];
+          const genres = Array.isArray(data?.genres)
+            ? data.genres.map(g => g?.name).filter(Boolean)
+            : [];
 
-    // --- Description (use HTML if raw empty) ---
-    const description =
-      data.description_raw?.trim()
-        ? data.description_raw
-        : data.description?.replace(/<\/?p>/g, "") || "No description available.";
+          const badges = [...platforms, ...genres]
+            .slice(0, 16)
+            .map(x => `<span class="badge">${x}</span>`)
+            .join("");
 
-    // --- Screenshot logic ---
-    const screenshots = data.short_screenshots?.length
-      ? data.short_screenshots
-      : data.screenshots?.length
-      ? data.screenshots
-      : (data.background_image_additional
-          ? [{ image: data.background_image_additional }]
-          : data.background_image
-          ? [{ image: data.background_image }]
-          : []);
+          let metacritic = data?.metacritic ?? null;
+          if (!metacritic && Array.isArray(data.metacritic_platforms)) {
+            const allScores = data.metacritic_platforms
+              .map(p => p.metascore)
+              .filter(s => typeof s === "number");
+            if (allScores.length)
+              metacritic = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+          }
 
-    const screenshotBlock = screenshots.length
-      ? `
-      <div class="screenshot-row">
-        ${screenshots
-          .map(
-            (s) =>
-              `<img src="${s.image}" alt="Screenshot" loading="lazy" class="screenshot-thumb" />`
-          )
-          .join("")}
-      </div>`
-      : `<div class="panel" style="text-align:center;color:#777;">No screenshots available.</div>`;
+          const metaColor =
+            metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
 
-    // --- Trailer block ---
-    const trailerBlock = clip
-      ? `
-      <div class="trailer-container">
-        <video id="gameTrailer" autoplay muted loop playsinline poster="${img}">
-          <source src="${clip}" type="video/mp4" />
-        </video>
-        <button id="soundToggle" class="sound-btn">🔇</button>
-      </div>`
-      : "";
+          const storeLinks = stores
+            .map(
+              (s) => `
+              <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="store-btn">
+                Buy on ${s.store?.name || "Store"}
+              </a>`
+            )
+            .join("");
 
-    // --- Build full content ---
-    const content = `
-      <div class="hero-banner" style="background-image:url('${img}')">
-        <div class="overlay-gradient"></div>
-        <div class="hero-content">
-          <h1>${name}</h1>
-          <div>Released: ${released}</div>
-        </div>
-      </div>
-      ${trailerBlock}
-      ${screenshotBlock}
-      <div class="panel"><h2>About</h2><p>${description}</p></div>
-    `;
+          // 🔹 Multi-screenshot support (RAWG only)
+          const screenshots =
+            data.short_screenshots?.length
+              ? data.short_screenshots.map(s => s.image)
+              : [data.background_image].filter(Boolean);
 
-    contentEl.innerHTML = content;
-    statusEl.remove();
-    contentEl.style.display = "block";
+          const screenshotRow = screenshots.length
+            ? `
+              <div class="screenshot-row">
+                ${screenshots
+                  .map(
+                    s =>
+                      `<img src="${s}" alt="Screenshot" class="screenshot-thumb" loading="lazy">`
+                  )
+                  .join("")}
+              </div>`
+            : "";
 
-    // --- Sound toggle ---
-    const video = document.getElementById("gameTrailer");
-    const btn = document.getElementById("soundToggle");
-    if (video && btn) {
-      btn.addEventListener("click", () => {
-        video.muted = !video.muted;
-        btn.textContent = video.muted ? "🔇" : "🔊";
-      });
-    }
+          const content = `
+            <div class="hero-banner" style="background-image:url('${img}')">
+              <div class="overlay-gradient"></div>
+              <div class="hero-content">
+                <h1>${name}</h1>
+                <div class="meta">Released: ${released}</div>
+                <div class="score" style="background:${metaColor}">
+                  ${metacritic ? `Metacritic: ${metacritic}` : "No Score"}
+                </div>
+                <div class="badges">${badges}</div>
+                <div class="links">
+                  ${website ? `<a href="${website}" target="_blank" class="store-btn">Official Site</a>` : ""}
+                  ${storeLinks}
+                </div>
+              </div>
+            </div>
 
-    // --- Auto-scroll screenshots ---
-    const row = document.querySelector(".screenshot-row");
-    if (row && row.scrollWidth > row.clientWidth) {
-      let scrollSpeed = 1.2;
-      function autoScroll() {
-        if (row.scrollLeft + row.clientWidth >= row.scrollWidth) row.scrollLeft = 0;
-        else row.scrollLeft += scrollSpeed;
-        requestAnimationFrame(autoScroll);
+            ${screenshotRow}
+
+            <div class="panel">
+              <h2>About</h2>
+              <p>${description}</p>
+            </div>
+          `;
+
+          document.getElementById("content").innerHTML = content;
+          document.getElementById("status").remove();
+          document.getElementById("content").style.display = "block";
+        } catch (err) {
+          console.error(err);
+          document.getElementById("status").textContent = "Error loading game data.";
+        }
       }
-      autoScroll();
-    }
-  } catch (err) {
-    console.error(err);
-    statusEl.textContent = "Error loading game data.";
-  }
-}
 
-loadGame();
-</script>
-
+      loadGame();
+    </script>
   </body>
 </html>

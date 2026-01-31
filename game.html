@@ -3,21 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gamerly – Game</title>
+    <title>Gamerly – Game Details</title>
     <link rel="stylesheet" href="style.css" />
-    <style>
-      main { max-width: 900px; margin: 0 auto; padding: 24px; }
-      .panel { background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05); }
-      .hero-banner { position: relative; height: 380px; background-size: cover; background-position: center; border-radius: 16px; overflow: hidden; margin-bottom: 24px; }
-      .overlay-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1)); }
-      .hero-content { position: absolute; bottom: 20px; left: 20px; color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
-      .hero-content h1 { font-size: 2rem; margin: 0 0 6px 0; }
-      .trailer-container { margin: 24px 0; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.15); position: relative; }
-      .trailer-container video { width: 100%; max-height: 400px; object-fit: cover; }
-      .sound-btn { position: absolute; bottom: 12px; right: 12px; background: rgba(255,255,255,0.8); border: none; border-radius: 50%; padding: 8px 10px; cursor: pointer; }
-      .screenshot-row { display: flex; gap: 10px; overflow-x: auto; scroll-behavior: smooth; margin: 20px 0; }
-      .screenshot-row img { width: 240px; height: 135px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
-    </style>
   </head>
   <body>
     <header>
@@ -25,7 +12,7 @@
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
           <a href="/" style="color: white; text-decoration: none; font-weight: 900;">Gamerly 🔥</a>
           <span style="opacity: 0.6;">/</span>
-          <a href="/" style="color: white; opacity: 0.9; text-decoration: none;">⬅ Back</a>
+          <a href="/" style="color: white; opacity: 0.9; text-decoration: none;">⬅ Back to New Releases</a>
         </div>
       </div>
     </header>
@@ -49,7 +36,6 @@
         try {
           const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
           const data = await res.json();
-
           if (!res.ok || !data || data.error) {
             statusEl.textContent = "Error loading game data.";
             console.error(data);
@@ -62,19 +48,29 @@
           const website = data.website || "";
           const description = data.description_raw || "No description available.";
           const clip = data.clip?.clip || null;
-          const screenshots = data.short_screenshots || [];
 
+          // ✅ Pull safe screenshots
+          const screenshots = Array.isArray(data.short_screenshots) ? data.short_screenshots : [];
+
+          // 🎬 Trailer
           const trailer = clip
-            ? `<div class="trailer-container">
-                 <video id="gameTrailer" autoplay muted loop playsinline poster="${img}">
-                   <source src="${clip}" type="video/mp4" />
-                 </video>
-                 <button id="soundToggle" class="sound-btn">🔇</button>
-               </div>`
+            ? `
+              <div class="trailer-container">
+                <video id="gameTrailer" autoplay muted loop playsinline poster="${img}">
+                  <source src="${clip}" type="video/mp4" />
+                </video>
+                <button id="soundToggle" class="sound-btn">🔇</button>
+              </div>`
             : "";
 
+          // 🖼 Screenshot row
           const screenshotRow = screenshots.length
-            ? `<div class="screenshot-row">${screenshots.map(s => `<img src="${s.image}" loading="lazy" alt="Screenshot">`).join("")}</div>`
+            ? `
+              <div class="screenshot-row">
+                ${screenshots
+                  .map((s) => `<img src="${s.image}" alt="Screenshot" loading="lazy" class="screenshot-thumb" />`)
+                  .join("")}
+              </div>`
             : "";
 
           const content = `
@@ -93,6 +89,7 @@
           statusEl.remove();
           contentEl.style.display = "block";
 
+          // 🎧 Sound toggle
           const video = document.getElementById("gameTrailer");
           const btn = document.getElementById("soundToggle");
           if (video && btn) {
@@ -100,6 +97,18 @@
               video.muted = !video.muted;
               btn.textContent = video.muted ? "🔇" : "🔊";
             });
+          }
+
+          // 🎠 Auto-scroll screenshots
+          const row = document.querySelector(".screenshot-row");
+          if (row) {
+            let scrollSpeed = 0.7;
+            function autoScroll() {
+              if (row.scrollLeft + row.clientWidth >= row.scrollWidth) row.scrollLeft = 0;
+              else row.scrollLeft += scrollSpeed;
+              requestAnimationFrame(autoScroll);
+            }
+            autoScroll();
           }
         } catch (err) {
           console.error(err);

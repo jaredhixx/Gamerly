@@ -1,34 +1,8 @@
-// app.js — Gamerly v4.3
-// Fully fixes overlay conflict (.overlay vs #overlay), ensures button works, keeps all features.
+// === Gamerly v4.4 Stable ===
+// Fixes: Highest Rated sorting, Platform filter matching, Range dropdown visibility
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Create unified overlay dynamically (removes CSS conflicts)
-  let overlay = document.createElement("div");
-  overlay.id = "gamerly-overlay";
-  overlay.innerHTML = `
-    <div class="overlay-content">
-      <h1 class="gamerly-title fade-in">🎮 Gamerly</h1>
-      <p class="tagline">Your home for all new and upcoming games.</p>
-      <p class="age-warning">This site may contain mature game content.<br>Please confirm your age to continue.</p>
-      <button id="confirm-age-btn" class="enter-btn">Yes, I am 18+</button>
-    </div>`;
-  document.body.appendChild(overlay);
-
-  overlay.style.display = "flex";
-
-  // Click handler for confirmation
-  document.addEventListener("click", (event) => {
-    if (event.target && event.target.id === "confirm-age-btn") {
-      const o = document.getElementById("gamerly-overlay");
-      if (o) {
-        o.classList.add("fade-out");
-        setTimeout(() => o.remove(), 400);
-        fetchGames(); // Load content after fade-out
-      }
-    }
-  });
-
-  // Core elements
+  const overlay = document.getElementById("gamerly-overlay");
   const listEl = document.getElementById("games");
   const statusEl = document.getElementById("status");
   const sortEl = document.getElementById("sort");
@@ -39,22 +13,42 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentRange = "3months";
   let currentPlatform = "";
 
-  // Fetch Games
+  // --- 🧠 Gamerly Age Gate ---
+  if (!localStorage.getItem("gamerly_age_verified")) {
+    const overlayEl = document.createElement("div");
+    overlayEl.id = "gamerly-overlay";
+    overlayEl.innerHTML = `
+      <div class="overlay-content">
+        <h1 class="gamerly-title fade-in">🎮 Gamerly</h1>
+        <p class="tagline">The home for all new and upcoming games.</p>
+        <p class="age-warning">This site may contain mature game content.<br>Please confirm your age to continue.</p>
+        <button id="ageConfirmBtn" class="enter-btn">Yes, I am 18+</button>
+      </div>`;
+    document.body.appendChild(overlayEl);
+
+    overlayEl.querySelector("#ageConfirmBtn").addEventListener("click", () => {
+      overlayEl.classList.add("fade-out");
+      localStorage.setItem("gamerly_age_verified", "true");
+      setTimeout(() => overlayEl.remove(), 400);
+      fetchGames();
+    });
+  } else {
+    fetchGames();
+  }
+
+  // --- Fetch Games ---
   async function fetchGames() {
     if (statusEl) statusEl.textContent = "Loading...";
-    if (listEl) listEl.innerHTML = "";
+    listEl.innerHTML = "";
 
     try {
-      const sortValue =
-        currentSort === "-rating"
-          ? "-metacritic"
-          : currentSort === "released"
-          ? "-released"
-          : currentSort;
+      let ordering = "-released";
+      if (currentSort === "-rating") ordering = "-metacritic";
+      else if (currentSort === "released") ordering = "-released";
+      else if (currentSort === "name") ordering = "name";
 
       const url = new URL("/api/games", window.location.origin);
-      url.searchParams.set("ordering", sortValue);
-      url.searchParams.set("range", currentRange);
+      url.searchParams.set("ordering", ordering);
       url.searchParams.set("page_size", 80);
 
       const res = await fetch(url, { cache: "no-store" });
@@ -62,45 +56,70 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!res.ok || !data.results?.length) {
         listEl.innerHTML = `<p style="text-align:center;color:#888;">No games found.</p>`;
-        if (statusEl) statusEl.textContent = "";
+        statusEl.textContent = "";
         return;
       }
 
-      const games = currentPlatform
-        ? data.results.filter((g) =>
-            g.parent_platforms?.some(
-              (p) =>
-                p.platform.name.toLowerCase() ===
-                currentPlatform.toLowerCase()
-            )
+      let games = [...data.results];
+
+      // --- Filter by date range ---
+      const now = new Date();
+      games = games.filter((g) => g.released);
+      if (currentRange === "week") {
+        const sevenDaysAgo = new Date(now);
+        sevenDaysAgo.setDate(now.getDate() - 7);
+        games = games.filter((g) => new Date(g.released) >= sevenDaysAgo);
+      } else if (currentRange === "3months") {
+        const threeMonthsAgo = new Date(now);
+        threeMonthsAgo.setMonth(now.getMonth() - 3);
+        games = games.filter((g) => new Date(g.released) >= threeMonthsAgo);
+      } else if (currentRange === "alltime") {
+        // do nothing, show all
+      }
+
+      // --- Platform filter (normalize) ---
+      if (currentPlatform) {
+        const platformMap = {
+          pc: ["pc"],
+          playstation: ["playstation", "ps4", "ps5"],
+          xbox: ["xbox", "xbox-one", "xbox-series-x"],
+          nintendo: ["switch", "nintendo"],
+          ios: ["ios"],
+          android: ["android"],
+        };
+        const targets = platformMap[currentPlatform.toLowerCase()] || [];
+        games = games.filter((g) =>
+          g.parent_platforms?.some((p) =>
+            targets.includes(p.platform.slug?.toLowerCase())
           )
-        : data.results;
+        );
+      }
+
+      // --- Sorting: fallback to rating if no metacritic ---
+      if (currentSort === "-rating") {
+        games.sort(
+          (a, b) =>
+            (b.metacritic || b.rating || 0) - (a.metacritic || a.rating || 0)
+        );
+      } else if (currentSort === "released") {
+        games.sort(
+          (a, b) => new Date(b.released) - new Date(a.released)
+        );
+      }
 
       renderGameList(games);
-      if (statusEl) statusEl.textContent = "";
+      statusEl.textContent = "";
     } catch (err) {
       console.error("Fetch error:", err);
-      if (statusEl) statusEl.textContent = "Error loading games.";
+      statusEl.textContent = "Error loading games.";
     }
   }
 
-  // Render Game List
+  // --- Render Game Cards ---
   function renderGameList(games) {
-    const html = games.map((game) => renderGameCard(game)).join("");
-    listEl.innerHTML = html;
-
-    const cards = document.querySelectorAll(".card");
-    cards.forEach((card) => {
-      card.addEventListener("mouseenter", showPreview);
-      card.addEventListener("mouseleave", hidePreview);
-      card.addEventListener("click", () => {
-        const slug = card.dataset.slug;
-        if (slug) window.location.href = `/game.html?slug=${slug}`;
-      });
-    });
+    listEl.innerHTML = games.map(renderGameCard).join("");
   }
 
-  // Card Template
   function renderGameCard(game) {
     const released = game.released || "TBA";
     const img =
@@ -108,11 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
       (game.short_screenshots && game.short_screenshots[0]?.image) ||
       (game.screenshots && game.screenshots[0]?.image) ||
       "/placeholder.webp";
-
-    const platformsHTML =
-      game.parent_platforms
-        ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
-        .join(" ") || "";
 
     const meta =
       game.metacritic != null
@@ -125,8 +139,13 @@ document.addEventListener("DOMContentLoaded", () => {
           }">${game.metacritic}</span>`
         : `<span class="badge-meta meta-na">N/A</span>`;
 
+    const platformsHTML =
+      game.parent_platforms
+        ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
+        .join(" ") || "";
+
     return `
-      <div class="card" data-slug="${game.slug}" title="${game.name}">
+      <div class="card" data-slug="${game.slug}" title="${game.name}" onclick="window.location='/game.html?slug=${game.slug}'">
         <div class="card-img">
           <img src="${img}" alt="${game.name}" loading="lazy">
         </div>
@@ -140,34 +159,16 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   }
 
-  // Hover Previews
-  let previewTimer;
-  function showPreview(e) {
-    const card = e.currentTarget;
-    clearTimeout(previewTimer);
-    previewTimer = setTimeout(() => card.classList.add("hover"), 200);
-  }
+  // --- Event Listeners ---
+  sortEl?.addEventListener("change", (e) => {
+    currentSort = e.target.value;
+    fetchGames();
+  });
 
-  function hidePreview(e) {
-    const card = e.currentTarget;
-    clearTimeout(previewTimer);
-    card.classList.remove("hover");
-  }
-
-  // Dropdown + Platform events
-  if (sortEl) {
-    sortEl.addEventListener("change", (e) => {
-      currentSort = e.target.value;
-      fetchGames();
-    });
-  }
-
-  if (rangeEl) {
-    rangeEl.addEventListener("change", (e) => {
-      currentRange = e.target.value;
-      fetchGames();
-    });
-  }
+  rangeEl?.addEventListener("change", (e) => {
+    currentRange = e.target.value;
+    fetchGames();
+  });
 
   platformBtns.forEach((btn) => {
     btn.addEventListener("click", () => {

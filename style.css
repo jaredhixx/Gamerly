@@ -364,6 +364,7 @@ footer {
 }
 
 /* Gamerly Entry Overlay */
+/* --- Gamerly Age Gate + Branding --- */
 #overlay {
   position: fixed;
   inset: 0;
@@ -392,6 +393,12 @@ footer {
 .tagline {
   font-size: 1.1rem;
   color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.age-warning {
+  font-size: 1rem;
+  color: #bbb;
   margin-bottom: 1.5rem;
 }
 
@@ -415,6 +422,19 @@ footer {
   opacity: 0;
   pointer-events: none;
 }
+
+/* Optional: logo fade-in effect */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
 
 
 

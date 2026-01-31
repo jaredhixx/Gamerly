@@ -1,5 +1,5 @@
 // api/igdb.js
-// Step 2: Twitch OAuth verification ONLY (no game queries yet)
+// Step 3: Verify IGDB game data fetch (hardcoded query)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -7,7 +7,6 @@ let tokenExpiry = 0;
 async function getTwitchToken() {
   const now = Date.now();
 
-  // Reuse token if still valid (60s buffer)
   if (cachedToken && now < tokenExpiry - 60_000) {
     return cachedToken;
   }
@@ -19,23 +18,19 @@ async function getTwitchToken() {
     throw new Error("Missing IGDB_CLIENT_ID or IGDB_CLIENT_SECRET");
   }
 
-  const url =
-    "https://id.twitch.tv/oauth2/token" +
-    `?client_id=${encodeURIComponent(clientId)}` +
-    `&client_secret=${encodeURIComponent(clientSecret)}` +
-    `&grant_type=client_credentials`;
+  const tokenRes = await fetch(
+    `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
+    { method: "POST" }
+  );
 
-  const response = await fetch(url, { method: "POST" });
-  const data = await response.json();
+  const tokenData = await tokenRes.json();
 
-  if (!response.ok) {
-    throw new Error(
-      `Twitch OAuth failed: ${response.status} ${JSON.stringify(data)}`
-    );
+  if (!tokenRes.ok) {
+    throw new Error(`OAuth failed: ${JSON.stringify(tokenData)}`);
   }
 
-  cachedToken = data.access_token;
-  tokenExpiry = now + data.expires_in * 1000;
+  cachedToken = tokenData.access_token;
+  tokenExpiry = now + tokenData.expires_in * 1000;
 
   return cachedToken;
 }
@@ -44,10 +39,30 @@ export default async function handler(req, res) {
   try {
     const token = await getTwitchToken();
 
+    const igdbRes = await fetch("https://api.igdb.com/v4/games", {
+      method: "POST",
+      headers: {
+        "Client-ID": process.env.IGDB_CLIENT_ID,
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "text/plain",
+      },
+      body: `
+        fields name, first_release_date, rating;
+        sort first_release_date desc;
+        limit 10;
+      `,
+    });
+
+    const games = await igdbRes.json();
+
+    if (!igdbRes.ok) {
+      throw new Error(`IGDB error: ${JSON.stringify(games)}`);
+    }
+
     res.status(200).json({
       ok: true,
-      auth: "success",
-      tokenPreview: token.slice(0, 6) + "…",
+      count: games.length,
+      games,
     });
   } catch (err) {
     res.status(500).json({

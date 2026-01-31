@@ -1,150 +1,42 @@
-async function loadGame() {
-  const slug = new URLSearchParams(window.location.search).get("slug");
-  if (!slug) {
-    document.getElementById("status").textContent = "Missing slug in URL.";
-    return;
-  }
-
+// /api/game.js — Stable v2.3 (screenshots restored safely)
+export default async function handler(req, res) {
   try {
-    const res = await fetch(`/api/game?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
-    const data = await res.json();
-    if (!res.ok) throw new Error("Error loading game data.");
+    const { slug } = req.query;
+    const RAWG_KEY = process.env.RAWG_KEY;
+    if (!RAWG_KEY) return res.status(500).json({ error: "Missing RAWG_KEY" });
+    if (!slug) return res.status(400).json({ error: "Missing slug" });
 
-    const name = data?.name || "Untitled";
-    const released = data?.released || "TBA";
-    const img = data?.background_image || "";
-    const website = data?.website || "";
+    const base = `https://api.rawg.io/api/games/${encodeURIComponent(slug)}`;
+    const [mainRes, screenshotsRes] = await Promise.all([
+      fetch(`${base}?key=${RAWG_KEY}`, { cache: "no-store" }),
+      fetch(`${base}/screenshots?key=${RAWG_KEY}`, { cache: "no-store" }),
+    ]);
 
-    // 🔹 Description fallback
-    const description =
-      data?.description_raw || data?.description || "No description available.";
+    const [mainData, screenshotsData] = await Promise.all([
+      mainRes.json(),
+      screenshotsRes.json(),
+    ]);
 
-    // 🔹 Trailer (try multiple possible sources)
-    const clip =
-      data?.clip?.clip ||
-      data?.clip?.video ||
-      (data?.movies?.length ? data.movies[0].data.max : null);
-
-    // 🔹 Screenshots fallback
-    const screenshots =
-      data?.screenshots || data?.short_screenshots || [];
-
-    const stores = Array.isArray(data?.stores) ? data.stores : [];
-
-    const platforms = Array.isArray(data?.platforms)
-      ? data.platforms.map((p) => p?.platform?.name).filter(Boolean)
-      : [];
-    const genres = Array.isArray(data?.genres)
-      ? data.genres.map((g) => g?.name).filter(Boolean)
-      : [];
-
-    const badges = [...platforms, ...genres]
-      .slice(0, 16)
-      .map((x) => `<span class="badge">${x}</span>`)
-      .join("");
-
-    let metacritic = data?.metacritic ?? null;
-    if (!metacritic && Array.isArray(data.metacritic_platforms)) {
-      const allScores = data.metacritic_platforms
-        .map((p) => p.metascore)
-        .filter((s) => typeof s === "number");
-      if (allScores.length)
-        metacritic = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+    if (!mainRes.ok) {
+      console.error("RAWG error:", mainData);
+      return res.status(mainRes.status).json({ error: "RAWG fetch failed" });
     }
 
-    const metaColor =
-      metacritic >= 75 ? "#16a34a" : metacritic >= 50 ? "#facc15" : "#dc2626";
+    // Merge screenshots safely
+    const merged = {
+      ...mainData,
+      screenshots: Array.isArray(screenshotsData?.results)
+        ? screenshotsData.results
+        : [],
+    };
 
-    const storeLinks = stores
-      .map(
-        (s) => `
-        <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="store-btn">
-          Buy on ${s.store?.name || "Store"}
-        </a>`
-      )
-      .join("");
+    // Cleanup
+    if (merged.description_raw)
+      merged.description_raw = merged.description_raw.replace(/\n{3,}/g, "\n\n");
 
-    // 🔹 Trailer section (muted autoplay, toggle sound)
-    const trailer = clip
-      ? `
-        <div class="trailer-container">
-          <video id="gameTrailer" autoplay muted loop playsinline>
-            <source src="${clip}" type="video/mp4" />
-          </video>
-          <button id="soundToggle" class="sound-btn">🔇</button>
-        </div>`
-      : "";
-
-    // 🔹 Screenshot carousel
-    const screenshotRow =
-      screenshots.length > 0
-        ? `
-        <div class="screenshot-row">
-          ${screenshots
-            .map(
-              (s) =>
-                `<img src="${s.image}" alt="Screenshot" loading="lazy" class="screenshot-thumb" />`
-            )
-            .join("")}
-        </div>`
-        : "";
-
-    const content = `
-      <div class="hero-banner" style="background-image:url('${img}')">
-        <div class="overlay-gradient"></div>
-        <div class="hero-content">
-          <h1>${name}</h1>
-          <div class="meta">Released: ${released}</div>
-          <div class="score" style="background:${metaColor}">
-            ${metacritic ? `Metacritic: ${metacritic}` : "No Score"}
-          </div>
-          <div class="badges">${badges}</div>
-          <div class="links">
-            ${website ? `<a href="${website}" target="_blank" class="store-btn">Official Site</a>` : ""}
-            ${storeLinks}
-          </div>
-        </div>
-      </div>
-
-      ${trailer}
-      ${screenshotRow}
-
-      <div class="panel">
-        <h2>About</h2>
-        <p>${description}</p>
-      </div>
-    `;
-
-    const container = document.getElementById("content");
-    container.innerHTML = content;
-    document.getElementById("status").remove();
-    container.style.display = "block";
-
-    // 🔹 Sound toggle
-    const videoEl = document.getElementById("gameTrailer");
-    const soundBtn = document.getElementById("soundToggle");
-    if (videoEl && soundBtn) {
-      soundBtn.addEventListener("click", () => {
-        videoEl.muted = !videoEl.muted;
-        soundBtn.textContent = videoEl.muted ? "🔇" : "🔊";
-      });
-    }
-
-    // 🔹 Auto-scroll screenshots
-    const row = document.querySelector(".screenshot-row");
-    if (row) {
-      let scrollSpeed = 1.2;
-      function autoScroll() {
-        if (row.scrollLeft + row.clientWidth >= row.scrollWidth) row.scrollLeft = 0;
-        else row.scrollLeft += scrollSpeed;
-        requestAnimationFrame(autoScroll);
-      }
-      autoScroll();
-    }
+    res.status(200).json(merged);
   } catch (err) {
-    console.error(err);
-    document.getElementById("status").textContent = "Error loading game data.";
+    console.error("Server error in /api/game:", err);
+    res.status(500).json({ error: "Internal server error." });
   }
 }
-
-loadGame();

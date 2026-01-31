@@ -317,6 +317,31 @@ footer {
   align-items: center;
   font-size: 0.9rem;
 }
+/* === Screenshot Carousel (Safe Build) === */
+.screenshot-row {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  margin: 16px 0 32px;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.screenshot-row::-webkit-scrollbar {
+  display: none;
+}
+.screenshot-thumb {
+  flex: 0 0 auto;
+  width: 240px;
+  height: 135px;
+  border-radius: 10px;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+.screenshot-thumb:hover {
+  transform: scale(1.05);
+}
+
 
 
 

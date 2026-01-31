@@ -1,8 +1,8 @@
-// === Gamerly v4.4 Stable ===
-// Fixes: Highest Rated sorting, Platform filter matching, Range dropdown visibility
+// === Gamerly v4.5 Stable ===
+// Fixes image fallback + fade-in animation + keeps all filters working
 
 document.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("gamerly-overlay");
+  const overlayId = "gamerly-overlay";
   const listEl = document.getElementById("games");
   const statusEl = document.getElementById("status");
   const sortEl = document.getElementById("sort");
@@ -13,10 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentRange = "3months";
   let currentPlatform = "";
 
-  // --- 🧠 Gamerly Age Gate ---
+  // --- 🧠 Gamerly Age Gate Overlay ---
   if (!localStorage.getItem("gamerly_age_verified")) {
     const overlayEl = document.createElement("div");
-    overlayEl.id = "gamerly-overlay";
+    overlayEl.id = overlayId;
     overlayEl.innerHTML = `
       <div class="overlay-content">
         <h1 class="gamerly-title fade-in">🎮 Gamerly</h1>
@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Fetch Games ---
   async function fetchGames() {
     if (statusEl) statusEl.textContent = "Loading...";
-    listEl.innerHTML = "";
+    if (listEl) listEl.innerHTML = "";
 
     try {
       let ordering = "-released";
@@ -56,15 +56,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!res.ok || !data.results?.length) {
         listEl.innerHTML = `<p style="text-align:center;color:#888;">No games found.</p>`;
-        statusEl.textContent = "";
+        if (statusEl) statusEl.textContent = "";
         return;
       }
 
       let games = [...data.results];
-
-      // --- Filter by date range ---
       const now = new Date();
       games = games.filter((g) => g.released);
+
+      // --- Filter by date range ---
       if (currentRange === "week") {
         const sevenDaysAgo = new Date(now);
         sevenDaysAgo.setDate(now.getDate() - 7);
@@ -73,8 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const threeMonthsAgo = new Date(now);
         threeMonthsAgo.setMonth(now.getMonth() - 3);
         games = games.filter((g) => new Date(g.released) >= threeMonthsAgo);
-      } else if (currentRange === "alltime") {
-        // do nothing, show all
       }
 
       // --- Platform filter (normalize) ---
@@ -108,25 +106,44 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       renderGameList(games);
-      statusEl.textContent = "";
+      if (statusEl) statusEl.textContent = "";
     } catch (err) {
       console.error("Fetch error:", err);
-      statusEl.textContent = "Error loading games.";
+      if (statusEl) statusEl.textContent = "Error loading games.";
     }
   }
 
   // --- Render Game Cards ---
   function renderGameList(games) {
     listEl.innerHTML = games.map(renderGameCard).join("");
+
+    // Image fade-in after load
+    const imgs = listEl.querySelectorAll(".card-img img");
+    imgs.forEach((img) => {
+      img.addEventListener("load", () => img.classList.add("loaded"));
+      if (img.complete) img.classList.add("loaded");
+    });
   }
 
+  // --- Game Card Template ---
   function renderGameCard(game) {
     const released = game.released || "TBA";
-    const img =
+
+    // Smart fallback image logic
+    let img =
       game.background_image ||
       (game.short_screenshots && game.short_screenshots[0]?.image) ||
       (game.screenshots && game.screenshots[0]?.image) ||
       "/placeholder.webp";
+
+    if (!img || img.trim() === "" || img.endsWith("null")) {
+      img = "/placeholder.webp";
+    }
+
+    const hasRealImage =
+      img !== "/placeholder.webp" &&
+      !img.includes("placeholder") &&
+      !img.endsWith("null");
 
     const meta =
       game.metacritic != null
@@ -148,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="card" data-slug="${game.slug}" title="${game.name}" onclick="window.location='/game.html?slug=${game.slug}'">
         <div class="card-img">
           <img src="${img}" alt="${game.name}" loading="lazy">
+          ${!hasRealImage ? `<div class="no-image-overlay">No Image Available</div>` : ""}
         </div>
         <div class="card-body">
           <div class="card-title">${game.name}</div>

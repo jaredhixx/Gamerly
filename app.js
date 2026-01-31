@@ -1,5 +1,5 @@
-// === Gamerly v4.9 Stable ===
-// Fixes RAWG fallback image injection timing (binds directly to card)
+// === Gamerly v4.9b Stable ===
+// Ensures all valid images appear instantly + only fetches missing ones
 
 document.addEventListener("DOMContentLoaded", () => {
   const overlayId = "gamerly-overlay";
@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Fetch Games ---
   async function fetchGames() {
     if (statusEl) statusEl.textContent = "Loading...";
-    if (listEl) listEl.innerHTML = "";
+    listEl.innerHTML = "";
 
     try {
       let ordering = "-released";
@@ -56,13 +56,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!res.ok || !data.results?.length) {
         listEl.innerHTML = `<p style="text-align:center;color:#888;">No games found.</p>`;
-        if (statusEl) statusEl.textContent = "";
+        statusEl.textContent = "";
         return;
       }
 
       let games = [...data.results];
       const now = new Date();
-      games = games.filter((g) => g.released);
 
       // --- Date range filter ---
       if (currentRange === "week") {
@@ -104,10 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       renderGameList(games);
-      if (statusEl) statusEl.textContent = "";
+      statusEl.textContent = "";
     } catch (err) {
       console.error("Fetch error:", err);
-      if (statusEl) statusEl.textContent = "Error loading games.";
+      statusEl.textContent = "Error loading games.";
     }
   }
 
@@ -117,37 +116,18 @@ document.addEventListener("DOMContentLoaded", () => {
     games.forEach((game) => listEl.appendChild(createGameCard(game)));
   }
 
-  // --- Create Game Card with local fetch binding ---
+  // --- Create Game Card ---
   function createGameCard(game) {
     const released = game.released || "TBA";
+    const fallbackImg =
+      "https://media.rawg.io/media/screenshots/5e3/5e3a9b8e0472d358df9e99e64d7f9f0a.jpg";
 
+    // default or fallback
     const imgSrc =
       game.background_image ||
       (game.short_screenshots && game.short_screenshots[0]?.image) ||
       (game.screenshots && game.screenshots[0]?.image) ||
-      "https://media.rawg.io/media/screenshots/5e3/5e3a9b8e0472d358df9e99e64d7f9f0a.jpg";
-
-    const hasRealImage =
-      imgSrc &&
-      !imgSrc.includes("placeholder") &&
-      !imgSrc.endsWith("null") &&
-      !imgSrc.includes("favicon");
-
-    const meta =
-      game.metacritic != null
-        ? `<span class="badge-meta ${
-            game.metacritic >= 75
-              ? "meta-good"
-              : game.metacritic >= 50
-              ? "meta-mid"
-              : "meta-bad"
-          }">${game.metacritic}</span>`
-        : `<span class="badge-meta meta-na">N/A</span>`;
-
-    const platformsHTML =
-      game.parent_platforms
-        ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
-        .join(" ") || "";
+      fallbackImg;
 
     const card = document.createElement("div");
     card.className = "card";
@@ -156,28 +136,49 @@ document.addEventListener("DOMContentLoaded", () => {
     card.innerHTML = `
       <div class="card-img">
         <img src="${imgSrc}" alt="${game.name}" loading="lazy">
-        ${!hasRealImage ? `<div class="no-image-overlay">No Image Available</div>` : ""}
+        ${
+          imgSrc === fallbackImg
+            ? `<div class="no-image-overlay">No Image Available</div>`
+            : ""
+        }
       </div>
       <div class="card-body">
         <div class="card-title">${game.name}</div>
         <div class="meta-row">
-          ${meta}<span class="release-date">Released: ${released}</span>
+          ${
+            game.metacritic != null
+              ? `<span class="badge-meta ${
+                  game.metacritic >= 75
+                    ? "meta-good"
+                    : game.metacritic >= 50
+                    ? "meta-mid"
+                    : "meta-bad"
+                }">${game.metacritic}</span>`
+              : `<span class="badge-meta meta-na">N/A</span>`
+          }
+          <span class="release-date">Released: ${released}</span>
         </div>
-        <div class="badges">${platformsHTML}</div>
+        <div class="badges">
+          ${
+            game.parent_platforms
+              ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
+              .join(" ") || ""
+          }
+        </div>
       </div>`;
 
     card.addEventListener("click", () => {
       window.location = `/game.html?slug=${game.slug}`;
     });
 
-    // --- 🧩 Screenshot Fallback (bound to this specific card) ---
-    if (!hasRealImage && game.id) {
+    // --- Fallback fetch if background_image missing ---
+    if (!game.background_image && game.id) {
       fetch(
         `https://api.rawg.io/api/games/${game.id}/screenshots?key=ac669b002b534781818c488babf5aae4`
       )
         .then((res) => res.json())
         .then((data) => {
-          if (data.results && data.results.length > 0) {
+          if (data.results?.length > 0) {
             const newImg = data.results[0].image;
             const cardImg = card.querySelector("img");
             const overlay = card.querySelector(".no-image-overlay");

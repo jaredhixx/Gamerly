@@ -1,5 +1,5 @@
-// === Gamerly v4.9b Stable ===
-// Ensures all valid images appear instantly + only fetches missing ones
+// === Gamerly v4.5 Stable ===
+// Fixes image fallback + fade-in animation + keeps all filters working
 
 document.addEventListener("DOMContentLoaded", () => {
   const overlayId = "gamerly-overlay";
@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Fetch Games ---
   async function fetchGames() {
     if (statusEl) statusEl.textContent = "Loading...";
-    listEl.innerHTML = "";
+    if (listEl) listEl.innerHTML = "";
 
     try {
       let ordering = "-released";
@@ -56,14 +56,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!res.ok || !data.results?.length) {
         listEl.innerHTML = `<p style="text-align:center;color:#888;">No games found.</p>`;
-        statusEl.textContent = "";
+        if (statusEl) statusEl.textContent = "";
         return;
       }
 
       let games = [...data.results];
       const now = new Date();
+      games = games.filter((g) => g.released);
 
-      // --- Date range filter ---
+      // --- Filter by date range ---
       if (currentRange === "week") {
         const sevenDaysAgo = new Date(now);
         sevenDaysAgo.setDate(now.getDate() - 7);
@@ -74,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
         games = games.filter((g) => new Date(g.released) >= threeMonthsAgo);
       }
 
-      // --- Platform filter ---
+      // --- Platform filter (normalize) ---
       if (currentPlatform) {
         const platformMap = {
           pc: ["pc"],
@@ -92,109 +93,88 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      // --- Sorting ---
+      // --- Sorting: fallback to rating if no metacritic ---
       if (currentSort === "-rating") {
         games.sort(
           (a, b) =>
             (b.metacritic || b.rating || 0) - (a.metacritic || a.rating || 0)
         );
       } else if (currentSort === "released") {
-        games.sort((a, b) => new Date(b.released) - new Date(a.released));
+        games.sort(
+          (a, b) => new Date(b.released) - new Date(a.released)
+        );
       }
 
       renderGameList(games);
-      statusEl.textContent = "";
+      if (statusEl) statusEl.textContent = "";
     } catch (err) {
       console.error("Fetch error:", err);
-      statusEl.textContent = "Error loading games.";
+      if (statusEl) statusEl.textContent = "Error loading games.";
     }
   }
 
-  // --- Render Game List ---
+  // --- Render Game Cards ---
   function renderGameList(games) {
-    listEl.innerHTML = "";
-    games.forEach((game) => listEl.appendChild(createGameCard(game)));
+    listEl.innerHTML = games.map(renderGameCard).join("");
+
+    // Image fade-in after load
+    const imgs = listEl.querySelectorAll(".card-img img");
+    imgs.forEach((img) => {
+      img.addEventListener("load", () => img.classList.add("loaded"));
+      if (img.complete) img.classList.add("loaded");
+    });
   }
 
-  // --- Create Game Card ---
-  function createGameCard(game) {
+  // --- Game Card Template ---
+  function renderGameCard(game) {
     const released = game.released || "TBA";
-    const fallbackImg =
-      "https://media.rawg.io/media/screenshots/5e3/5e3a9b8e0472d358df9e99e64d7f9f0a.jpg";
 
-    // default or fallback
-    const imgSrc =
+    // Smart fallback image logic
+    let img =
       game.background_image ||
       (game.short_screenshots && game.short_screenshots[0]?.image) ||
       (game.screenshots && game.screenshots[0]?.image) ||
-      fallbackImg;
+      "/placeholder.webp";
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.dataset.slug = game.slug;
-    card.title = game.name;
-    card.innerHTML = `
-      <div class="card-img">
-        <img src="${imgSrc}" alt="${game.name}" loading="lazy">
-        ${
-          imgSrc === fallbackImg
-            ? `<div class="no-image-overlay">No Image Available</div>`
-            : ""
-        }
-      </div>
-      <div class="card-body">
-        <div class="card-title">${game.name}</div>
-        <div class="meta-row">
-          ${
-            game.metacritic != null
-              ? `<span class="badge-meta ${
-                  game.metacritic >= 75
-                    ? "meta-good"
-                    : game.metacritic >= 50
-                    ? "meta-mid"
-                    : "meta-bad"
-                }">${game.metacritic}</span>`
-              : `<span class="badge-meta meta-na">N/A</span>`
-          }
-          <span class="release-date">Released: ${released}</span>
-        </div>
-        <div class="badges">
-          ${
-            game.parent_platforms
-              ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
-              .join(" ") || ""
-          }
-        </div>
-      </div>`;
-
-    card.addEventListener("click", () => {
-      window.location = `/game.html?slug=${game.slug}`;
-    });
-
-    // --- Fallback fetch if background_image missing ---
-    if (!game.background_image && game.id) {
-      fetch(
-        `https://api.rawg.io/api/games/${game.id}/screenshots?key=ac669b002b534781818c488babf5aae4`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.results?.length > 0) {
-            const newImg = data.results[0].image;
-            const cardImg = card.querySelector("img");
-            const overlay = card.querySelector(".no-image-overlay");
-            if (cardImg && newImg) {
-              cardImg.src = newImg;
-              cardImg.classList.add("loaded");
-              if (overlay) overlay.remove();
-            }
-          }
-        })
-        .catch((err) =>
-          console.warn(`Screenshot fetch fail for ${game.slug}:`, err)
-        );
+    if (!img || img.trim() === "" || img.endsWith("null")) {
+      img = "/placeholder.webp";
     }
 
-    return card;
+    const hasRealImage =
+      img !== "/placeholder.webp" &&
+      !img.includes("placeholder") &&
+      !img.endsWith("null");
+
+    const meta =
+      game.metacritic != null
+        ? `<span class="badge-meta ${
+            game.metacritic >= 75
+              ? "meta-good"
+              : game.metacritic >= 50
+              ? "meta-mid"
+              : "meta-bad"
+          }">${game.metacritic}</span>`
+        : `<span class="badge-meta meta-na">N/A</span>`;
+
+    const platformsHTML =
+      game.parent_platforms
+        ?.map((p) => `<span class="badge">${p.platform.name}</span>`)
+        .join(" ") || "";
+
+    return `
+      <div class="card" data-slug="${game.slug}" title="${game.name}" onclick="window.location='/game.html?slug=${game.slug}'">
+        <div class="card-img">
+          <img src="${img}" alt="${game.name}" loading="lazy">
+          ${!hasRealImage ? `<div class="no-image-overlay">No Image Available</div>` : ""}
+        </div>
+        <div class="card-body">
+          <div class="card-title">${game.name}</div>
+          <div class="meta-row">
+            ${meta}<span class="release-date">Released: ${released}</span>
+          </div>
+          <div class="badges">${platformsHTML}</div>
+        </div>
+      </div>`;
   }
 
   // --- Event Listeners ---

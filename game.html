@@ -208,10 +208,10 @@
             )
             .join("");
 
-          // 🎮 Screenshot carousel using merged IGDB + RAWG
+          // 🎮 Screenshot carousel (with autoplay)
           const screenshotBlock = Array.isArray(data.screenshots) && data.screenshots.length > 0
             ? `
-              <div class="screenshot-carousel">
+              <div class="screenshot-carousel" id="screenshotRow">
                 ${data.screenshots
                   .map(
                     (url) => `
@@ -255,6 +255,25 @@
           container.innerHTML = content;
           document.getElementById("status").remove();
           container.style.display = "block";
+
+          // 🌀 Auto-scroll behavior
+          const row = document.getElementById("screenshotRow");
+          if (row) {
+            let paused = false;
+            let speed = 0.5;
+            function autoScroll() {
+              if (!paused) {
+                row.scrollLeft += speed;
+                if (row.scrollLeft + row.clientWidth >= row.scrollWidth) {
+                  row.scrollLeft = 0; // loop
+                }
+              }
+              requestAnimationFrame(autoScroll);
+            }
+            row.addEventListener("mouseenter", () => (paused = true));
+            row.addEventListener("mouseleave", () => (paused = false));
+            autoScroll();
+          }
         } catch (err) {
           console.error(err);
           document.getElementById("status").textContent = "Error loading game data.";

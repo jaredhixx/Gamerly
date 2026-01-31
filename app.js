@@ -1,201 +1,258 @@
-// === Gamerly v5.0 — IGDB Integration Build ===
-// Fetches curated data directly from IGDB (Twitch API)
-// Retains all existing filters, card layout, and overlay logic
+// /public/app.js
 
-document.addEventListener("DOMContentLoaded", () => {
-  const overlayId = "gamerly-overlay";
-  const listEl = document.getElementById("games");
-  const statusEl = document.getElementById("status");
-  const sortEl = document.getElementById("sort");
-  const rangeEl = document.getElementById("range");
-  const platformBtns = document.querySelectorAll(".platform-filter");
-  const searchEl = document.getElementById("search");
+// ===== DOM HOOKS (adjust IDs here if needed) =====
+const gamesGrid = document.getElementById("gamesGrid");
+const loadingEl = document.getElementById("loading");
+const errorBox = document.getElementById("errorBox");
 
-  let currentSort = "-released";
-  let currentRange = "3months";
-  let currentPlatform = "";
-  let allGames = [];
+const sortSelect = document.getElementById("sortSelect");
+const rangeSelect = document.getElementById("rangeSelect");
 
-  // --- 🧠 Gamerly Age Gate Overlay ---
-  if (!localStorage.getItem("gamerly_age_verified")) {
-    const overlayEl = document.createElement("div");
-    overlayEl.id = overlayId;
-    overlayEl.innerHTML = `
-      <div class="overlay-content">
-        <h1 class="gamerly-title fade-in">🎮 Gamerly</h1>
-        <p class="tagline">The home for all new and upcoming games.</p>
-        <p class="age-warning">This site may contain mature game content.<br>Please confirm your age to continue.</p>
-        <button id="ageConfirmBtn" class="enter-btn">Yes, I am 18+</button>
-      </div>`;
-    document.body.appendChild(overlayEl);
+const platformButtons = Array.from(document.querySelectorAll("[data-platform]"));
 
-    overlayEl.querySelector("#ageConfirmBtn").addEventListener("click", () => {
-      overlayEl.classList.add("fade-out");
-      localStorage.setItem("gamerly_age_verified", "true");
-      setTimeout(() => overlayEl.remove(), 400);
+const ageGate = document.getElementById("ageGate");
+const ageConfirmBtn = document.getElementById("ageConfirmBtn");
+
+// ===== STATE =====
+const state = {
+  platforms: new Set(), // e.g. "pc", "xbox"
+  sort: "newest",       // newest | highest_rated | az
+  range: "this_week",   // this_week | past_3_months | all_time
+  limit: 36,
+  offset: 0,
+  isReady: false,
+};
+
+// ===== HELPERS =====
+function setLoading(isLoading) {
+  if (!loadingEl) return;
+  loadingEl.style.display = isLoading ? "block" : "none";
+}
+
+function setError(msg) {
+  if (!errorBox) return;
+  if (!msg) {
+    errorBox.style.display = "none";
+    errorBox.textContent = "";
+  } else {
+    errorBox.style.display = "block";
+    errorBox.textContent = msg;
+  }
+}
+
+function formatDate(iso) {
+  if (!iso) return "Unknown release date";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "Unknown release date";
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function ratingText(rating, ratingCount) {
+  if (typeof rating !== "number") return "No rating";
+  if (typeof ratingCount === "number" && ratingCount > 0) {
+    return `${rating}/100 (${ratingCount})`;
+  }
+  return `${rating}/100`;
+}
+
+function getSelectedPlatforms() {
+  return Array.from(state.platforms);
+}
+
+function buildApiUrl() {
+  const params = new URLSearchParams();
+  const plats = getSelectedPlatforms();
+  if (plats.length) params.set("platforms", plats.join(","));
+  params.set("sort", state.sort);
+  params.set("range", state.range);
+  params.set("limit", String(state.limit));
+  params.set("offset", String(state.offset));
+  return `/api/igdb?${params.toString()}`;
+}
+
+function placeholderCover() {
+  // If you add /public/assets/placeholder-cover.png use this:
+  return "/assets/placeholder-cover.png";
+  // Otherwise you can return a simple CSS background fallback and keep this blank:
+  // return "";
+}
+
+function clearGrid() {
+  if (gamesGrid) gamesGrid.innerHTML = "";
+}
+
+function renderGames(games) {
+  clearGrid();
+
+  if (!gamesGrid) return;
+
+  if (!Array.isArray(games) || games.length === 0) {
+    gamesGrid.innerHTML = `<div class="emptyState">No games found.</div>`;
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+
+  for (const g of games) {
+    const card = document.createElement("div");
+    card.className = "gameCard";
+
+    const coverUrl = g.coverUrl || placeholderCover();
+    const rel = formatDate(g.releaseDate);
+    const rText = ratingText(g.rating, g.ratingCount);
+
+    // Use basic, resilient markup that won’t explode on missing data.
+    card.innerHTML = `
+      <div class="gameCover">
+        <img src="${coverUrl}" alt="${escapeHtml(g.name)} cover"
+             onerror="this.onerror=null;this.src='${placeholderCover()}';" />
+      </div>
+      <div class="gameInfo">
+        <div class="gameTitle">${escapeHtml(g.name)}</div>
+        <div class="gameMeta">
+          <span class="releaseDate">${rel}</span>
+          <span class="rating">${rText}</span>
+        </div>
+        <div class="gamePlatforms">${escapeHtml((g.platforms || []).slice(0, 3).join(" • "))}</div>
+      </div>
+    `;
+
+    frag.appendChild(card);
+  }
+
+  gamesGrid.appendChild(frag);
+}
+
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+// ===== API =====
+async function fetchGames() {
+  setError("");
+  setLoading(true);
+
+  try {
+    const url = buildApiUrl();
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (!resp.ok || !data?.ok) {
+      const details = data?.error ? `: ${data.error}` : "";
+      throw new Error(`Failed to load games${details}`);
+    }
+
+    renderGames(data.games);
+  } catch (err) {
+    renderGames([]);
+    setError(err?.message || "Unknown error");
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ===== UI WIRING =====
+function updatePlatformButtonStyles() {
+  for (const btn of platformButtons) {
+    const key = btn.getAttribute("data-platform");
+    const active = state.platforms.has(key);
+    btn.classList.toggle("active", active);
+  }
+}
+
+function togglePlatform(key) {
+  if (state.platforms.has(key)) state.platforms.delete(key);
+  else state.platforms.add(key);
+
+  updatePlatformButtonStyles();
+  state.offset = 0;
+  fetchGames();
+}
+
+function bindControls() {
+  // Platform buttons
+  platformButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.getAttribute("data-platform");
+      if (!key) return;
+      togglePlatform(key);
+    });
+  });
+
+  // Sort
+  if (sortSelect) {
+    sortSelect.addEventListener("change", () => {
+      state.sort = sortSelect.value;
+      state.offset = 0;
       fetchGames();
     });
-  } else {
-    fetchGames();
   }
 
-  // === Fetch Games from IGDB (via Vercel API route) ===
-  async function fetchGames() {
-    if (statusEl) statusEl.textContent = "Loading...";
-    if (listEl) listEl.innerHTML = "";
-
-    try {
-      const url = new URL("/api/igdb", window.location.origin);
-
-      // Sorting
-      if (currentSort === "-rating") url.searchParams.set("sort", "total_rating desc");
-      else url.searchParams.set("sort", "first_release_date desc");
-
-      // Search
-      if (searchEl && searchEl.value.trim()) url.searchParams.set("search", searchEl.value.trim());
-
-      // Fetch data
-      const res = await fetch(url, { cache: "no-store" });
-      const data = await res.json();
-
-      if (!Array.isArray(data) || !data.length) {
-        listEl.innerHTML = `<p style="text-align:center;color:#888;">No games found.</p>`;
-        if (statusEl) statusEl.textContent = "";
-        return;
-      }
-
-      // Transform IGDB response into RAWG-like objects for compatibility
-      allGames = data.map((g) => ({
-        slug: g.id,
-        name: g.name,
-        released: g.first_release_date
-          ? new Date(g.first_release_date * 1000).toISOString().split("T")[0]
-          : "TBA",
-        background_image: g.cover
-          ? `https:${g.cover.url.replace("t_thumb", "t_1080p")}`
-          : g.screenshots?.[0]
-          ? `https://images.igdb.com/igdb/image/upload/t_1080p/${g.screenshots[0].image_id}.jpg`
-          : "/placeholder.webp",
-        screenshots: g.screenshots?.map(
-          (s) => `https://images.igdb.com/igdb/image/upload/t_1080p/${s.image_id}.jpg`
-        ),
-        metacritic: g.total_rating ? Math.round(g.total_rating) : null,
-        platforms: g.platforms?.map((p) => p.name) || [],
-        genres: g.genres?.map((gn) => gn.name) || [],
-      }));
-
-      // Filter and render
-      renderList();
-      if (statusEl) statusEl.textContent = "";
-    } catch (err) {
-      console.error("IGDB fetch error:", err);
-      if (statusEl) statusEl.textContent = "Error loading games.";
-    }
-  }
-
-  // === Filtering + Rendering ===
-  function renderList() {
-    let visible = [...allGames];
-
-    // Range filter (date)
-    const now = new Date();
-    if (currentRange === "week") {
-      const sevenDaysAgo = new Date(now);
-      sevenDaysAgo.setDate(now.getDate() - 7);
-      visible = visible.filter((g) => new Date(g.released) >= sevenDaysAgo);
-    } else if (currentRange === "3months") {
-      const threeMonthsAgo = new Date(now);
-      threeMonthsAgo.setMonth(now.getMonth() - 3);
-      visible = visible.filter((g) => new Date(g.released) >= threeMonthsAgo);
-    }
-
-    // Platform filter
-    if (currentPlatform) {
-      visible = visible.filter((g) =>
-        g.platforms.some((p) =>
-          p.toLowerCase().includes(currentPlatform.toLowerCase())
-        )
-      );
-    }
-
-    // Search filter
-    if (searchEl && searchEl.value.trim()) {
-      const q = searchEl.value.trim().toLowerCase();
-      visible = visible.filter((g) => g.name.toLowerCase().includes(q));
-    }
-
-    // Sort again (client-side if needed)
-    if (currentSort === "-rating") {
-      visible.sort((a, b) => (b.metacritic || 0) - (a.metacritic || 0));
-    } else if (currentSort === "released") {
-      visible.sort((a, b) => new Date(b.released) - new Date(a.released));
-    }
-
-    // Render
-    listEl.innerHTML = visible.map(renderGameCard).join("");
-
-    // Fade-in loaded images
-    const imgs = listEl.querySelectorAll(".card-img img");
-    imgs.forEach((img) => {
-      img.addEventListener("load", () => img.classList.add("loaded"));
-      if (img.complete) img.classList.add("loaded");
+  // Range
+  if (rangeSelect) {
+    rangeSelect.addEventListener("change", () => {
+      state.range = rangeSelect.value;
+      state.offset = 0;
+      fetchGames();
     });
   }
+}
 
-  // === Game Card Template ===
-  function renderGameCard(game) {
-    const released = game.released || "TBA";
-    const img = game.background_image || "/placeholder.webp";
+// ===== AGE GATE =====
+function isAgeVerified() {
+  return localStorage.getItem("gamerly_age_verified") === "true";
+}
 
-    const meta =
-      game.metacritic != null
-        ? `<span class="badge-meta ${
-            game.metacritic >= 75
-              ? "meta-good"
-              : game.metacritic >= 50
-              ? "meta-mid"
-              : "meta-bad"
-          }">${game.metacritic}</span>`
-        : `<span class="badge-meta meta-na">N/A</span>`;
+function setAgeVerified() {
+  localStorage.setItem("gamerly_age_verified", "true");
+}
 
-    const platformsHTML =
-      game.platforms?.map((p) => `<span class="badge">${p}</span>`).join(" ") || "";
+function showApp() {
+  if (ageGate) ageGate.style.display = "none";
+  state.isReady = true;
+  fetchGames();
+}
 
-    return `
-      <div class="card" data-slug="${game.slug}" title="${game.name}"
-           onclick="window.location='/game.html?slug=${game.slug}'">
-        <div class="card-img">
-          <img src="${img}" alt="${game.name}" loading="lazy" onerror="this.src='/placeholder.webp'">
-        </div>
-        <div class="card-body">
-          <div class="card-title">${game.name}</div>
-          <div class="meta-row">
-            ${meta}<span class="release-date">Released: ${released}</span>
-          </div>
-          <div class="badges">${platformsHTML}</div>
-        </div>
-      </div>`;
+function initAgeGate() {
+  if (!ageGate || !ageConfirmBtn) {
+    // If you don’t have an overlay in DOM, just load immediately.
+    showApp();
+    return;
   }
 
-  // === Event Listeners ===
-  sortEl?.addEventListener("change", (e) => {
-    currentSort = e.target.value;
-    renderList();
-  });
+  if (isAgeVerified()) {
+    showApp();
+    return;
+  }
 
-  rangeEl?.addEventListener("change", (e) => {
-    currentRange = e.target.value;
-    renderList();
+  // Keep overlay visible until confirmed
+  ageGate.style.display = "flex";
+  ageConfirmBtn.addEventListener("click", () => {
+    setAgeVerified();
+    showApp();
   });
+}
 
-  platformBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      platformBtns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentPlatform = btn.dataset.platform || "";
-      renderList();
-    });
-  });
+// ===== INIT =====
+function init() {
+  bindControls();
 
-  searchEl?.addEventListener("input", () => renderList());
-});
+  // Optional defaults:
+  // - start with none selected (shows all platforms)
+  // - or preselect PC:
+  // state.platforms.add("pc"); updatePlatformButtonStyles();
+
+  // Pull initial values from selects if present
+  if (sortSelect && sortSelect.value) state.sort = sortSelect.value;
+  if (rangeSelect && rangeSelect.value) state.range = rangeSelect.value;
+
+  updatePlatformButtonStyles();
+  initAgeGate();
+}
+
+document.addEventListener("DOMContentLoaded", init);

@@ -1,14 +1,13 @@
 //
-// Gamerly – Subtle Apple-Style Hover Preview (stable)
+// Gamerly – Apple-Style Hover Preview (stable, error-free)
 //
 const API_BASE = "/api/games";
 const listEl = document.getElementById("game-list");
 const sortEl = document.getElementById("sort");
 const searchEl = document.getElementById("search");
 const dateEl = document.getElementById("date-range");
-const hoverPreview = document.getElementById("hoverPreview");
 
-// Platform toggles
+// ---------- Platform Toggles ----------
 const platformRow = document.createElement("div");
 platformRow.className = "platform-row";
 document.querySelector(".toolbar").before(platformRow);
@@ -27,8 +26,8 @@ let allGames = [];
 
 platformRow.innerHTML = platforms
   .map(
-    (p) =>
-      `<button class="platform-btn" data-id="${p.id}">
+    (p) => `
+      <button class="platform-btn" data-id="${p.id}">
         ${p.label}<span class="checkmark">✓</span>
       </button>`
   )
@@ -44,7 +43,7 @@ platformRow.addEventListener("click", (e) => {
   renderList();
 });
 
-// Helpers
+// ---------- Helpers ----------
 const daysAgo = (n) => {
   const d = new Date();
   d.setDate(d.getDate() - n);
@@ -58,7 +57,7 @@ const withinRange = (dateStr, range) => {
   return true;
 };
 
-// Fetch games
+// ---------- Fetch Games ----------
 async function fetchGames() {
   listEl.innerHTML = `<div class="shimmer"></div><div class="shimmer"></div>`;
   try {
@@ -77,7 +76,7 @@ async function fetchGames() {
   }
 }
 
-// Render cards
+// ---------- Render Cards ----------
 function renderGameCard(game) {
   const released = game.released || "TBA";
   const img = game.background_image || "";
@@ -110,7 +109,7 @@ function renderGameCard(game) {
     </div>`;
 }
 
-// Render list
+// ---------- Render List ----------
 function renderList() {
   let visible = [...allGames];
   if (activePlatforms.size) {
@@ -121,8 +120,7 @@ function renderList() {
     );
   }
   const range = dateEl.value;
-  if (range && range !== "all")
-    visible = visible.filter((g) => withinRange(g.released, range));
+  if (range && range !== "all") visible = visible.filter((g) => withinRange(g.released, range));
 
   const q = searchEl.value.trim().toLowerCase();
   if (q) visible = visible.filter((g) => g.name.toLowerCase().includes(q));
@@ -139,11 +137,11 @@ function renderList() {
   setupHoverPreviews();
 }
 
-// Hover preview logic
+// ---------- Hover Preview ----------
 function setupHoverPreviews() {
   const cards = document.querySelectorAll(".card");
   cards.forEach((card) => {
-    card.addEventListener("mouseenter", (e) => showPreview(card));
+    card.addEventListener("mouseenter", () => showPreview(card));
     card.addEventListener("mouseleave", hidePreview);
     card.addEventListener("click", () => {
       window.location = `/game.html?slug=${card.dataset.slug}`;
@@ -152,6 +150,9 @@ function setupHoverPreviews() {
 }
 
 function showPreview(card) {
+  const hoverPreview = document.getElementById("hoverPreview");
+  if (!hoverPreview) return;
+
   const slug = card.dataset.slug;
   const game = allGames.find((g) => g.slug === slug);
   if (!game) return;
@@ -177,11 +178,13 @@ function showPreview(card) {
 }
 
 function hidePreview() {
+  const hoverPreview = document.getElementById("hoverPreview");
+  if (!hoverPreview) return;
   hoverPreview.classList.remove("visible");
   setTimeout(() => hoverPreview.classList.add("hidden"), 150);
 }
 
-// Init
+// ---------- Init ----------
 async function init() {
   allGames = await fetchGames();
   renderList();
@@ -191,7 +194,7 @@ searchEl.addEventListener("input", renderList);
 dateEl.addEventListener("change", renderList);
 init();
 
-// 18+ Modal
+// ---------- 18+ Modal ----------
 const overlay = document.getElementById("ageOverlay");
 const confirmBtn = document.getElementById("confirmAge");
 if (!localStorage.getItem("gamerly_age_verified")) overlay.classList.remove("hidden");

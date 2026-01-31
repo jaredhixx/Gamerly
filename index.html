@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- ===== HEADER ===== -->
   <header>
     <h1><span>🔥</span> Gamerly</h1>
     <nav>
@@ -16,37 +17,47 @@
     </nav>
   </header>
 
+  <!-- ===== MAIN CONTENT ===== -->
   <main>
+    <!-- Toolbar -->
     <div class="toolbar">
       <select id="sort">
-        <option value="released">Newest</option>
+        <option value="-released" selected>Newest</option>
         <option value="-rating">Highest Rated</option>
         <option value="name">A–Z</option>
       </select>
-      <select id="date-range">
-        <option value="all">All Time</option>
-        <option value="today">Today</option>
+
+      <select id="range">
+        <option value="3months" selected>Past 3 Months</option>
         <option value="week">This Week</option>
-        <option value="year">Past 3 Months</option>
+        <option value="alltime">All Time</option>
       </select>
+
       <input type="text" id="search" placeholder="Search games…" />
     </div>
-    <div id="game-list" class="grid"></div>
+
+    <!-- Platform Buttons -->
+    <div class="platform-row">
+      <button class="platform-btn platform-filter" data-platform="PC">PC</button>
+      <button class="platform-btn platform-filter" data-platform="PlayStation">PlayStation</button>
+      <button class="platform-btn platform-filter" data-platform="Xbox">Xbox</button>
+      <button class="platform-btn platform-filter" data-platform="Nintendo">Nintendo</button>
+      <button class="platform-btn platform-filter" data-platform="iOS">iOS</button>
+      <button class="platform-btn platform-filter" data-platform="Android">Android</button>
+    </div>
+
+    <!-- Status + Game Grid -->
+    <div id="status"></div>
+    <div id="games" class="grid"></div>
   </main>
 
+  <!-- ===== FOOTER ===== -->
   <footer>© 2026 Gamerly — Built for gamers ❤️</footer>
 
-  <div class="overlay" id="ageOverlay">
-    <div class="modal">
-      <h2>Are you 18 or older?</h2>
-      <p>This site may contain mature game content. Please confirm your age to continue.</p>
-      <button id="confirmAge">Yes, I am 18+</button>
-    </div>
-  </div>
-
+  <!-- ===== SCRIPTS ===== -->
   <script src="app.js"></script>
-  <!-- Hover Preview Container -->
-<div id="hoverPreview" class="hover-preview hidden"></div>
+
+  <!-- Hover Preview Container (kept for Netflix-style hover effect) -->
+  <div id="hoverPreview" class="hover-preview hidden"></div>
 </body>
 </html>
-

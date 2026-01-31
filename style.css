@@ -341,6 +341,27 @@ footer {
 .screenshot-thumb:hover {
   transform: scale(1.05);
 }
+/* --- Screenshot Carousel Fix --- */
+.screenshot-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 10px 0 20px;
+  scroll-behavior: smooth;
+}
+.screenshot-thumb {
+  flex: 0 0 auto;
+  width: 280px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.screenshot-thumb:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+}
 
 
 

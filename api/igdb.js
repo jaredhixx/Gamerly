@@ -1,5 +1,5 @@
 // api/igdb.js
-// IGDB endpoint with correct past + future windowing
+// IGDB endpoint — correct Out Now / Coming Soon behavior
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -8,19 +8,10 @@ let tokenExpiry = 0;
 async function getTwitchToken() {
   const now = Date.now();
 
-  if (cachedToken && now < tokenExpiry - 60_000) {
-    return cachedToken;
-  }
-
-  const clientId = process.env.IGDB_CLIENT_ID;
-  const clientSecret = process.env.IGDB_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error("Missing IGDB_CLIENT_ID or IGDB_CLIENT_SECRET");
-  }
+  if (cachedToken && now < tokenExpiry - 60_000) return cachedToken;
 
   const res = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
+    `https://id.twitch.tv/oauth2/token?client_id=${process.env.IGDB_CLIENT_ID}&client_secret=${process.env.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
     { method: "POST" }
   );
 
@@ -50,8 +41,8 @@ function normalizeCover(url) {
 
 function normalizeGame(g) {
   return {
-    id: g.id ?? null,
-    name: g.name ?? "Unknown title",
+    id: g.id,
+    name: g.name,
     releaseDate: g.first_release_date
       ? new Date(g.first_release_date * 1000).toISOString()
       : null,
@@ -74,16 +65,12 @@ function buildQuery({ platforms, limit }) {
   platformIds = [...new Set(platformIds)];
 
   const now = Math.floor(Date.now() / 1000);
-  const sixMonths = 183 * 24 * 60 * 60;
-
-  const pastBound = now - sixMonths;
-  const futureBound = now + sixMonths;
+  const sixMonthsAhead = now + 183 * 24 * 60 * 60;
 
   const where = [
     "name != null",
     "first_release_date != null",
-    `first_release_date >= ${pastBound}`,
-    `first_release_date <= ${futureBound}`,
+    `first_release_date <= ${sixMonthsAhead}`, // ✅ future cap ONLY
   ];
 
   if (platformIds.length) {
@@ -103,7 +90,6 @@ export default async function handler(req, res) {
   try {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
     const mode = req.query.mode || "full";
-
     const limit = mode === "initial" ? 72 : 500;
 
     const token = await getTwitchToken();

@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — stable base with corrected time filtering
+// Gamerly — corrected time filtering (stable baseline restored)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -13,14 +13,14 @@ const timeButtons = document.querySelectorAll(".time-segment button");
 const platformButtons = document.querySelectorAll("[data-platform]");
 
 const state = {
-  section: "out-now",        // out-now | coming-soon
-  timeFilter: "all",         // all | today | week | month
+  section: "out-now",
+  timeFilter: "all",
   platforms: new Set(),
   data: { outNow: [], comingSoon: [] },
 };
 
 /* =========================
-   AGE VERIFICATION
+   AGE GATE
 ========================= */
 function isAgeVerified() {
   return localStorage.getItem("gamerly_age_verified") === "true";
@@ -51,7 +51,7 @@ function buildApiUrl() {
 }
 
 /* =========================
-   TIME FILTERS (FIXED)
+   TIME FILTER (FIXED CORRECTLY)
 ========================= */
 function applyTimeFilter(games) {
   if (state.timeFilter === "all") return games;
@@ -65,12 +65,12 @@ function applyTimeFilter(games) {
 
   const DAY = 86400000;
 
-  return games.filter(g => {
-    if (!g.releaseDate) return false;
-    const t = new Date(g.releaseDate).getTime();
+  // OUT NOW → strict past filtering
+  if (state.section === "out-now") {
+    return games.filter(g => {
+      if (!g.releaseDate) return false;
+      const t = new Date(g.releaseDate).getTime();
 
-    // OUT NOW = past-focused
-    if (state.section === "out-now") {
       if (state.timeFilter === "today") {
         return t >= todayStart && t < todayStart + DAY;
       }
@@ -80,29 +80,34 @@ function applyTimeFilter(games) {
       if (state.timeFilter === "month") {
         return t >= todayStart - 29 * DAY && t <= todayStart;
       }
-    }
+      return true;
+    });
+  }
 
-    // COMING SOON = future-focused (RELAXED WINDOWS)
-    if (state.section === "coming-soon") {
+  // COMING SOON → trust IGDB, only cap future range
+  if (state.section === "coming-soon") {
+    return games.filter(g => {
+      if (!g.releaseDate) return true; // keep soft-dated games
+      const t = new Date(g.releaseDate).getTime();
+
       if (state.timeFilter === "today") {
         return t >= todayStart && t < todayStart + DAY;
       }
       if (state.timeFilter === "week") {
-        // relaxed to absorb IGDB PC/iOS date fuzz
-        return t > todayStart && t <= todayStart + 10 * DAY;
+        return t <= todayStart + 7 * DAY;
       }
       if (state.timeFilter === "month") {
-        // relaxed window for realistic upcoming releases
-        return t > todayStart && t <= todayStart + 45 * DAY;
+        return t <= todayStart + 31 * DAY;
       }
-    }
+      return true;
+    });
+  }
 
-    return true;
-  });
+  return games;
 }
 
 /* =========================
-   BADGE HELPERS
+   BADGES
 ========================= */
 function mapPlatformBadge(name) {
   const n = name.toLowerCase();
@@ -119,12 +124,7 @@ function renderBadges(game) {
   const badges = [];
 
   if (game.category) {
-    badges.push(
-      `<span class="badge badge-category">${game.category.replace(
-        "Role-playing (RPG)",
-        "RPG"
-      )}</span>`
-    );
+    badges.push(`<span class="badge badge-category">${game.category.replace("Role-playing (RPG)", "RPG")}</span>`);
   }
 
   if (Array.isArray(game.platforms)) {
@@ -133,9 +133,7 @@ function renderBadges(game) {
       const label = mapPlatformBadge(p);
       if (label && !seen.has(label)) {
         seen.add(label);
-        badges.push(
-          `<span class="badge badge-platform">${label}</span>`
-        );
+        badges.push(`<span class="badge badge-platform">${label}</span>`);
       }
     });
   }
@@ -163,9 +161,7 @@ function render(games) {
     card.innerHTML = `
       <img loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
       <div class="card-body">
-        <div class="badge-row">
-          ${renderBadges(g)}
-        </div>
+        <div class="badge-row">${renderBadges(g)}</div>
         <div class="card-title">${g.name}</div>
         <div class="card-meta">
           ${g.releaseDate ? new Date(g.releaseDate).toLocaleDateString() : "TBD"}

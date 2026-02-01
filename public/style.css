@@ -315,3 +315,16 @@ main {
 .lazy-img.loaded {
   opacity: 1;
 }
+
+.rating-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(16, 185, 129, 0.9);
+  color: #021a12;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 6px 8px;
+  border-radius: 10px;
+  backdrop-filter: blur(4px);
+}

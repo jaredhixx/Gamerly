@@ -1,13 +1,9 @@
 // api/igdb.js
-// Gamerly — LOCKED backend
-// Calendar-day split: Out Now = today or earlier, Coming Soon = tomorrow+
+// Gamerly — BASELINE STABLE BACKEND (DO NOT TOUCH)
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
-/* =========================
-   AUTH
-========================= */
 async function getTwitchToken() {
   const now = Date.now();
 
@@ -35,9 +31,6 @@ async function getTwitchToken() {
   return cachedToken;
 }
 
-/* =========================
-   HELPERS
-========================= */
 function unix(date) {
   return Math.floor(date.getTime() / 1000);
 }
@@ -54,9 +47,6 @@ function normalizeGame(g) {
     releaseDate: g.first_release_date
       ? new Date(g.first_release_date * 1000).toISOString()
       : null,
-    rating: g.rating ?? null,
-    aggregated_rating: g.aggregated_rating ?? null,
-    aggregated_rating_count: g.aggregated_rating_count ?? null,
     coverUrl: normalizeCover(g.cover?.url),
     platforms: Array.isArray(g.platforms)
       ? g.platforms.map(p => p.name).filter(Boolean)
@@ -65,9 +55,6 @@ function normalizeGame(g) {
   };
 }
 
-/* =========================
-   QUERY (UNCHANGED)
-========================= */
 function buildQuery() {
   const past = new Date();
   const future = new Date();
@@ -79,9 +66,6 @@ function buildQuery() {
     fields
       name,
       first_release_date,
-      rating,
-      aggregated_rating,
-      aggregated_rating_count,
       cover.url,
       platforms.name,
       genres.name;
@@ -93,9 +77,6 @@ function buildQuery() {
   `;
 }
 
-/* =========================
-   HANDLER (ONLY CHANGE IS HERE)
-========================= */
 export default async function handler(req, res) {
   try {
     const token = await getTwitchToken();
@@ -117,42 +98,9 @@ export default async function handler(req, res) {
       .map(normalizeGame)
       .filter(g => g.releaseDate && g.coverUrl);
 
-    // 🔒 CALENDAR-DAY SPLIT (FIX)
-    const now = new Date();
-
-    // End of today (local)
-    const endOfToday = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23, 59, 59, 999
-    ).getTime();
-
-    // Start of tomorrow (local)
-    const startOfTomorrow = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1,
-      0, 0, 0, 0
-    ).getTime();
-
-    const outNow = [];
-    const comingSoon = [];
-
-    games.forEach(game => {
-      const releaseTime = new Date(game.releaseDate).getTime();
-
-      if (releaseTime <= endOfToday) {
-        outNow.push(game);
-      } else if (releaseTime >= startOfTomorrow) {
-        comingSoon.push(game);
-      }
-    });
-
     res.status(200).json({
       ok: true,
-      outNow,
-      comingSoon,
+      games, // frontend handles splitting
     });
   } catch (err) {
     res.status(500).json({

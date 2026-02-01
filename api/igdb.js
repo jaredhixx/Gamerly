@@ -1,9 +1,12 @@
 // api/igdb.js
-// Stable IGDB API — platform filtering restored, ordering unchanged
+// Gamerly IGDB API — paginated overfetch for full catalog feel
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
+/* =========================
+   AUTH
+========================= */
 async function getTwitchToken() {
   const now = Date.now();
   if (cachedToken && now < tokenExpiry - 60_000) return cachedToken;
@@ -21,6 +24,9 @@ async function getTwitchToken() {
   return cachedToken;
 }
 
+/* =========================
+   PLATFORM MAP
+========================= */
 const PLATFORM_MAP = {
   pc: [6],
   playstation: [48, 167],
@@ -30,10 +36,14 @@ const PLATFORM_MAP = {
   android: [34],
 };
 
+/* =========================
+   HANDLER
+========================= */
 export default async function handler(req, res) {
   try {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
 
+    // Resolve platform IDs
     let platformIds = [];
     platforms.forEach(p => {
       if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
@@ -41,34 +51,51 @@ export default async function handler(req, res) {
     platformIds = [...new Set(platformIds)];
 
     const whereParts = ["name != null"];
-
     if (platformIds.length) {
       whereParts.push(`platforms = (${platformIds.join(",")})`);
     }
 
     const token = await getTwitchToken();
 
-    const igdbRes = await fetch("https://api.igdb.com/v4/games", {
-      method: "POST",
-      headers: {
-        "Client-ID": process.env.IGDB_CLIENT_ID,
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "text/plain",
-      },
-      body: `
-        fields name, first_release_date, rating, cover.url, platforms.name, updated_at;
-        where ${whereParts.join(" & ")};
-        sort updated_at desc;
-        limit 500;
-      `,
-    });
+    const allGames = [];
+    const PAGE_SIZE = 200;
+    const MAX_PAGES = 5; // 1000 games max (safe)
 
-    const games = await igdbRes.json();
-    if (!igdbRes.ok) throw new Error(JSON.stringify(games));
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const igdbRes = await fetch("https://api.igdb.com/v4/games", {
+        method: "POST",
+        headers: {
+          "Client-ID": process.env.IGDB_CLIENT_ID,
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "text/plain",
+        },
+        body: `
+          fields
+            name,
+            first_release_date,
+            rating,
+            cover.url,
+            platforms.name,
+            updated_at;
+          where ${whereParts.join(" & ")};
+          sort updated_at desc;
+          limit ${PAGE_SIZE};
+          offset ${page * PAGE_SIZE};
+        `,
+      });
+
+      const batch = await igdbRes.json();
+
+      if (!igdbRes.ok || !batch.length) break;
+
+      allGames.push(...batch);
+    }
+
+    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
 
     res.status(200).json({
       ok: true,
-      games: games.map(g => ({
+      games: allGames.map(g => ({
         name: g.name,
         releaseDate: g.first_release_date
           ? new Date(g.first_release_date * 1000).toISOString()
@@ -81,6 +108,9 @@ export default async function handler(req, res) {
       })),
     });
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    res.status(500).json({
+      ok: false,
+      error: err.message,
+    });
   }
 }

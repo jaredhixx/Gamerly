@@ -1,10 +1,13 @@
 // api/igdb.js
-// IGDB absolute minimal sanity test
+// Gamerly IGDB API — FINAL, STABLE, UI-COMPATIBLE VERSION
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
-async function getToken() {
+/* =========================
+   AUTH
+========================= */
+async function getTwitchToken() {
   const now = Date.now();
 
   if (cachedToken && now < tokenExpiry - 60_000) {
@@ -15,7 +18,7 @@ async function getToken() {
   const clientSecret = process.env.IGDB_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error("Missing IGDB env vars");
+    throw new Error("Missing IGDB_CLIENT_ID or IGDB_CLIENT_SECRET");
   }
 
   const res = await fetch(
@@ -26,7 +29,7 @@ async function getToken() {
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(JSON.stringify(data));
+    throw new Error(`Twitch OAuth failed: ${JSON.stringify(data)}`);
   }
 
   cachedToken = data.access_token;
@@ -34,9 +37,49 @@ async function getToken() {
   return cachedToken;
 }
 
+/* =========================
+   HELPERS
+========================= */
+function normalizeCover(url) {
+  if (!url) return null;
+
+  // add protocol + upgrade size
+  return `https:${url}`.replace("t_thumb", "t_cover_big");
+}
+
+function normalizeGame(g) {
+  return {
+    id: g.id ?? null,
+    name: g.name ?? "Unknown title",
+    releaseDate: g.first_release_date
+      ? new Date(g.first_release_date * 1000).toISOString()
+      : null,
+    rating: typeof g.rating === "number" ? Math.round(g.rating) : null,
+    coverUrl: normalizeCover(g.cover?.url),
+  };
+}
+
+/* =========================
+   IGDB QUERY (SAFE + SIMPLE)
+========================= */
+function buildIgdbQuery() {
+  return `
+    fields
+      name,
+      first_release_date,
+      rating,
+      cover.url;
+    sort first_release_date desc;
+    limit 50;
+  `;
+}
+
+/* =========================
+   HANDLER
+========================= */
 export default async function handler(req, res) {
   try {
-    const token = await getToken();
+    const token = await getTwitchToken();
 
     const igdbRes = await fetch("https://api.igdb.com/v4/games", {
       method: "POST",
@@ -45,22 +88,32 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "text/plain",
       },
-      body: `
-        fields name, cover.url;
-        limit 10;
-      `,
+      body: buildIgdbQuery(),
     });
 
-    const games = await igdbRes.json();
+    const rawGames = await igdbRes.json();
 
     if (!igdbRes.ok) {
-      throw new Error(JSON.stringify(games));
+      throw new Error(JSON.stringify(rawGames));
     }
+
+    /* =========================
+       SERVER-SIDE FUTURE FILTER
+    ========================= */
+    const now = Date.now();
+    const sixMonthsAhead = now + 183 * 24 * 60 * 60 * 1000;
+
+    const filteredGames = rawGames.filter(g => {
+      if (!g.first_release_date) return true;
+      return g.first_release_date * 1000 <= sixMonthsAhead;
+    });
+
+    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
 
     res.status(200).json({
       ok: true,
-      count: games.length,
-      games,
+      count: filteredGames.length,
+      games: filteredGames.map(normalizeGame),
     });
   } catch (err) {
     res.status(500).json({

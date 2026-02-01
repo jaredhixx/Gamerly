@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — FINAL locked filtering (industry-standard semantics)
+// Gamerly — IGDB rating (clean, numeric, safe)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -9,18 +9,16 @@ const showMoreBtn = document.getElementById("showMore");
 const ageGate = document.getElementById("ageGate");
 const ageConfirmBtn = document.getElementById("ageConfirmBtn");
 
-const timeButtons = document.querySelectorAll(".time-segment button");
 const sectionButtons = document.querySelectorAll(".section-segment button");
+const timeButtons = document.querySelectorAll(".time-segment button");
 const platformButtons = document.querySelectorAll("[data-platform]");
-
-const PAGE_SIZE = 36;
 
 const state = {
   section: "out-now",
   timeFilter: "all",
   platforms: new Set(),
-  visibleCount: PAGE_SIZE,
-  data: { outNow: [], comingSoon: [] }
+  data: { outNow: [], comingSoon: [] },
+  visibleCount: 18,
 };
 
 /* =========================
@@ -40,119 +38,68 @@ if (isAgeVerified()) {
   ageGate.style.display = "none";
 } else {
   ageGate.style.display = "flex";
-  ageConfirmBtn.onclick = confirmAge;
+  ageConfirmBtn.addEventListener("click", confirmAge);
 }
 
 /* =========================
    API
 ========================= */
 function buildApiUrl() {
-  return "/api/igdb";
+  const params = new URLSearchParams();
+  if (state.platforms.size) {
+    params.set("platforms", [...state.platforms].join(","));
+  }
+  return `/api/igdb?${params.toString()}`;
 }
 
 /* =========================
-   PLATFORM ICONS
+   TIME FILTERS
 ========================= */
-function renderPlatformOverlay(game) {
-  if (!Array.isArray(game.platforms)) return "";
+function applyTimeFilter(games) {
+  if (state.timeFilter === "all") return games;
 
-  const seen = new Set();
-  const chips = [];
-
-  game.platforms.forEach(p => {
-    const n = p.toLowerCase();
-    if (n.includes("xbox") && !seen.has("xbox")) {
-      seen.add("xbox");
-      chips.push(`<span class="platform-chip xbox">Ⓧ</span>`);
-    }
-    if (n.includes("playstation") && !seen.has("ps")) {
-      seen.add("ps");
-      chips.push(`<span class="platform-chip">PS</span>`);
-    }
-    if (n.includes("pc") && !seen.has("pc")) {
-      seen.add("pc");
-      chips.push(`<span class="platform-chip">PC</span>`);
-    }
-    if (n.includes("nintendo") && !seen.has("switch")) {
-      seen.add("switch");
-      chips.push(`<span class="platform-chip">Switch</span>`);
-    }
-    if (n.includes("ios") && !seen.has("ios")) {
-      seen.add("ios");
-      chips.push(`<span class="platform-chip">iOS</span>`);
-    }
-    if (n.includes("android") && !seen.has("android")) {
-      seen.add("android");
-      chips.push(`<span class="platform-chip">Android</span>`);
-    }
-  });
-
-  return chips.length
-    ? `<div class="platform-overlay">${chips.join("")}</div>`
-    : "";
-}
-
-/* =========================
-   FILTERING (LOCKED)
-========================= */
-function applyFilters(games) {
-  const now = Date.now();
-  const DAY = 86400000;
+  const now = new Date();
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).getTime();
 
   return games.filter(g => {
-    // PLATFORM FILTER
-    if (state.platforms.size && Array.isArray(g.platforms)) {
-      const ok = g.platforms.some(p => {
-        const n = p.toLowerCase();
-        return (
-          (state.platforms.has("pc") && n.includes("pc")) ||
-          (state.platforms.has("xbox") && n.includes("xbox")) ||
-          (state.platforms.has("playstation") && n.includes("playstation")) ||
-          (state.platforms.has("nintendo") && n.includes("nintendo")) ||
-          (state.platforms.has("ios") && n.includes("ios")) ||
-          (state.platforms.has("android") && n.includes("android"))
-        );
-      });
-      if (!ok) return false;
+    if (!g.releaseDate) return false;
+    const t = new Date(g.releaseDate).getTime();
+
+    if (state.timeFilter === "today") {
+      return t >= startOfToday && t < startOfToday + 86400000;
     }
-
-    if (state.section === "out-now") {
-      if (!g.releaseDate) return false;
-      const t = new Date(g.releaseDate).getTime();
-      if (t > now) return false;
-
-      if (state.timeFilter === "today") return now - t < DAY;
-      if (state.timeFilter === "week") return now - t < 7 * DAY;
-      if (state.timeFilter === "month") return now - t < 30 * DAY;
-      return true;
+    if (state.timeFilter === "week") {
+      return t >= startOfToday - 6 * 86400000 &&
+             t <= startOfToday + 7 * 86400000;
     }
-
-    // COMING SOON — DO NOT DATE-SLICE
-    if (state.section === "coming-soon") {
-      if (state.timeFilter === "today") {
-        if (!g.releaseDate) return false;
-        const t = new Date(g.releaseDate).getTime();
-        return t >= now && t - now < DAY;
-      }
-      return true; // week/month behave like all
+    if (state.timeFilter === "month") {
+      return t >= startOfToday - 29 * 86400000 &&
+             t <= startOfToday + 30 * 86400000;
     }
-
     return true;
   });
 }
 
 /* =========================
+   RENDER HELPERS
+========================= */
+function renderRating(game) {
+  if (!game.rating || game.rating < 1) return "";
+  const score = Math.round(game.rating);
+  return `<div class="rating-pill">${score}</div>`;
+}
+
+/* =========================
    RENDER
 ========================= */
-function render() {
+function render(games) {
   grid.innerHTML = "";
 
-  const source =
-    state.section === "out-now"
-      ? state.data.outNow
-      : state.data.comingSoon;
-
-  const filtered = applyFilters(source);
+  const filtered = applyTimeFilter(games);
   const visible = filtered.slice(0, state.visibleCount);
 
   if (!visible.length) {
@@ -166,8 +113,10 @@ function render() {
     card.className = "card";
 
     card.innerHTML = `
-      ${renderPlatformOverlay(g)}
-      <img loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
+      <div class="card-media">
+        ${renderRating(g)}
+        <img loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
+      </div>
       <div class="card-body">
         <div class="card-title">${g.name}</div>
         <div class="card-meta">
@@ -180,7 +129,7 @@ function render() {
   });
 
   showMoreBtn.style.display =
-    state.visibleCount < filtered.length ? "inline-flex" : "none";
+    state.visibleCount < filtered.length ? "block" : "none";
 }
 
 /* =========================
@@ -189,7 +138,6 @@ function render() {
 async function fetchGames() {
   loading.style.display = "block";
   errorBox.textContent = "";
-  state.visibleCount = PAGE_SIZE;
 
   try {
     const res = await fetch(buildApiUrl());
@@ -197,15 +145,14 @@ async function fetchGames() {
     if (!data.ok) throw new Error(data.error);
 
     state.data = data;
+    state.visibleCount = 18;
 
-    sectionButtons[0].innerHTML =
-      `Out Now <span class="count">${data.outNow.length}</span>`;
-    sectionButtons[1].innerHTML =
-      `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
+    sectionButtons[0].innerHTML = `Out Now <span class="count">${data.outNow.length}</span>`;
+    sectionButtons[1].innerHTML = `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
 
-    render();
+    render(state.section === "out-now" ? data.outNow : data.comingSoon);
   } catch (err) {
-    errorBox.textContent = err.message || "Failed to load games.";
+    errorBox.textContent = err.message;
   } finally {
     loading.style.display = "none";
   }
@@ -214,11 +161,6 @@ async function fetchGames() {
 /* =========================
    EVENTS
 ========================= */
-showMoreBtn.onclick = () => {
-  state.visibleCount += PAGE_SIZE;
-  render();
-};
-
 sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
@@ -228,8 +170,8 @@ sectionButtons.forEach(btn => {
       ? "coming-soon"
       : "out-now";
 
-    state.visibleCount = PAGE_SIZE;
-    render();
+    state.visibleCount = 18;
+    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };
 });
 
@@ -238,15 +180,15 @@ timeButtons.forEach(btn => {
     timeButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    const t = btn.textContent.toLowerCase();
+    const label = btn.textContent.toLowerCase();
     state.timeFilter =
-      t.includes("today") ? "today" :
-      t.includes("week") ? "week" :
-      t.includes("month") ? "month" :
+      label.includes("today") ? "today" :
+      label.includes("week") ? "week" :
+      label.includes("month") ? "month" :
       "all";
 
-    state.visibleCount = PAGE_SIZE;
-    render();
+    state.visibleCount = 18;
+    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };
 });
 
@@ -256,11 +198,14 @@ platformButtons.forEach(btn => {
     btn.classList.contains("active")
       ? state.platforms.add(btn.dataset.platform)
       : state.platforms.delete(btn.dataset.platform);
-
-    state.visibleCount = PAGE_SIZE;
-    render();
+    fetchGames();
   };
 });
+
+showMoreBtn.onclick = () => {
+  state.visibleCount += 18;
+  render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
+};
 
 /* =========================
    INIT

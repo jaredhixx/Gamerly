@@ -1,15 +1,28 @@
 // api/igdb.js
-// FINAL — Out Now / Coming Soon + platform + category support
+// Gamerly — IGDB API with proper ratings support
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
+/* =========================
+   AUTH
+========================= */
 async function getTwitchToken() {
   const now = Date.now();
-  if (cachedToken && now < tokenExpiry - 60_000) return cachedToken;
+
+  if (cachedToken && now < tokenExpiry - 60_000) {
+    return cachedToken;
+  }
+
+  const clientId = process.env.IGDB_CLIENT_ID;
+  const clientSecret = process.env.IGDB_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error("Missing IGDB credentials");
+  }
 
   const res = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${process.env.IGDB_CLIENT_ID}&client_secret=${process.env.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
+    `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
     { method: "POST" }
   );
 
@@ -21,6 +34,9 @@ async function getTwitchToken() {
   return cachedToken;
 }
 
+/* =========================
+   CONSTANTS
+========================= */
 const PLATFORM_MAP = {
   pc: [6],
   playstation: [48, 167],
@@ -30,27 +46,16 @@ const PLATFORM_MAP = {
   android: [34],
 };
 
-// Priority order matters (clean UX)
-const CATEGORY_PRIORITY = [
-  "Role-playing (RPG)",
-  "Shooter",
-  "Strategy",
-  "Adventure",
-  "Simulation",
-  "Fighting",
-  "Racing",
-  "Puzzle",
-  "Indie",
-];
+/* =========================
+   HELPERS
+========================= */
+function unix(date) {
+  return Math.floor(date.getTime() / 1000);
+}
 
 function normalizeCover(url) {
   if (!url) return null;
   return `https:${url}`.replace("t_thumb", "t_cover_big");
-}
-
-function pickPrimaryCategory(genres = []) {
-  const names = genres.map(g => g.name);
-  return CATEGORY_PRIORITY.find(c => names.includes(c)) || null;
 }
 
 function normalizeGame(g) {
@@ -60,73 +65,102 @@ function normalizeGame(g) {
     releaseDate: g.first_release_date
       ? new Date(g.first_release_date * 1000).toISOString()
       : null,
-    rating: typeof g.rating === "number" ? Math.round(g.rating) : null,
+    rating: g.rating ?? null,
+    aggregated_rating: g.aggregated_rating ?? null,
+    aggregated_rating_count: g.aggregated_rating_count ?? null,
     coverUrl: normalizeCover(g.cover?.url),
     platforms: Array.isArray(g.platforms)
       ? g.platforms.map(p => p.name).filter(Boolean)
       : [],
-    category: pickPrimaryCategory(g.genres),
+    category: g.genres?.[0]?.name ?? null,
   };
 }
 
-function buildWhere({ platforms, mode }) {
+/* =========================
+   QUERY BUILDER
+========================= */
+function buildQuery({ platforms }) {
   let platformIds = [];
-  platforms.forEach(p => PLATFORM_MAP[p] && platformIds.push(...PLATFORM_MAP[p]));
+
+  platforms.forEach(p => {
+    if (PLATFORM_MAP[p]) {
+      platformIds.push(...PLATFORM_MAP[p]);
+    }
+  });
+
   platformIds = [...new Set(platformIds)];
 
-  const now = Math.floor(Date.now() / 1000);
-  const sixMonths = 183 * 24 * 60 * 60;
-
-  const where = ["name != null", "first_release_date != null"];
-
-  if (mode === "out-now") where.push(`first_release_date <= ${now}`);
-  if (mode === "coming-soon") {
-    where.push(`first_release_date > ${now}`);
-    where.push(`first_release_date <= ${now + sixMonths}`);
-  }
+  const where = [
+    "name != null",
+    "first_release_date != null",
+  ];
 
   if (platformIds.length) {
     where.push(`platforms = (${platformIds.join(",")})`);
   }
 
-  return where.join(" & ");
+  return `
+    fields
+      name,
+      first_release_date,
+      rating,
+      aggregated_rating,
+      aggregated_rating_count,
+      cover.url,
+      platforms.name,
+      genres.name;
+    where ${where.join(" & ")};
+    sort first_release_date desc;
+    limit 500;
+  `;
 }
 
-async function queryIGDB({ platforms, mode }) {
-  const token = await getTwitchToken();
-
-  const res = await fetch("https://api.igdb.com/v4/games", {
-    method: "POST",
-    headers: {
-      "Client-ID": process.env.IGDB_CLIENT_ID,
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "text/plain",
-    },
-    body: `
-      fields name, first_release_date, rating, cover.url,
-             platforms.name, genres.name;
-      where ${buildWhere({ platforms, mode })};
-      sort first_release_date desc;
-      limit 500;
-    `,
-  });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error(JSON.stringify(data));
-  return data.map(normalizeGame);
-}
-
+/* =========================
+   HANDLER
+========================= */
 export default async function handler(req, res) {
   try {
-    const platforms = (req.query.platforms || "").split(",").filter(Boolean);
+    const platforms = (req.query.platforms || "")
+      .split(",")
+      .filter(Boolean);
 
-    const [outNow, comingSoon] = await Promise.all([
-      queryIGDB({ platforms, mode: "out-now" }),
-      queryIGDB({ platforms, mode: "coming-soon" }),
-    ]);
+    const token = await getTwitchToken();
 
-    res.status(200).json({ ok: true, outNow, comingSoon });
+    const igdbRes = await fetch("https://api.igdb.com/v4/games", {
+      method: "POST",
+      headers: {
+        "Client-ID": process.env.IGDB_CLIENT_ID,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "text/plain",
+      },
+      body: buildQuery({ platforms }),
+    });
+
+    const data = await igdbRes.json();
+    if (!igdbRes.ok) throw new Error("IGDB request failed");
+
+    const now = Date.now();
+
+    const outNow = [];
+    const comingSoon = [];
+
+    data.forEach(g => {
+      const game = normalizeGame(g);
+      if (!game.releaseDate) return;
+
+      const releaseTime = new Date(game.releaseDate).getTime();
+      releaseTime <= now ? outNow.push(game) : comingSoon.push(game);
+    });
+
+    res.status(200).json({
+      ok: true,
+      outNow,
+      comingSoon,
+    });
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    res.status(500).json({
+      ok: false,
+      error: err.message,
+    });
   }
 }

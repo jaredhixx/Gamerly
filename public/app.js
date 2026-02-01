@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — All + Today + This Week + This Month (locked flow)
+// Gamerly frontend — time filters + platform filters + section switch
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -10,10 +10,12 @@ const ageConfirmBtn = document.getElementById("ageConfirmBtn");
 
 const platformButtons = document.querySelectorAll("[data-platform]");
 const timeButtons = document.querySelectorAll(".time-segment button");
+const sectionButtons = document.querySelectorAll(".section-segment button");
 
 const state = {
   platforms: new Set(),
-  timeFilter: "all", // all | today | week | month
+  timeFilter: "all",     // all | today | week | month
+  section: "out-now",   // out-now | coming-soon
 };
 
 /* =========================
@@ -67,15 +69,11 @@ function applyFutureCap(games) {
 }
 
 /* =========================
-   TODAY FILTER
+   TIME FILTERS
 ========================= */
 function applyTodayFilter(games) {
   const now = new Date();
-  const start = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).getTime();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const end = start + 24 * 60 * 60 * 1000;
 
   return games.filter(g => {
@@ -85,18 +83,9 @@ function applyTodayFilter(games) {
   });
 }
 
-/* =========================
-   THIS WEEK FILTER
-========================= */
 function applyWeekFilter(games) {
   const now = new Date();
-
-  const todayStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).getTime();
-
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const pastStart = todayStart - 6 * 24 * 60 * 60 * 1000;
   const futureEnd = todayStart + 7 * 24 * 60 * 60 * 1000;
 
@@ -107,18 +96,9 @@ function applyWeekFilter(games) {
   });
 }
 
-/* =========================
-   THIS MONTH FILTER (NEW)
-========================= */
 function applyMonthFilter(games) {
   const now = new Date();
-
-  const todayStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).getTime();
-
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const pastStart = todayStart - 29 * 24 * 60 * 60 * 1000;
   const futureEnd = todayStart + 30 * 24 * 60 * 60 * 1000;
 
@@ -130,7 +110,7 @@ function applyMonthFilter(games) {
 }
 
 /* =========================
-   SORT (NEWEST → OLDEST)
+   SORT
 ========================= */
 function sortNewestFirst(games) {
   return [...games].sort((a, b) => {
@@ -141,7 +121,7 @@ function sortNewestFirst(games) {
 }
 
 /* =========================
-   SPLIT OUT NOW / COMING SOON
+   SPLIT SECTIONS
 ========================= */
 function splitByRelease(games) {
   const now = Date.now();
@@ -162,14 +142,16 @@ function splitByRelease(games) {
 }
 
 /* =========================
-   RENDER SECTIONS
+   RENDER
 ========================= */
 function renderSection(title, games) {
-  if (!games.length) return;
+  if (!games.length) {
+    grid.innerHTML = "<p>No games found.</p>";
+    return;
+  }
 
   const wrapper = document.createElement("div");
   wrapper.className = "section-wrapper";
-  wrapper.id = title.toLowerCase().replace(" ", "-");
 
   const header = document.createElement("h2");
   header.className = "section-title";
@@ -208,15 +190,13 @@ function renderSection(title, games) {
 function renderGames(games) {
   grid.innerHTML = "";
 
-  if (!games.length) {
-    grid.innerHTML = "<p>No games found.</p>";
-    return;
-  }
-
   const { outNow, comingSoon } = splitByRelease(games);
 
-  renderSection("Out Now", outNow);
-  renderSection("Coming Soon", comingSoon);
+  if (state.section === "coming-soon") {
+    renderSection("Coming Soon", comingSoon);
+  } else {
+    renderSection("Out Now", outNow);
+  }
 }
 
 /* =========================
@@ -229,20 +209,13 @@ async function fetchGames() {
   try {
     const res = await fetch(buildApiUrl());
     const data = await res.json();
-
-    if (!res.ok || !data.ok) {
-      throw new Error(data.error || "Failed to load games");
-    }
+    if (!res.ok || !data.ok) throw new Error(data.error || "Failed to load games");
 
     let games = applyFutureCap(data.games);
 
-    if (state.timeFilter === "today") {
-      games = applyTodayFilter(games);
-    } else if (state.timeFilter === "week") {
-      games = applyWeekFilter(games);
-    } else if (state.timeFilter === "month") {
-      games = applyMonthFilter(games);
-    }
+    if (state.timeFilter === "today") games = applyTodayFilter(games);
+    else if (state.timeFilter === "week") games = applyWeekFilter(games);
+    else if (state.timeFilter === "month") games = applyMonthFilter(games);
 
     games = sortNewestFirst(games);
     renderGames(games);
@@ -254,39 +227,39 @@ async function fetchGames() {
 }
 
 /* =========================
-   PLATFORM EVENTS
+   EVENTS
 ========================= */
 platformButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     const p = btn.dataset.platform;
-
-    if (state.platforms.has(p)) {
-      state.platforms.delete(p);
-      btn.classList.remove("active");
-    } else {
-      state.platforms.add(p);
-      btn.classList.add("active");
-    }
-
+    btn.classList.toggle("active");
+    btn.classList.contains("active") ? state.platforms.add(p) : state.platforms.delete(p);
     fetchGames();
   });
 });
 
-/* =========================
-   TIME SEGMENT EVENTS
-========================= */
 timeButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     timeButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
     const label = btn.textContent.toLowerCase();
+    state.timeFilter =
+      label === "today" ? "today" :
+      label === "this week" ? "week" :
+      label === "this month" ? "month" :
+      "all";
 
-    if (label === "today") state.timeFilter = "today";
-    else if (label === "this week") state.timeFilter = "week";
-    else if (label === "this month") state.timeFilter = "month";
-    else state.timeFilter = "all";
+    fetchGames();
+  });
+});
 
+sectionButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    sectionButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    state.section = btn.textContent.toLowerCase().replace(" ", "-");
     fetchGames();
   });
 });

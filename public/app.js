@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — All + Today + This Week (corrected definitions)
+// Gamerly frontend — All + Today + This Week + This Month (locked flow)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -13,7 +13,7 @@ const timeButtons = document.querySelectorAll(".time-segment button");
 
 const state = {
   platforms: new Set(),
-  timeFilter: "all", // all | today | week
+  timeFilter: "all", // all | today | week | month
 };
 
 /* =========================
@@ -86,9 +86,7 @@ function applyTodayFilter(games) {
 }
 
 /* =========================
-   THIS WEEK FILTER (CORRECTED)
-   Out Now: today + previous 6 days
-   Coming Soon: next 7 days
+   THIS WEEK FILTER
 ========================= */
 function applyWeekFilter(games) {
   const now = new Date();
@@ -101,6 +99,28 @@ function applyWeekFilter(games) {
 
   const pastStart = todayStart - 6 * 24 * 60 * 60 * 1000;
   const futureEnd = todayStart + 7 * 24 * 60 * 60 * 1000;
+
+  return games.filter(g => {
+    if (!g.releaseDate) return false;
+    const t = new Date(g.releaseDate).getTime();
+    return t >= pastStart && t <= futureEnd;
+  });
+}
+
+/* =========================
+   THIS MONTH FILTER (NEW)
+========================= */
+function applyMonthFilter(games) {
+  const now = new Date();
+
+  const todayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).getTime();
+
+  const pastStart = todayStart - 29 * 24 * 60 * 60 * 1000;
+  const futureEnd = todayStart + 30 * 24 * 60 * 60 * 1000;
 
   return games.filter(g => {
     if (!g.releaseDate) return false;
@@ -220,6 +240,8 @@ async function fetchGames() {
       games = applyTodayFilter(games);
     } else if (state.timeFilter === "week") {
       games = applyWeekFilter(games);
+    } else if (state.timeFilter === "month") {
+      games = applyMonthFilter(games);
     }
 
     games = sortNewestFirst(games);
@@ -262,6 +284,7 @@ timeButtons.forEach(btn => {
 
     if (label === "today") state.timeFilter = "today";
     else if (label === "this week") state.timeFilter = "week";
+    else if (label === "this month") state.timeFilter = "month";
     else state.timeFilter = "all";
 
     fetchGames();

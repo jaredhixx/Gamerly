@@ -1,42 +1,24 @@
 // api/igdb.js
-// Gamerly — FINAL locked backend (correct Out Now logic)
+// Gamerly — FINAL stable classification
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
-/* =========================
-   AUTH
-========================= */
 async function getTwitchToken() {
   const now = Date.now();
-
-  if (cachedToken && now < tokenExpiry - 60_000) {
-    return cachedToken;
-  }
-
-  const clientId = process.env.IGDB_CLIENT_ID;
-  const clientSecret = process.env.IGDB_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error("Missing IGDB credentials");
-  }
+  if (cachedToken && now < tokenExpiry - 60_000) return cachedToken;
 
   const res = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
+    `https://id.twitch.tv/oauth2/token?client_id=${process.env.IGDB_CLIENT_ID}&client_secret=${process.env.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
     { method: "POST" }
   );
 
   const data = await res.json();
-  if (!res.ok) throw new Error("OAuth failed");
-
   cachedToken = data.access_token;
   tokenExpiry = now + data.expires_in * 1000;
   return cachedToken;
 }
 
-/* =========================
-   HELPERS
-========================= */
 function unix(date) {
   return Math.floor(date.getTime() / 1000);
 }
@@ -53,48 +35,27 @@ function normalizeGame(g) {
     releaseDate: g.first_release_date
       ? new Date(g.first_release_date * 1000).toISOString()
       : null,
-    rating: g.rating ?? null,
-    aggregated_rating: g.aggregated_rating ?? null,
-    aggregated_rating_count: g.aggregated_rating_count ?? null,
     coverUrl: normalizeCover(g.cover?.url),
-    platforms: Array.isArray(g.platforms)
-      ? g.platforms.map(p => p.name).filter(Boolean)
-      : [],
+    platforms: g.platforms?.map(p => p.name) || [],
     category: g.genres?.[0]?.name ?? null,
   };
 }
 
-/* =========================
-   QUERY
-========================= */
 function buildQuery() {
   const past = new Date();
   const future = new Date();
 
-  past.setMonth(past.getMonth() - 2);   // fetch recent history
+  past.setMonth(past.getMonth() - 3);   // last 3 months
   future.setMonth(future.getMonth() + 12);
 
   return `
-    fields
-      name,
-      first_release_date,
-      rating,
-      aggregated_rating,
-      aggregated_rating_count,
-      cover.url,
-      platforms.name,
-      genres.name;
-    where
-      first_release_date >= ${unix(past)} &
-      first_release_date <= ${unix(future)};
-    sort first_release_date desc;
+    fields name, first_release_date, cover.url, platforms.name, genres.name;
+    where first_release_date >= ${unix(past)} & first_release_date <= ${unix(future)};
+    sort first_release_date asc;
     limit 500;
   `;
 }
 
-/* =========================
-   HANDLER (LOCKED)
-========================= */
 export default async function handler(req, res) {
   try {
     const token = await getTwitchToken();
@@ -110,26 +71,20 @@ export default async function handler(req, res) {
     });
 
     const raw = await igdbRes.json();
-    if (!igdbRes.ok) throw new Error("IGDB request failed");
-
     const now = Date.now();
-    const OUT_NOW_WINDOW = 30 * 86400000; // 30 days
 
     const outNow = [];
     const comingSoon = [];
 
-    raw
-      .map(normalizeGame)
-      .filter(g => g.releaseDate && g.coverUrl)
-      .forEach(game => {
-        const t = new Date(game.releaseDate).getTime();
+    raw.map(normalizeGame).forEach(game => {
+      if (!game.releaseDate || !game.coverUrl) return;
 
-        if (t <= now && now - t <= OUT_NOW_WINDOW) {
-          outNow.push(game);
-        } else if (t > now) {
-          comingSoon.push(game);
-        }
-      });
+      const t = new Date(game.releaseDate).getTime();
+
+      // 🔒 LOCKED RULE
+      if (t <= now) outNow.push(game);
+      else comingSoon.push(game);
+    });
 
     res.status(200).json({
       ok: true,
@@ -137,9 +92,6 @@ export default async function handler(req, res) {
       comingSoon,
     });
   } catch (err) {
-    res.status(500).json({
-      ok: false,
-      error: err.message,
-    });
+    res.status(500).json({ ok: false, error: err.message });
   }
 }

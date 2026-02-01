@@ -4,7 +4,7 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   AGE GATE (RESTORED)
+   AGE GATE (LOCKED)
 ========================= */
 const ageGate = document.getElementById("ageGate");
 const ageBtn = document.getElementById("ageConfirmBtn");
@@ -25,25 +25,27 @@ if (ageGate && ageBtn) {
 /* =========================
    STATE
 ========================= */
-let allGames = [];
+let outNowGames = [];
+let comingSoonGames = [];
+
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 
-let activeTime = "all";
-let activeSection = "out";
-let activePlatform = "all";
+let activeSection = "out";      // out | soon
+let activeTime = "all";         // all | today | week | month
+let activePlatform = "all";     // all | pc | xbox | etc
 
 /* =========================
-   PLATFORM MAP
+   PLATFORM MATCHING (NAMES)
 ========================= */
-const PLATFORM_MAP = {
-  pc: [6],
-  playstation: [48, 49, 167],
-  xbox: [49, 169],
-  nintendo: [130, 167],
-  ios: [39],
-  android: [34],
-};
+function matchesPlatform(game, platform) {
+  if (!Array.isArray(game.platforms)) return false;
+
+  const p = platform.toLowerCase();
+  return game.platforms.some(name =>
+    name.toLowerCase().includes(p)
+  );
+}
 
 /* =========================
    FETCH
@@ -54,9 +56,11 @@ async function loadGames() {
     const res = await fetch("/api/igdb");
     const data = await res.json();
 
-    allGames = [...data.outNow, ...data.comingSoon];
+    outNowGames = data.outNow || [];
+    comingSoonGames = data.comingSoon || [];
+
     applyFilters(true);
-  } catch (e) {
+  } catch {
     errorBox.textContent = "Failed to load games.";
   } finally {
     loading.style.display = "none";
@@ -69,31 +73,40 @@ async function loadGames() {
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
-  let filtered = [...allGames];
+  let source =
+    activeSection === "out"
+      ? outNowGames
+      : comingSoonGames;
+
+  let filtered = [...source];
   const now = new Date();
 
-  // SECTION
-  filtered = filtered.filter(g =>
-    activeSection === "out"
-      ? new Date(g.releaseDate) <= now
-      : new Date(g.releaseDate) > now
-  );
-
-  // TIME
+  // TIME FILTER
   filtered = filtered.filter(g => {
+    if (!g.releaseDate) return false;
     const d = new Date(g.releaseDate);
-    if (activeTime === "today") return d.toDateString() === now.toDateString();
-    if (activeTime === "week") return d - now <= 7 * 86400000;
-    if (activeTime === "month") return d - now <= 30 * 86400000;
+
+    if (activeTime === "today") {
+      return d.toDateString() === now.toDateString();
+    }
+
+    if (activeTime === "week") {
+      const diff = d - now;
+      return diff >= 0 && diff <= 7 * 86400000;
+    }
+
+    if (activeTime === "month") {
+      const diff = d - now;
+      return diff >= 0 && diff <= 30 * 86400000;
+    }
+
     return true;
   });
 
-  // PLATFORM
+  // PLATFORM FILTER
   if (activePlatform !== "all") {
-    const validIds = PLATFORM_MAP[activePlatform] || [];
     filtered = filtered.filter(g =>
-      Array.isArray(g.platformIds) &&
-      g.platformIds.some(id => validIds.includes(id))
+      matchesPlatform(g, activePlatform)
     );
   }
 
@@ -109,39 +122,58 @@ function render(list) {
 
   grid.innerHTML = "";
 
+  if (!slice.length) {
+    grid.innerHTML = "<p>No games found.</p>";
+    showMoreBtn.style.display = "none";
+    return;
+  }
+
   slice.forEach(game => {
+    const rating =
+      game.aggregated_rating
+        ? `${Math.round(game.aggregated_rating)}/100`
+        : null;
+
     const card = document.createElement("div");
     card.className = "card";
 
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
-      <img src="${game.cover}" loading="lazy" />
+      <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
         <div class="badge-row">
-          ${game.genres.map(g => `<span class="badge-category">${g}</span>`).join("")}
+          ${game.category ? `<span class="badge-category">${game.category}</span>` : ""}
         </div>
         <div class="card-title">${game.name}</div>
-        <div class="card-meta">${game.releaseDate}</div>
+        <div class="card-meta">
+          ${new Date(game.releaseDate).toLocaleDateString()}
+          ${rating ? ` • ⭐ ${rating}` : ""}
+        </div>
       </div>
     `;
 
     grid.appendChild(card);
   });
 
-  showMoreBtn.style.display = visibleCount < list.length ? "block" : "none";
+  showMoreBtn.style.display =
+    visibleCount < list.length ? "block" : "none";
 }
 
 /* =========================
    PLATFORM ICONS
 ========================= */
 function renderPlatforms(game) {
-  if (!game.platformIds) return "";
+  if (!Array.isArray(game.platforms)) return "";
 
   const icons = [];
-  if (game.platformIds.includes(6)) icons.push(`<span class="platform-chip pc">PC</span>`);
-  if ([48,49].some(id => game.platformIds.includes(id))) icons.push(`<span class="platform-chip xbox">Xbox</span>`);
-  if ([130,167].some(id => game.platformIds.includes(id))) icons.push(`<span class="platform-chip">Switch</span>`);
-  if (game.platformIds.includes(39)) icons.push(`<span class="platform-chip">iOS</span>`);
+  const names = game.platforms.join(" ").toLowerCase();
+
+  if (names.includes("windows")) icons.push(`<span class="platform-chip pc">PC</span>`);
+  if (names.includes("xbox")) icons.push(`<span class="platform-chip xbox">Xbox</span>`);
+  if (names.includes("playstation")) icons.push(`<span class="platform-chip">PS</span>`);
+  if (names.includes("switch")) icons.push(`<span class="platform-chip">Switch</span>`);
+  if (names.includes("ios")) icons.push(`<span class="platform-chip">iOS</span>`);
+  if (names.includes("android")) icons.push(`<span class="platform-chip">Android</span>`);
 
   return icons.join("");
 }
@@ -179,7 +211,9 @@ showMoreBtn.onclick = () => applyFilters();
    UI HELPERS
 ========================= */
 function setActive(button) {
-  button.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  button.parentElement
+    .querySelectorAll("button")
+    .forEach(b => b.classList.remove("active"));
   button.classList.add("active");
 }
 

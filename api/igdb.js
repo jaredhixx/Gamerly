@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly — FIXED date window + ratings (stable)
+// Gamerly — FINAL stable backend (platform-safe)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -35,18 +35,6 @@ async function getTwitchToken() {
 }
 
 /* =========================
-   CONSTANTS
-========================= */
-const PLATFORM_MAP = {
-  pc: [6],
-  playstation: [48, 167],
-  xbox: [49, 169],
-  nintendo: [130],
-  ios: [39],
-  android: [34],
-};
-
-/* =========================
    HELPERS
 ========================= */
 function unix(date) {
@@ -77,32 +65,15 @@ function normalizeGame(g) {
 }
 
 /* =========================
-   QUERY BUILDER (FIXED)
+   QUERY BUILDER (NO PLATFORM FILTER)
 ========================= */
-function buildQuery({ platforms }) {
+function buildQuery() {
   const now = new Date();
   const past = new Date();
   const future = new Date();
 
   past.setMonth(past.getMonth() - 6);
   future.setMonth(future.getMonth() + 6);
-
-  let platformIds = [];
-
-  platforms.forEach(p => {
-    if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
-  });
-
-  platformIds = [...new Set(platformIds)];
-
-  const where = [
-    `first_release_date >= ${unix(past)}`,
-    `first_release_date <= ${unix(future)}`,
-  ];
-
-  if (platformIds.length) {
-    where.push(`platforms = (${platformIds.join(",")})`);
-  }
 
   return `
     fields
@@ -114,7 +85,9 @@ function buildQuery({ platforms }) {
       cover.url,
       platforms.name,
       genres.name;
-    where ${where.join(" & ")};
+    where
+      first_release_date >= ${unix(past)} &
+      first_release_date <= ${unix(future)};
     sort first_release_date desc;
     limit 500;
   `;
@@ -125,10 +98,6 @@ function buildQuery({ platforms }) {
 ========================= */
 export default async function handler(req, res) {
   try {
-    const platforms = (req.query.platforms || "")
-      .split(",")
-      .filter(Boolean);
-
     const token = await getTwitchToken();
 
     const igdbRes = await fetch("https://api.igdb.com/v4/games", {
@@ -138,7 +107,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${token}`,
         "Content-Type": "text/plain",
       },
-      body: buildQuery({ platforms }),
+      body: buildQuery(),
     });
 
     const data = await igdbRes.json();

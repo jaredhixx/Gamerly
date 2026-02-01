@@ -257,3 +257,47 @@ main {
 .lazy-img.loaded {
   opacity: 1;
 }
+
+/* =========================
+   PLATFORM ICON VISIBILITY FIX
+========================= */
+
+/* Ensure overlay always visible */
+.platform-overlay {
+  pointer-events: none;
+}
+
+/* Add subtle contrast plate behind icons */
+.platform-overlay::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    rgba(0,0,0,0.65),
+    rgba(0,0,0,0.25)
+  );
+  z-index: -1;
+}
+
+/* Slightly increase icon presence */
+.platform-chip {
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  background: rgba(0,0,0,0.65);
+}
+
+/* Xbox stays recognizable */
+.platform-chip.xbox {
+  color: #22c55e;
+  border-color: rgba(34,197,94,0.6);
+  text-shadow: 0 0 6px rgba(34,197,94,0.4);
+}
+
+/* Neutral text platforms */
+.platform-chip:not(.xbox) {
+  color: rgba(255,255,255,0.95);
+}

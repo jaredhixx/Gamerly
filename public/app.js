@@ -1,9 +1,10 @@
 // public/app.js
-// Gamerly — Stable build with platform overlay + modern age gate
+// Gamerly — Base stabilization build (filters + see more fixed)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
+const showMoreBtn = document.getElementById("showMore");
 
 const ageGate = document.getElementById("ageGate");
 const ageConfirmBtn = document.getElementById("ageConfirmBtn");
@@ -12,11 +13,14 @@ const sectionButtons = document.querySelectorAll(".section-segment button");
 const timeButtons = document.querySelectorAll(".time-segment button");
 const platformButtons = document.querySelectorAll("[data-platform]");
 
+const PAGE_SIZE = 36;
+
 const state = {
-  section: "out-now", // out-now | coming-soon
-  timeFilter: "all",  // all | today | week | month
+  section: "out-now",        // out-now | coming-soon
+  timeFilter: "all",         // all | today | week | month
   platforms: new Set(),
   data: { outNow: [], comingSoon: [] },
+  visibleCount: PAGE_SIZE,
 };
 
 /* =========================
@@ -51,7 +55,7 @@ function buildApiUrl() {
 }
 
 /* =========================
-   TIME FILTERS
+   TIME FILTERS (FIXED)
 ========================= */
 function applyTimeFilter(games) {
   if (state.timeFilter === "all") return games;
@@ -67,34 +71,45 @@ function applyTimeFilter(games) {
     if (!g.releaseDate) return false;
     const t = new Date(g.releaseDate).getTime();
 
-    if (state.timeFilter === "today") {
-      return t >= todayStart && t < todayStart + 86400000;
+    if (state.section === "out-now") {
+      if (state.timeFilter === "today") {
+        return t >= todayStart && t < todayStart + 86400000;
+      }
+      if (state.timeFilter === "week") {
+        return t >= todayStart - 6 * 86400000 && t <= todayStart;
+      }
+      if (state.timeFilter === "month") {
+        return t >= todayStart - 29 * 86400000 && t <= todayStart;
+      }
     }
-    if (state.timeFilter === "week") {
-      return t >= todayStart - 6 * 86400000 &&
-             t <= todayStart + 7 * 86400000;
+
+    if (state.section === "coming-soon") {
+      if (state.timeFilter === "today") {
+        return t >= todayStart && t < todayStart + 86400000;
+      }
+      if (state.timeFilter === "week") {
+        return t > todayStart && t <= todayStart + 7 * 86400000;
+      }
+      if (state.timeFilter === "month") {
+        return t > todayStart && t <= todayStart + 30 * 86400000;
+      }
     }
-    if (state.timeFilter === "month") {
-      return t >= todayStart - 29 * 86400000 &&
-             t <= todayStart + 30 * 86400000;
-    }
+
     return true;
   });
 }
 
 /* =========================
-   PLATFORM OVERLAY CHIPS
+   PLATFORM OVERLAY
 ========================= */
 function mapPlatformChip(name) {
   const n = name.toLowerCase();
-
   if (n.includes("xbox")) return { cls: "xbox", label: "Ⓧ" };
   if (n.includes("playstation")) return { cls: "", label: "PS" };
   if (n.includes("pc")) return { cls: "", label: "PC" };
   if (n.includes("switch") || n.includes("nintendo")) return { cls: "", label: "Switch" };
   if (n.includes("ios")) return { cls: "", label: "iOS" };
   if (n.includes("android")) return { cls: "", label: "Android" };
-
   return null;
 }
 
@@ -107,11 +122,8 @@ function renderPlatformOverlay(game) {
   game.platforms.forEach(p => {
     const chip = mapPlatformChip(p);
     if (!chip || seen.has(chip.label)) return;
-
     seen.add(chip.label);
-    chips.push(
-      `<span class="platform-chip ${chip.cls}">${chip.label}</span>`
-    );
+    chips.push(`<span class="platform-chip ${chip.cls}">${chip.label}</span>`);
   });
 
   return chips.length
@@ -126,29 +138,24 @@ function render(games) {
   grid.innerHTML = "";
 
   const filtered = applyTimeFilter(games);
+  const visible = filtered.slice(0, state.visibleCount);
 
-  if (!filtered.length) {
+  if (!visible.length) {
     grid.innerHTML = "<p>No games found.</p>";
+    showMoreBtn.style.display = "none";
     return;
   }
 
-  filtered.slice(0, 36).forEach(g => {
+  visible.forEach(g => {
     const card = document.createElement("div");
     card.className = "card";
 
     card.innerHTML = `
       ${renderPlatformOverlay(g)}
-      <img
-        class="lazy-img"
-        loading="lazy"
-        src="${g.coverUrl || ""}"
-        alt="${g.name}"
-      >
+      <img class="lazy-img" loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
       <div class="card-body">
         <div class="badge-row">
-          ${g.category
-            ? `<span class="badge-category">${g.category.replace("Role-playing (RPG)", "RPG")}</span>`
-            : ""}
+          ${g.category ? `<span class="badge-category">${g.category.replace("Role-playing (RPG)", "RPG")}</span>` : ""}
         </div>
         <div class="card-title">${g.name}</div>
         <div class="card-meta">
@@ -162,6 +169,9 @@ function render(games) {
 
     grid.appendChild(card);
   });
+
+  showMoreBtn.style.display =
+    state.visibleCount < filtered.length ? "inline-flex" : "none";
 }
 
 /* =========================
@@ -170,6 +180,7 @@ function render(games) {
 async function fetchGames() {
   loading.style.display = "block";
   errorBox.textContent = "";
+  state.visibleCount = PAGE_SIZE;
 
   try {
     const res = await fetch(buildApiUrl());
@@ -183,11 +194,7 @@ async function fetchGames() {
     sectionButtons[1].innerHTML =
       `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
 
-    render(
-      state.section === "out-now"
-        ? data.outNow
-        : data.comingSoon
-    );
+    render(state.section === "out-now" ? data.outNow : data.comingSoon);
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -198,20 +205,20 @@ async function fetchGames() {
 /* =========================
    EVENTS
 ========================= */
+showMoreBtn.onclick = () => {
+  state.visibleCount += PAGE_SIZE;
+  render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
+};
+
 sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-
     state.section = btn.textContent.toLowerCase().includes("coming")
       ? "coming-soon"
       : "out-now";
-
-    render(
-      state.section === "out-now"
-        ? state.data.outNow
-        : state.data.comingSoon
-    );
+    state.visibleCount = PAGE_SIZE;
+    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };
 });
 
@@ -227,11 +234,8 @@ timeButtons.forEach(btn => {
       label.includes("month") ? "month" :
       "all";
 
-    render(
-      state.section === "out-now"
-        ? state.data.outNow
-        : state.data.comingSoon
-    );
+    state.visibleCount = PAGE_SIZE;
+    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };
 });
 
@@ -241,7 +245,6 @@ platformButtons.forEach(btn => {
     btn.classList.contains("active")
       ? state.platforms.add(btn.dataset.platform)
       : state.platforms.delete(btn.dataset.platform);
-
     fetchGames();
   };
 });

@@ -1,13 +1,10 @@
 // api/igdb.js
-// Gamerly IGDB API — RELIABLE version (date filtering done server-side)
+// IGDB absolute minimal sanity test
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
-/* =========================
-   AUTH
-========================= */
-async function getTwitchToken() {
+async function getToken() {
   const now = Date.now();
 
   if (cachedToken && now < tokenExpiry - 60_000) {
@@ -18,7 +15,7 @@ async function getTwitchToken() {
   const clientSecret = process.env.IGDB_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error("Missing IGDB_CLIENT_ID or IGDB_CLIENT_SECRET");
+    throw new Error("Missing IGDB env vars");
   }
 
   const res = await fetch(
@@ -29,7 +26,7 @@ async function getTwitchToken() {
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(`Twitch OAuth failed: ${JSON.stringify(data)}`);
+    throw new Error(JSON.stringify(data));
   }
 
   cachedToken = data.access_token;
@@ -37,90 +34,9 @@ async function getTwitchToken() {
   return cachedToken;
 }
 
-/* =========================
-   CONSTANTS
-========================= */
-const PLATFORM_MAP = {
-  pc: [6],
-  playstation: [48, 167],
-  xbox: [49, 169],
-  nintendo: [130],
-  ios: [39],
-  android: [34],
-};
-
-/* =========================
-   HELPERS
-========================= */
-function unix(date) {
-  return Math.floor(date.getTime() / 1000);
-}
-
-function normalizeCover(url) {
-  if (!url) return null;
-  return `https:${url}`.replace("t_thumb", "t_cover_big");
-}
-
-function normalizeGame(g) {
-  return {
-    id: g.id ?? null,
-    name: g.name ?? "Unknown title",
-    releaseDate: g.first_release_date
-      ? new Date(g.first_release_date * 1000).toISOString()
-      : null,
-    rating: typeof g.rating === "number" ? Math.round(g.rating) : null,
-    coverUrl: normalizeCover(g.cover?.url),
-    platforms: Array.isArray(g.platforms)
-      ? g.platforms.map(p => p.name).filter(Boolean)
-      : [],
-  };
-}
-
-/* =========================
-   IGDB QUERY (NO DATE FILTERS)
-========================= */
-function buildIgdbQuery({ platforms, sort }) {
-  let platformIds = [];
-  platforms.forEach(p => {
-    if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
-  });
-  platformIds = [...new Set(platformIds)];
-
-  const whereParts = [
-    "name != null",
-    "category = (0,8,9,10)",
-  ];
-
-  if (platformIds.length) {
-    whereParts.push(`platforms = (${platformIds.join(",")})`);
-  }
-
-  let sortClause = "sort first_release_date desc;";
-  if (sort === "highest_rated") sortClause = "sort rating desc;";
-  if (sort === "az") sortClause = "sort name asc;";
-
-  return `
-    fields
-      name,
-      first_release_date,
-      rating,
-      cover.url,
-      platforms.name;
-    where ${whereParts.join(" & ")};
-    ${sortClause}
-    limit 50;
-  `;
-}
-
-/* =========================
-   HANDLER
-========================= */
 export default async function handler(req, res) {
   try {
-    const platforms = (req.query.platforms || "").split(",").filter(Boolean);
-    const sort = req.query.sort || "newest";
-
-    const token = await getTwitchToken();
+    const token = await getToken();
 
     const igdbRes = await fetch("https://api.igdb.com/v4/games", {
       method: "POST",
@@ -129,37 +45,22 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "text/plain",
       },
-      body: buildIgdbQuery({ platforms, sort }),
+      body: `
+        fields name, cover.url;
+        limit 10;
+      `,
     });
 
-    const rawGames = await igdbRes.json();
+    const games = await igdbRes.json();
 
     if (!igdbRes.ok) {
-      throw new Error(JSON.stringify(rawGames));
+      throw new Error(JSON.stringify(games));
     }
-
-    /* =========================
-       SERVER-SIDE DATE FILTER
-    ========================= */
-    const now = Date.now();
-    const sixMonthsAhead = now + 183 * 24 * 60 * 60 * 1000;
-
-    const filteredGames = rawGames.filter(g => {
-      if (!g.first_release_date) return true; // allow unknown dates
-      const releaseMs = g.first_release_date * 1000;
-      return releaseMs <= sixMonthsAhead;
-    });
-
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
 
     res.status(200).json({
       ok: true,
-      meta: {
-        platforms,
-        sort,
-        futureCapMonths: 6,
-      },
-      games: filteredGames.map(normalizeGame),
+      count: games.length,
+      games,
     });
   } catch (err) {
     res.status(500).json({

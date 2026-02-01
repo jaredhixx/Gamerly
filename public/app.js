@@ -25,30 +25,16 @@ if (ageGate && ageBtn) {
 /* =========================
    STATE (LOCKED)
 ========================= */
-let outNowGames = [];
-let comingSoonGames = [];
+let allGames = [];
 
-let activeSection = "out";   // out | soon
-let activeTime = "all";      // all | today | week | month
+let activeSection = "out";     // out | soon (soon is UI-only)
 let activePlatform = "all";
 
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 
 /* =========================
-   PLATFORM MAP (IGDB)
-========================= */
-const PLATFORM_MAP = {
-  pc: [6],
-  playstation: [48, 49, 167],
-  xbox: [49, 169],
-  nintendo: [130, 167],
-  ios: [39],
-  android: [34],
-};
-
-/* =========================
-   FETCH (LOCKED)
+   FETCH (LOCKED TO BACKEND)
 ========================= */
 async function loadGames() {
   try {
@@ -57,19 +43,19 @@ async function loadGames() {
 
     const res = await fetch("/api/igdb");
     const data = await res.json();
+
     if (!data.ok) throw new Error("API failed");
 
-    outNowGames = data.outNow || [];
-    comingSoonGames = data.comingSoon || [];
+    allGames = data.outNow || [];
 
-    // Restore counts (trust signal)
+    // Trust signal counts
     document.querySelector(".section-segment button:nth-child(1)").innerHTML =
-      `Out Now <span class="count">${outNowGames.length}</span>`;
+      `Out Now <span class="count">${allGames.length}</span>`;
     document.querySelector(".section-segment button:nth-child(2)").innerHTML =
-      `Coming Soon <span class="count">${comingSoonGames.length}</span>`;
+      `Coming Soon <span class="count">0</span>`;
 
     applyFilters(true);
-  } catch {
+  } catch (e) {
     errorBox.textContent = "Failed to load games.";
   } finally {
     loading.style.display = "none";
@@ -77,46 +63,26 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (FINAL)
+   FILTERS (LOCKED)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
-  let list =
-    activeSection === "out"
-      ? [...outNowGames]
-      : [...comingSoonGames];
-
-  /* PLATFORM FILTER */
-  if (activePlatform !== "all") {
-    const validIds = PLATFORM_MAP[activePlatform] || [];
-    list = list.filter(game =>
-      Array.isArray(game.platformIds) &&
-      game.platformIds.some(id => validIds.includes(id))
-    );
+  // Coming Soon is intentionally empty (Option A)
+  if (activeSection === "soon") {
+    render([]);
+    return;
   }
 
-  /* TIME FILTER
-     - Out Now: intentionally NONE
-     - Coming Soon: bounded windows
-  */
-  if (activeSection === "soon" && activeTime !== "all") {
-    const now = new Date();
+  let list = [...allGames];
 
-    list = list.filter(game => {
-      const d = new Date(game.releaseDate);
-
-      if (activeTime === "today") {
-        return d.toDateString() === now.toDateString();
-      }
-      if (activeTime === "week") {
-        return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
-      }
-      if (activeTime === "month") {
-        return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
-      }
-      return true;
-    });
+  // PLATFORM FILTER (string-based, stable)
+  if (activePlatform !== "all") {
+    const key = activePlatform.toLowerCase();
+    list = list.filter(game =>
+      Array.isArray(game.platforms) &&
+      game.platforms.some(p => p.toLowerCase().includes(key))
+    );
   }
 
   render(list);
@@ -132,7 +98,7 @@ function render(list) {
   grid.innerHTML = "";
 
   if (!slice.length) {
-    grid.innerHTML = "<p>No games found.</p>";
+    grid.innerHTML = `<p class="empty">No games found.</p>`;
     showMoreBtn.style.display = "none";
     return;
   }
@@ -143,13 +109,11 @@ function render(list) {
 
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
-      <img src="${game.cover || ""}" loading="lazy" />
+      <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
-        <div class="badge-row">
-          ${(game.genres || [])
-            .map(g => `<span class="badge-category">${g}</span>`)
-            .join("")}
-        </div>
+        ${game.category ? `<div class="badge-row">
+          <span class="badge-category">${game.category}</span>
+        </div>` : ""}
         <div class="card-title">${game.name}</div>
         <div class="card-meta">
           ${new Date(game.releaseDate).toLocaleDateString()}
@@ -165,36 +129,27 @@ function render(list) {
 }
 
 /* =========================
-   PLATFORM ICONS (IGDB SAFE)
+   PLATFORM ICONS (LOCKED)
 ========================= */
 function renderPlatforms(game) {
-  if (!Array.isArray(game.platformIds)) return "";
+  if (!Array.isArray(game.platforms)) return "";
 
-  const ids = game.platformIds;
+  const p = game.platforms.join(" ").toLowerCase();
   const chips = [];
 
-  if (ids.includes(6)) chips.push(`<span class="platform-chip pc">PC</span>`);
-  if ([48,49,169].some(id => ids.includes(id)))
-    chips.push(`<span class="platform-chip xbox">Xbox</span>`);
-  if ([130,167].some(id => ids.includes(id)))
-    chips.push(`<span class="platform-chip">Switch</span>`);
-  if (ids.includes(39)) chips.push(`<span class="platform-chip">iOS</span>`);
-  if (ids.includes(34)) chips.push(`<span class="platform-chip">Android</span>`);
+  if (p.includes("windows")) chips.push(`<span class="platform-chip pc">PC</span>`);
+  if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
+  if (p.includes("playstation")) chips.push(`<span class="platform-chip">PS</span>`);
+  if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
+  if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
+  if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
 
   return chips.join("");
 }
 
 /* =========================
-   EVENTS
+   EVENTS (LOCKED)
 ========================= */
-document.querySelectorAll(".time-segment button").forEach(btn => {
-  btn.onclick = () => {
-    activeTime = btn.textContent.toLowerCase().replace(" ", "");
-    setActive(btn);
-    applyFilters(true);
-  };
-});
-
 document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
     activeSection = btn.textContent.includes("Out") ? "out" : "soon";

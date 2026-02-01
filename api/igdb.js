@@ -1,26 +1,38 @@
 // api/igdb.js
-// Gamerly IGDB API — FINAL FIX (time-windowed future releases)
+// IGDB endpoint with staged loading support
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
+// ===== AUTH =====
 async function getTwitchToken() {
   const now = Date.now();
-  if (cachedToken && now < tokenExpiry - 60_000) return cachedToken;
+
+  if (cachedToken && now < tokenExpiry - 60_000) {
+    return cachedToken;
+  }
+
+  const clientId = process.env.IGDB_CLIENT_ID;
+  const clientSecret = process.env.IGDB_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error("Missing IGDB_CLIENT_ID or IGDB_CLIENT_SECRET");
+  }
 
   const res = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${process.env.IGDB_CLIENT_ID}&client_secret=${process.env.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
+    `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
     { method: "POST" }
   );
 
   const data = await res.json();
-  if (!res.ok) throw new Error(JSON.stringify(data));
+  if (!res.ok) throw new Error("OAuth failed");
 
   cachedToken = data.access_token;
   tokenExpiry = now + data.expires_in * 1000;
   return cachedToken;
 }
 
+// ===== CONSTANTS =====
 const PLATFORM_MAP = {
   pc: [6],
   playstation: [48, 167],
@@ -30,107 +42,86 @@ const PLATFORM_MAP = {
   android: [34],
 };
 
-function normalizeGame(g) {
-  const date =
-    g.first_release_date
-      ? new Date(g.first_release_date * 1000)
-      : g.release_dates?.[0]?.date
-        ? new Date(g.release_dates[0].date * 1000)
-        : null;
+// ===== HELPERS =====
+function unix(date) {
+  return Math.floor(date.getTime() / 1000);
+}
 
+function normalizeCover(url) {
+  if (!url) return null;
+  return `https:${url}`.replace("t_thumb", "t_cover_big");
+}
+
+function normalizeGame(g) {
   return {
-    id: g.id,
-    name: g.name,
-    releaseDate: date ? date.toISOString() : null,
-    rating: g.rating ? Math.round(g.rating) : null,
-    coverUrl: g.cover?.url
-      ? `https:${g.cover.url}`.replace("t_thumb", "t_cover_big")
+    id: g.id ?? null,
+    name: g.name ?? "Unknown title",
+    releaseDate: g.first_release_date
+      ? new Date(g.first_release_date * 1000).toISOString()
       : null,
-    platforms: g.platforms?.map(p => p.name) || [],
+    rating: typeof g.rating === "number" ? Math.round(g.rating) : null,
+    coverUrl: normalizeCover(g.cover?.url),
+    platforms: Array.isArray(g.platforms)
+      ? g.platforms.map(p => p.name).filter(Boolean)
+      : [],
   };
 }
 
-async function fetchWindow(token, whereParts, from, to) {
-  const res = await fetch("https://api.igdb.com/v4/games", {
-    method: "POST",
-    headers: {
-      "Client-ID": process.env.IGDB_CLIENT_ID,
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "text/plain",
-    },
-    body: `
-      fields name, first_release_date, release_dates.date, rating, cover.url, platforms.name;
-      where ${whereParts.join(" & ")} &
-            release_dates.date >= ${from} &
-            release_dates.date < ${to};
-      sort release_dates.date asc;
-      limit 500;
-    `,
+// ===== QUERY BUILDER =====
+function buildQuery({ platforms, limit }) {
+  let platformIds = [];
+
+  platforms.forEach(p => {
+    if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
   });
 
-  const batch = await res.json();
-  if (!res.ok) throw new Error(JSON.stringify(batch));
-  return batch;
+  platformIds = [...new Set(platformIds)];
+
+  const where = [
+    "name != null",
+    "first_release_date != null",
+  ];
+
+  if (platformIds.length) {
+    where.push(`platforms = (${platformIds.join(",")})`);
+  }
+
+  return `
+    fields name, first_release_date, rating, cover.url, platforms.name;
+    where ${where.join(" & ")};
+    sort first_release_date desc;
+    limit ${limit};
+  `;
 }
 
+// ===== HANDLER =====
 export default async function handler(req, res) {
   try {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
+    const mode = req.query.mode || "full";
 
-    let platformIds = [];
-    platforms.forEach(p => {
-      if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
-    });
-    platformIds = [...new Set(platformIds)];
-
-    const whereParts = ["name != null"];
-    if (platformIds.length) {
-      whereParts.push(`platforms = (${platformIds.join(",")})`);
-    }
+    // 🔑 KEY DIFFERENCE
+    const limit = mode === "initial" ? 72 : 1000;
 
     const token = await getTwitchToken();
-    const allGames = new Map();
 
-    // 🔹 Past + recently updated (unchanged)
-    const baseRes = await fetch("https://api.igdb.com/v4/games", {
+    const igdbRes = await fetch("https://api.igdb.com/v4/games", {
       method: "POST",
       headers: {
         "Client-ID": process.env.IGDB_CLIENT_ID,
         "Authorization": `Bearer ${token}`,
         "Content-Type": "text/plain",
       },
-      body: `
-        fields name, first_release_date, rating, cover.url, platforms.name, updated_at;
-        where ${whereParts.join(" & ")};
-        sort updated_at desc;
-        limit 500;
-      `,
+      body: buildQuery({ platforms, limit }),
     });
 
-    const baseGames = await baseRes.json();
-    baseGames.forEach(g => allGames.set(g.id, normalizeGame(g)));
-
-    // 🔹 FUTURE WINDOWS (3-month slices)
-    const YEAR_2026 = [
-      [Date.UTC(2026, 0, 1), Date.UTC(2026, 3, 1)],
-      [Date.UTC(2026, 3, 1), Date.UTC(2026, 6, 1)],
-      [Date.UTC(2026, 6, 1), Date.UTC(2026, 9, 1)],
-      [Date.UTC(2026, 9, 1), Date.UTC(2027, 0, 1)],
-    ];
-
-    for (const [fromMs, toMs] of YEAR_2026) {
-      const from = Math.floor(fromMs / 1000);
-      const to = Math.floor(toMs / 1000);
-
-      const windowGames = await fetchWindow(token, whereParts, from, to);
-      windowGames.forEach(g => allGames.set(g.id, normalizeGame(g)));
-    }
-
-    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+    const data = await igdbRes.json();
+    if (!igdbRes.ok) throw new Error("IGDB request failed");
 
     res.status(200).json({
       ok: true,
-      games: Array.from(allGames.values()),
+      mode,
+      games: data.map(normalizeGame),
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });

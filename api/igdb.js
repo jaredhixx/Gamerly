@@ -1,5 +1,5 @@
 // api/igdb.js
-// IGDB endpoint with staged loading support
+// IGDB endpoint with staged loading support (IGDB-safe limits)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -43,10 +43,6 @@ const PLATFORM_MAP = {
 };
 
 // ===== HELPERS =====
-function unix(date) {
-  return Math.floor(date.getTime() / 1000);
-}
-
 function normalizeCover(url) {
   if (!url) return null;
   return `https:${url}`.replace("t_thumb", "t_cover_big");
@@ -100,8 +96,8 @@ export default async function handler(req, res) {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
     const mode = req.query.mode || "full";
 
-    // 🔑 KEY DIFFERENCE
-    const limit = mode === "initial" ? 72 : 1000;
+    // ✅ IGDB SAFE LIMITS
+    const limit = mode === "initial" ? 72 : 500;
 
     const token = await getTwitchToken();
 
@@ -116,7 +112,9 @@ export default async function handler(req, res) {
     });
 
     const data = await igdbRes.json();
-    if (!igdbRes.ok) throw new Error("IGDB request failed");
+    if (!igdbRes.ok) {
+      throw new Error(JSON.stringify(data));
+    }
 
     res.status(200).json({
       ok: true,

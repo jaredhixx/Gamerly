@@ -1,24 +1,37 @@
 // api/igdb.js
-// Gamerly — FINAL stable classification
+// Gamerly — LOCKED backend (frontend handles all filtering)
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
+/* =========================
+   AUTH
+========================= */
 async function getTwitchToken() {
   const now = Date.now();
-  if (cachedToken && now < tokenExpiry - 60_000) return cachedToken;
+
+  if (cachedToken && now < tokenExpiry - 60_000) {
+    return cachedToken;
+  }
+
+  const clientId = process.env.IGDB_CLIENT_ID;
+  const clientSecret = process.env.IGDB_CLIENT_SECRET;
 
   const res = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${process.env.IGDB_CLIENT_ID}&client_secret=${process.env.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
+    `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
     { method: "POST" }
   );
 
   const data = await res.json();
   cachedToken = data.access_token;
   tokenExpiry = now + data.expires_in * 1000;
+
   return cachedToken;
 }
 
+/* =========================
+   HELPERS
+========================= */
 function unix(date) {
   return Math.floor(date.getTime() / 1000);
 }
@@ -41,12 +54,15 @@ function normalizeGame(g) {
   };
 }
 
+/* =========================
+   QUERY
+========================= */
 function buildQuery() {
   const past = new Date();
   const future = new Date();
 
-  past.setMonth(past.getMonth() - 3);   // last 3 months
-  future.setMonth(future.getMonth() + 12);
+  past.setMonth(past.getMonth() - 6);
+  future.setMonth(future.getMonth() + 18);
 
   return `
     fields name, first_release_date, cover.url, platforms.name, genres.name;
@@ -56,6 +72,9 @@ function buildQuery() {
   `;
 }
 
+/* =========================
+   HANDLER
+========================= */
 export default async function handler(req, res) {
   try {
     const token = await getTwitchToken();
@@ -71,27 +90,19 @@ export default async function handler(req, res) {
     });
 
     const raw = await igdbRes.json();
-    const now = Date.now();
 
-    const outNow = [];
-    const comingSoon = [];
-
-    raw.map(normalizeGame).forEach(game => {
-      if (!game.releaseDate || !game.coverUrl) return;
-
-      const t = new Date(game.releaseDate).getTime();
-
-      // 🔒 LOCKED RULE
-      if (t <= now) outNow.push(game);
-      else comingSoon.push(game);
-    });
+    const games = raw
+      .map(normalizeGame)
+      .filter(g => g.releaseDate && g.coverUrl);
 
     res.status(200).json({
       ok: true,
-      outNow,
-      comingSoon,
+      games,
     });
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    res.status(500).json({
+      ok: false,
+      error: err.message,
+    });
   }
 }

@@ -1,13 +1,11 @@
 // api/igdb.js
-// IGDB endpoint — correct Out Now / Coming Soon behavior
+// FINAL — correct Out Now / Coming Soon separation
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
-// ===== AUTH =====
 async function getTwitchToken() {
   const now = Date.now();
-
   if (cachedToken && now < tokenExpiry - 60_000) return cachedToken;
 
   const res = await fetch(
@@ -23,7 +21,6 @@ async function getTwitchToken() {
   return cachedToken;
 }
 
-// ===== CONSTANTS =====
 const PLATFORM_MAP = {
   pc: [6],
   playstation: [48, 167],
@@ -33,7 +30,6 @@ const PLATFORM_MAP = {
   android: [34],
 };
 
-// ===== HELPERS =====
 function normalizeCover(url) {
   if (!url) return null;
   return `https:${url}`.replace("t_thumb", "t_cover_big");
@@ -54,63 +50,69 @@ function normalizeGame(g) {
   };
 }
 
-// ===== QUERY BUILDER =====
-function buildQuery({ platforms, limit }) {
+function buildWhere({ platforms, mode }) {
   let platformIds = [];
-
-  platforms.forEach(p => {
-    if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
-  });
-
+  platforms.forEach(p => PLATFORM_MAP[p] && platformIds.push(...PLATFORM_MAP[p]));
   platformIds = [...new Set(platformIds)];
 
   const now = Math.floor(Date.now() / 1000);
-  const sixMonthsAhead = now + 183 * 24 * 60 * 60;
+  const sixMonths = 183 * 24 * 60 * 60;
 
-  const where = [
-    "name != null",
-    "first_release_date != null",
-    `first_release_date <= ${sixMonthsAhead}`, // ✅ future cap ONLY
-  ];
+  const where = ["name != null", "first_release_date != null"];
+
+  if (mode === "out-now") {
+    where.push(`first_release_date <= ${now}`);
+  }
+
+  if (mode === "coming-soon") {
+    where.push(`first_release_date > ${now}`);
+    where.push(`first_release_date <= ${now + sixMonths}`);
+  }
 
   if (platformIds.length) {
     where.push(`platforms = (${platformIds.join(",")})`);
   }
 
-  return `
-    fields name, first_release_date, rating, cover.url, platforms.name;
-    where ${where.join(" & ")};
-    sort first_release_date desc;
-    limit ${limit};
-  `;
+  return where.join(" & ");
 }
 
-// ===== HANDLER =====
+async function queryIGDB({ platforms, mode, limit }) {
+  const token = await getTwitchToken();
+
+  const res = await fetch("https://api.igdb.com/v4/games", {
+    method: "POST",
+    headers: {
+      "Client-ID": process.env.IGDB_CLIENT_ID,
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "text/plain",
+    },
+    body: `
+      fields name, first_release_date, rating, cover.url, platforms.name;
+      where ${buildWhere({ platforms, mode })};
+      sort first_release_date desc;
+      limit ${limit};
+    `,
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(JSON.stringify(data));
+  return data.map(normalizeGame);
+}
+
 export default async function handler(req, res) {
   try {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
-    const mode = req.query.mode || "full";
-    const limit = mode === "initial" ? 72 : 500;
+    const limit = 500;
 
-    const token = await getTwitchToken();
-
-    const igdbRes = await fetch("https://api.igdb.com/v4/games", {
-      method: "POST",
-      headers: {
-        "Client-ID": process.env.IGDB_CLIENT_ID,
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "text/plain",
-      },
-      body: buildQuery({ platforms, limit }),
-    });
-
-    const data = await igdbRes.json();
-    if (!igdbRes.ok) throw new Error(JSON.stringify(data));
+    const [outNow, comingSoon] = await Promise.all([
+      queryIGDB({ platforms, mode: "out-now", limit }),
+      queryIGDB({ platforms, mode: "coming-soon", limit }),
+    ]);
 
     res.status(200).json({
       ok: true,
-      mode,
-      games: data.map(normalizeGame),
+      outNow,
+      comingSoon,
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });

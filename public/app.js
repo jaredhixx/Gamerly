@@ -1,13 +1,10 @@
-// public/app.js
-// Gamerly — frontend-only split + clean ratings (LOCKED)
-
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   AGE GATE
+   AGE GATE (LOCKED)
 ========================= */
 const ageGate = document.getElementById("ageGate");
 const ageBtn = document.getElementById("ageConfirmBtn");
@@ -29,11 +26,9 @@ if (ageGate && ageBtn) {
    STATE
 ========================= */
 let allGames = [];
-let outNowGames = [];
-let comingSoonGames = [];
 
-let activeSection = "out";   // out | soon
-let activeTime = "all";      // all | today | week | month
+let activeSection = "out"; // out | soon
+let activeTime = "all";    // all | today | week | month
 let activePlatform = "all";
 
 let visibleCount = 0;
@@ -49,14 +44,10 @@ async function loadGames() {
 
     const res = await fetch("/api/igdb");
     const data = await res.json();
+    if (!data.ok) throw new Error("API failed");
 
-    if (!data.ok || !Array.isArray(data.games)) {
-      throw new Error("Invalid API response");
-    }
+    allGames = data.games || [];
 
-    allGames = data.games;
-    splitByCalendarDay();
-    updateCounts();
     applyFilters(true);
   } catch {
     errorBox.textContent = "Failed to load games.";
@@ -66,78 +57,45 @@ async function loadGames() {
 }
 
 /* =========================
-   CALENDAR SPLIT (LOCKED)
-========================= */
-function splitByCalendarDay() {
-  outNowGames = [];
-  comingSoonGames = [];
-
-  const now = new Date();
-  const endOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    23, 59, 59, 999
-  ).getTime();
-
-  const startOfTomorrow = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1,
-    0, 0, 0, 0
-  ).getTime();
-
-  allGames.forEach(game => {
-    if (!game.releaseDate) return;
-
-    const t = new Date(game.releaseDate).getTime();
-    if (t <= endOfToday) outNowGames.push(game);
-    else if (t >= startOfTomorrow) comingSoonGames.push(game);
-  });
-}
-
-/* =========================
-   COUNTS
-========================= */
-function updateCounts() {
-  const buttons = document.querySelectorAll(".section-segment button");
-  if (buttons.length >= 2) {
-    buttons[0].innerHTML = `Out Now <span class="count">${outNowGames.length}</span>`;
-    buttons[1].innerHTML = `Coming Soon <span class="count">${comingSoonGames.length}</span>`;
-  }
-}
-
-/* =========================
    FILTER PIPELINE
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
-  let list =
-    activeSection === "out"
-      ? [...outNowGames]
-      : [...comingSoonGames];
+  let list = [...allGames];
+  const now = new Date();
 
-  // Platform filter
+  // SECTION (frontend-only split — locked)
+  list = list.filter(game => {
+    if (!game.releaseDate) return false;
+    const d = new Date(game.releaseDate);
+    return activeSection === "out" ? d <= now : d > now;
+  });
+
+  // TIME FILTER
+  if (activeTime !== "all") {
+    list = list.filter(game => {
+      const d = new Date(game.releaseDate);
+      if (activeTime === "today") {
+        return d.toDateString() === now.toDateString();
+      }
+      if (activeTime === "week") {
+        return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
+      }
+      if (activeTime === "month") {
+        return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
+      }
+      return true;
+    });
+  }
+
+  // PLATFORM FILTER
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
     list = list.filter(game =>
       Array.isArray(game.platforms) &&
       game.platforms.some(p => p.toLowerCase().includes(key))
     );
-  }
-
-  // Time filter (only for coming soon)
-  if (activeSection === "soon" && activeTime !== "all") {
-    const now = new Date();
-
-    list = list.filter(game => {
-      const d = new Date(game.releaseDate);
-      if (activeTime === "today") return d.toDateString() === now.toDateString();
-      if (activeTime === "week") return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
-      if (activeTime === "month") return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
-      return true;
-    });
   }
 
   render(list);
@@ -149,6 +107,7 @@ function applyFilters(reset = false) {
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
   visibleCount = slice.length;
+
   grid.innerHTML = "";
 
   if (!slice.length) {
@@ -158,15 +117,13 @@ function render(list) {
   }
 
   slice.forEach(game => {
-    const ratingBadge = renderRating(game);
-
     const card = document.createElement("div");
     card.className = "card";
 
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
-      ${ratingBadge}
-      <img src="${game.coverUrl}" loading="lazy" />
+      ${renderRating(game)}
+      <img src="${game.coverUrl || ""}" loading="lazy" />
       <div class="card-body">
         <div class="badge-row">
           ${game.category ? `<span class="badge-category">${game.category}</span>` : ""}
@@ -186,7 +143,7 @@ function render(list) {
 }
 
 /* =========================
-   RATING BADGE (CLEAN)
+   RATINGS (NEW – SAFE)
 ========================= */
 function renderRating(game) {
   const score = game.aggregated_rating;
@@ -195,23 +152,21 @@ function renderRating(game) {
   if (
     typeof score !== "number" ||
     typeof count !== "number" ||
-    score < 60 ||
-    count < 3
+    score < 65 ||
+    count < 1
   ) {
     return "";
   }
 
-  const rounded = Math.round(score);
-
   return `
-    <div class="rating-badge">
-      ${rounded}
+    <div class="rating-badge" title="Critic score">
+      ${Math.round(score)}
     </div>
   `;
 }
 
 /* =========================
-   PLATFORM ICONS
+   PLATFORM ICONS (LOCKED)
 ========================= */
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";

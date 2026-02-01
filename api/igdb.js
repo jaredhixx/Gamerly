@@ -1,6 +1,6 @@
 // api/igdb.js
-// Gamerly — LOCKED backend (frontend does Out Now / Coming Soon split)
-// Fix: fetch recent + upcoming separately so "Coming Soon" never becomes 0
+// Gamerly — LOCKED backend
+// Calendar-day split: Out Now = today or earlier, Coming Soon = tomorrow+
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -10,12 +10,17 @@ let tokenExpiry = 0;
 ========================= */
 async function getTwitchToken() {
   const now = Date.now();
-  if (cachedToken && now < tokenExpiry - 60_000) return cachedToken;
+
+  if (cachedToken && now < tokenExpiry - 60_000) {
+    return cachedToken;
+  }
 
   const clientId = process.env.IGDB_CLIENT_ID;
   const clientSecret = process.env.IGDB_CLIENT_SECRET;
 
-  if (!clientId || !clientSecret) throw new Error("Missing IGDB credentials");
+  if (!clientId || !clientSecret) {
+    throw new Error("Missing IGDB credentials");
+  }
 
   const res = await fetch(
     `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
@@ -26,14 +31,14 @@ async function getTwitchToken() {
   if (!res.ok) throw new Error("OAuth failed");
 
   cachedToken = data.access_token;
-  tokenExpiry = now + (data.expires_in * 1000);
+  tokenExpiry = now + data.expires_in * 1000;
   return cachedToken;
 }
 
 /* =========================
    HELPERS
 ========================= */
-function unixSeconds(date) {
+function unix(date) {
   return Math.floor(date.getTime() / 1000);
 }
 
@@ -49,79 +54,105 @@ function normalizeGame(g) {
     releaseDate: g.first_release_date
       ? new Date(g.first_release_date * 1000).toISOString()
       : null,
+    rating: g.rating ?? null,
+    aggregated_rating: g.aggregated_rating ?? null,
+    aggregated_rating_count: g.aggregated_rating_count ?? null,
     coverUrl: normalizeCover(g.cover?.url),
-    platforms: Array.isArray(g.platforms) ? g.platforms.map(p => p.name).filter(Boolean) : [],
+    platforms: Array.isArray(g.platforms)
+      ? g.platforms.map(p => p.name).filter(Boolean)
+      : [],
     category: g.genres?.[0]?.name ?? null,
   };
 }
 
-async function postIGDB(query, token) {
-  const res = await fetch("https://api.igdb.com/v4/games", {
-    method: "POST",
-    headers: {
-      "Client-ID": process.env.IGDB_CLIENT_ID,
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "text/plain",
-    },
-    body: query,
-  });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error("IGDB request failed");
-  return Array.isArray(data) ? data : [];
-}
-
 /* =========================
-   QUERIES
+   QUERY (UNCHANGED)
 ========================= */
-function buildRecentQuery({ pastDays = 120, limit = 250 }) {
-  const now = new Date();
-  const past = new Date(now.getTime() - pastDays * 86400000);
+function buildQuery() {
+  const past = new Date();
+  const future = new Date();
+
+  past.setMonth(past.getMonth() - 6);
+  future.setMonth(future.getMonth() + 12);
 
   return `
-    fields name, first_release_date, cover.url, platforms.name, genres.name;
-    where first_release_date >= ${unixSeconds(past)} & first_release_date <= ${unixSeconds(now)};
-    sort first_release_date desc;
-    limit ${limit};
-  `;
-}
-
-function buildUpcomingQuery({ futureDays = 540, limit = 250 }) {
-  const now = new Date();
-  const future = new Date(now.getTime() + futureDays * 86400000);
-
-  return `
-    fields name, first_release_date, cover.url, platforms.name, genres.name;
-    where first_release_date > ${unixSeconds(now)} & first_release_date <= ${unixSeconds(future)};
+    fields
+      name,
+      first_release_date,
+      rating,
+      aggregated_rating,
+      aggregated_rating_count,
+      cover.url,
+      platforms.name,
+      genres.name;
+    where
+      first_release_date >= ${unix(past)} &
+      first_release_date <= ${unix(future)};
     sort first_release_date asc;
-    limit ${limit};
+    limit 500;
   `;
 }
 
 /* =========================
-   HANDLER
+   HANDLER (ONLY CHANGE IS HERE)
 ========================= */
 export default async function handler(req, res) {
   try {
     const token = await getTwitchToken();
 
-    // Pull both sides so frontend split always has data
-    const [recentRaw, upcomingRaw] = await Promise.all([
-      postIGDB(buildRecentQuery({ pastDays: 120, limit: 250 }), token),
-      postIGDB(buildUpcomingQuery({ futureDays: 540, limit: 250 }), token),
-    ]);
+    const igdbRes = await fetch("https://api.igdb.com/v4/games", {
+      method: "POST",
+      headers: {
+        "Client-ID": process.env.IGDB_CLIENT_ID,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "text/plain",
+      },
+      body: buildQuery(),
+    });
 
-    const merged = [...recentRaw, ...upcomingRaw]
+    const raw = await igdbRes.json();
+    if (!igdbRes.ok) throw new Error("IGDB request failed");
+
+    const games = raw
       .map(normalizeGame)
       .filter(g => g.releaseDate && g.coverUrl);
 
-    // De-dupe by id
-    const byId = new Map();
-    for (const g of merged) byId.set(g.id, g);
+    // 🔒 CALENDAR-DAY SPLIT (FIX)
+    const now = new Date();
+
+    // End of today (local)
+    const endOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23, 59, 59, 999
+    ).getTime();
+
+    // Start of tomorrow (local)
+    const startOfTomorrow = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      0, 0, 0, 0
+    ).getTime();
+
+    const outNow = [];
+    const comingSoon = [];
+
+    games.forEach(game => {
+      const releaseTime = new Date(game.releaseDate).getTime();
+
+      if (releaseTime <= endOfToday) {
+        outNow.push(game);
+      } else if (releaseTime >= startOfTomorrow) {
+        comingSoon.push(game);
+      }
+    });
 
     res.status(200).json({
       ok: true,
-      games: Array.from(byId.values()),
+      outNow,
+      comingSoon,
     });
   } catch (err) {
     res.status(500).json({

@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — platform + category badges added (UI only)
+// Gamerly — stable baseline with badges + fixed age gate
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -20,23 +20,31 @@ const state = {
 };
 
 /* =========================
-   AGE VERIFICATION
+   AGE VERIFICATION (FIXED)
 ========================= */
 function isAgeVerified() {
   return localStorage.getItem("gamerly_age_verified") === "true";
 }
 
-function confirmAge() {
-  localStorage.setItem("gamerly_age_verified", "true");
-  ageGate.style.display = "none";
-  fetchGames();
+function showAgeGate() {
+  ageGate.style.display = "flex";
 }
 
-if (isAgeVerified()) {
+function hideAgeGate() {
   ageGate.style.display = "none";
+}
+
+function confirmAge() {
+  localStorage.setItem("gamerly_age_verified", "true");
+  hideAgeGate();
+  fetchGames(); // load only after confirmation
+}
+
+if (!isAgeVerified()) {
+  showAgeGate();
+  ageConfirmBtn.onclick = confirmAge;
 } else {
-  ageGate.style.display = "flex";
-  ageConfirmBtn.addEventListener("click", confirmAge);
+  hideAgeGate();
 }
 
 /* =========================
@@ -99,19 +107,23 @@ function mapPlatformBadge(name) {
 function renderBadges(game) {
   const badges = [];
 
-  // Category badge (single, clean)
   if (game.category) {
-    badges.push(`<span class="badge badge-category">${game.category.replace("Role-playing (RPG)", "RPG")}</span>`);
+    badges.push(
+      `<span class="badge badge-category">
+        ${game.category.replace("Role-playing (RPG)", "RPG")}
+      </span>`
+    );
   }
 
-  // Platform badges
   if (Array.isArray(game.platforms)) {
     const seen = new Set();
     game.platforms.forEach(p => {
       const label = mapPlatformBadge(p);
       if (label && !seen.has(label)) {
         seen.add(label);
-        badges.push(`<span class="badge badge-platform">${label}</span>`);
+        badges.push(
+          `<span class="badge badge-platform">${label}</span>`
+        );
       }
     });
   }
@@ -167,10 +179,16 @@ async function fetchGames() {
 
     state.data = data;
 
-    sectionButtons[0].innerHTML = `Out Now <span class="count">${data.outNow.length}</span>`;
-    sectionButtons[1].innerHTML = `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
+    sectionButtons[0].innerHTML =
+      `Out Now <span class="count">${data.outNow.length}</span>`;
+    sectionButtons[1].innerHTML =
+      `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
 
-    render(state.section === "out-now" ? data.outNow : data.comingSoon);
+    render(
+      state.section === "out-now"
+        ? data.outNow
+        : data.comingSoon
+    );
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -185,10 +203,16 @@ sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
+
     state.section = btn.textContent.toLowerCase().includes("coming")
       ? "coming-soon"
       : "out-now";
-    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
+
+    render(
+      state.section === "out-now"
+        ? state.data.outNow
+        : state.data.comingSoon
+    );
   };
 });
 
@@ -204,7 +228,11 @@ timeButtons.forEach(btn => {
       label.includes("month") ? "month" :
       "all";
 
-    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
+    render(
+      state.section === "out-now"
+        ? state.data.outNow
+        : state.data.comingSoon
+    );
   };
 });
 
@@ -214,6 +242,7 @@ platformButtons.forEach(btn => {
     btn.classList.contains("active")
       ? state.platforms.add(btn.dataset.platform)
       : state.platforms.delete(btn.dataset.platform);
+
     fetchGames();
   };
 });

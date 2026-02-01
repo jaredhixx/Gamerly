@@ -3,6 +3,28 @@ const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
+/* =========================
+   AGE GATE (RESTORED)
+========================= */
+const ageGate = document.getElementById("ageGate");
+const ageBtn = document.getElementById("ageConfirmBtn");
+
+if (ageGate && ageBtn) {
+  if (localStorage.getItem("gamerly_age_verified") === "true") {
+    ageGate.style.display = "none";
+  } else {
+    ageGate.style.display = "flex";
+  }
+
+  ageBtn.onclick = () => {
+    localStorage.setItem("gamerly_age_verified", "true");
+    ageGate.style.display = "none";
+  };
+}
+
+/* =========================
+   STATE
+========================= */
 let allGames = [];
 let visibleCount = 0;
 const PAGE_SIZE = 24;
@@ -12,7 +34,7 @@ let activeSection = "out";
 let activePlatform = "all";
 
 /* =========================
-   PLATFORM MAP (RESTORED)
+   PLATFORM MAP
 ========================= */
 const PLATFORM_MAP = {
   pc: [6],
@@ -42,22 +64,22 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTERING
+   FILTERS
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
   let filtered = [...allGames];
+  const now = new Date();
 
   // SECTION
   filtered = filtered.filter(g =>
     activeSection === "out"
-      ? new Date(g.releaseDate) <= new Date()
-      : new Date(g.releaseDate) > new Date()
+      ? new Date(g.releaseDate) <= now
+      : new Date(g.releaseDate) > now
   );
 
   // TIME
-  const now = new Date();
   filtered = filtered.filter(g => {
     const d = new Date(g.releaseDate);
     if (activeTime === "today") return d.toDateString() === now.toDateString();
@@ -66,7 +88,7 @@ function applyFilters(reset = false) {
     return true;
   });
 
-  // PLATFORM (FIXED)
+  // PLATFORM
   if (activePlatform !== "all") {
     const validIds = PLATFORM_MAP[activePlatform] || [];
     filtered = filtered.filter(g =>
@@ -92,9 +114,7 @@ function render(list) {
     card.className = "card";
 
     card.innerHTML = `
-      <div class="platform-overlay">
-        ${renderPlatforms(game)}
-      </div>
+      <div class="platform-overlay">${renderPlatforms(game)}</div>
       <img src="${game.cover}" loading="lazy" />
       <div class="card-body">
         <div class="badge-row">
@@ -112,12 +132,12 @@ function render(list) {
 }
 
 /* =========================
-   HELPERS
+   PLATFORM ICONS
 ========================= */
 function renderPlatforms(game) {
   if (!game.platformIds) return "";
-  const icons = [];
 
+  const icons = [];
   if (game.platformIds.includes(6)) icons.push(`<span class="platform-chip pc">PC</span>`);
   if ([48,49].some(id => game.platformIds.includes(id))) icons.push(`<span class="platform-chip xbox">Xbox</span>`);
   if ([130,167].some(id => game.platformIds.includes(id))) icons.push(`<span class="platform-chip">Switch</span>`);
@@ -156,7 +176,7 @@ document.querySelectorAll(".platforms button").forEach(btn => {
 showMoreBtn.onclick = () => applyFilters();
 
 /* =========================
-   UI
+   UI HELPERS
 ========================= */
 function setActive(button) {
   button.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));

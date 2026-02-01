@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — staged loading (FIXED Out Now logic)
+// Gamerly frontend — FINAL staged-loading + timezone-safe release logic
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -17,8 +17,8 @@ const LOAD_MORE_STEP = 36;
 
 const state = {
   platforms: new Set(),
-  timeFilter: "all",
-  section: "out-now",
+  timeFilter: "all",       // all | today | week | month
+  section: "out-now",     // out-now | coming-soon
   visibleCount: INITIAL_RENDER,
   initialGames: [],
   fullGames: [],
@@ -64,7 +64,7 @@ function formatDate(date) {
 }
 
 /* =========================
-   FILTERS / SORT
+   TIME FILTERS
 ========================= */
 function applyTimeFilter(games) {
   if (state.timeFilter === "all") return games;
@@ -76,26 +76,52 @@ function applyTimeFilter(games) {
     if (!g.releaseDate) return false;
     const t = new Date(g.releaseDate).getTime();
 
-    if (state.timeFilter === "today") return t >= today && t < today + 86400000;
-    if (state.timeFilter === "week") return t >= today - 6 * 86400000 && t <= today + 7 * 86400000;
-    if (state.timeFilter === "month") return t >= today - 29 * 86400000 && t <= today + 30 * 86400000;
+    if (state.timeFilter === "today") {
+      return t >= today && t < today + 86400000;
+    }
+
+    if (state.timeFilter === "week") {
+      return t >= today - 6 * 86400000 && t <= today + 7 * 86400000;
+    }
+
+    if (state.timeFilter === "month") {
+      return t >= today - 29 * 86400000 && t <= today + 30 * 86400000;
+    }
+
     return true;
   });
 }
 
+/* =========================
+   SORT
+========================= */
 function sortNewestFirst(games) {
-  return [...games].sort((a, b) =>
-    new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0)
+  return [...games].sort(
+    (a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0)
   );
 }
 
+/* =========================
+   TIMEZONE-SAFE SPLIT (CRITICAL)
+========================= */
 function splitByRelease(games) {
-  const now = Date.now();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayTime = today.getTime();
+
   const outNow = [];
   const comingSoon = [];
 
   games.forEach(g => {
-    if (!g.releaseDate || new Date(g.releaseDate).getTime() <= now) {
+    if (!g.releaseDate) {
+      outNow.push(g);
+      return;
+    }
+
+    const release = new Date(g.releaseDate);
+    release.setHours(0, 0, 0, 0);
+
+    if (release.getTime() <= todayTime) {
       outNow.push(g);
     } else {
       comingSoon.push(g);
@@ -119,7 +145,7 @@ function updateCounts(outNow, comingSoon) {
 }
 
 /* =========================
-   RENDER
+   RENDERING
 ========================= */
 function renderCards(games) {
   grid.innerHTML = "";
@@ -185,7 +211,7 @@ async function stagedLoad(reset = false) {
   errorBox.textContent = "";
 
   try {
-    // PHASE 1 — INITIAL
+    // PHASE 1 — FAST INITIAL PAINT
     const initialRes = await fetch(buildApiUrl("initial"));
     const initialData = await initialRes.json();
     if (!initialData.ok) throw new Error(initialData.error);
@@ -194,14 +220,12 @@ async function stagedLoad(reset = false) {
     renderFrom(state.initialGames);
     loading.style.display = "none";
 
-    // PHASE 2 — FULL
+    // PHASE 2 — FULL DATA (BACKGROUND)
     const fullRes = await fetch(buildApiUrl("full"));
     const fullData = await fullRes.json();
     if (!fullData.ok) throw new Error(fullData.error);
 
     state.fullGames = fullData.games;
-
-    // 🔑 FORCE authoritative re-render
     renderFrom(state.fullGames);
 
   } catch (err) {
@@ -248,8 +272,6 @@ sectionButtons.forEach(btn => {
       : "out-now";
 
     state.visibleCount = INITIAL_RENDER;
-
-    // ALWAYS prefer full data if available
     renderFrom(state.fullGames.length ? state.fullGames : state.initialGames);
   };
 });

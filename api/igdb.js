@@ -1,5 +1,5 @@
 // api/igdb.js
-// Stable baseline — NO date logic, NO fragile filters
+// Stable IGDB API — platform filtering restored, ordering unchanged
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -8,11 +8,8 @@ async function getTwitchToken() {
   const now = Date.now();
   if (cachedToken && now < tokenExpiry - 60_000) return cachedToken;
 
-  const clientId = process.env.IGDB_CLIENT_ID;
-  const clientSecret = process.env.IGDB_CLIENT_SECRET;
-
   const res = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
+    `https://id.twitch.tv/oauth2/token?client_id=${process.env.IGDB_CLIENT_ID}&client_secret=${process.env.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
     { method: "POST" }
   );
 
@@ -24,8 +21,31 @@ async function getTwitchToken() {
   return cachedToken;
 }
 
+const PLATFORM_MAP = {
+  pc: [6],
+  playstation: [48, 167],
+  xbox: [49, 169],
+  nintendo: [130],
+  ios: [39],
+  android: [34],
+};
+
 export default async function handler(req, res) {
   try {
+    const platforms = (req.query.platforms || "").split(",").filter(Boolean);
+
+    let platformIds = [];
+    platforms.forEach(p => {
+      if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
+    });
+    platformIds = [...new Set(platformIds)];
+
+    const whereParts = ["name != null"];
+
+    if (platformIds.length) {
+      whereParts.push(`platforms = (${platformIds.join(",")})`);
+    }
+
     const token = await getTwitchToken();
 
     const igdbRes = await fetch("https://api.igdb.com/v4/games", {
@@ -36,9 +56,10 @@ export default async function handler(req, res) {
         "Content-Type": "text/plain",
       },
       body: `
-        fields name, first_release_date, rating, cover.url;
+        fields name, first_release_date, rating, cover.url, platforms.name, updated_at;
+        where ${whereParts.join(" & ")};
         sort updated_at desc;
-        limit 100;
+        limit 150;
       `,
     });
 
@@ -56,6 +77,7 @@ export default async function handler(req, res) {
         coverUrl: g.cover?.url
           ? `https:${g.cover.url}`.replace("t_thumb", "t_cover_big")
           : null,
+        platforms: g.platforms?.map(p => p.name) || [],
       })),
     });
   } catch (err) {

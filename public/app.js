@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — staged loading (initial + full)
+// Gamerly frontend — staged loading (FIXED Out Now logic)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -20,8 +20,6 @@ const state = {
   timeFilter: "all",
   section: "out-now",
   visibleCount: INITIAL_RENDER,
-
-  // staged data
   initialGames: [],
   fullGames: [],
 };
@@ -97,8 +95,11 @@ function splitByRelease(games) {
   const comingSoon = [];
 
   games.forEach(g => {
-    if (!g.releaseDate || new Date(g.releaseDate).getTime() <= now) outNow.push(g);
-    else comingSoon.push(g);
+    if (!g.releaseDate || new Date(g.releaseDate).getTime() <= now) {
+      outNow.push(g);
+    } else {
+      comingSoon.push(g);
+    }
   });
 
   return { outNow, comingSoon };
@@ -168,12 +169,14 @@ function renderFrom(sourceGames) {
 
   updateCounts(outNow, comingSoon);
 
-  const active = state.section === "coming-soon" ? comingSoon : outNow;
+  const active =
+    state.section === "coming-soon" ? comingSoon : outNow;
+
   renderCards(active);
 }
 
 /* =========================
-   STAGED LOAD (KEY)
+   STAGED LOAD
 ========================= */
 async function stagedLoad(reset = false) {
   if (reset) state.visibleCount = INITIAL_RENDER;
@@ -191,12 +194,14 @@ async function stagedLoad(reset = false) {
     renderFrom(state.initialGames);
     loading.style.display = "none";
 
-    // PHASE 2 — FULL (BACKGROUND)
+    // PHASE 2 — FULL
     const fullRes = await fetch(buildApiUrl("full"));
     const fullData = await fullRes.json();
     if (!fullData.ok) throw new Error(fullData.error);
 
     state.fullGames = fullData.games;
+
+    // 🔑 FORCE authoritative re-render
     renderFrom(state.fullGames);
 
   } catch (err) {
@@ -243,6 +248,8 @@ sectionButtons.forEach(btn => {
       : "out-now";
 
     state.visibleCount = INITIAL_RENDER;
+
+    // ALWAYS prefer full data if available
     renderFrom(state.fullGames.length ? state.fullGames : state.initialGames);
   };
 });

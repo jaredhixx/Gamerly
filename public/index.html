@@ -8,38 +8,48 @@
 </head>
 <body>
 
-  <header>
-    <h1>Gamerly</h1>
-
-    <!-- Platform Filters -->
-    <div id="platformFilters">
-      <button data-platform="pc">PC</button>
-      <button data-platform="playstation">PlayStation</button>
-      <button data-platform="xbox">Xbox</button>
-      <button data-platform="nintendo">Nintendo</button>
-      <button data-platform="ios">iOS</button>
-      <button data-platform="android">Android</button>
+  <!-- AGE GATE -->
+  <div id="ageGate" class="age-gate">
+    <div class="age-card">
+      <h2>Age Verification</h2>
+      <p>You must be of legal age to continue.</p>
+      <button id="ageConfirmBtn">I Confirm</button>
     </div>
+  </div>
 
-    <!-- Range -->
-    <select id="rangeSelect">
-      <option value="this_week">This Week</option>
-      <option value="past_3_months">Past 3 Months</option>
-      <option value="all_time">All Time</option>
-    </select>
+  <header class="header">
+    <h1 class="logo">Gamerly</h1>
 
-    <!-- Sort -->
-    <select id="sortSelect">
-      <option value="newest">Newest</option>
-      <option value="highest_rated">Highest Rated</option>
-      <option value="az">A–Z</option>
-    </select>
+    <div class="controls">
+      <div class="platforms">
+        <button data-platform="pc">PC</button>
+        <button data-platform="playstation">PlayStation</button>
+        <button data-platform="xbox">Xbox</button>
+        <button data-platform="nintendo">Nintendo</button>
+        <button data-platform="ios">iOS</button>
+        <button data-platform="android">Android</button>
+      </div>
+
+      <div class="filters">
+        <select id="rangeSelect">
+          <option value="this_week">This Week</option>
+          <option value="past_3_months">Past 3 Months</option>
+          <option value="all_time">All Time</option>
+        </select>
+
+        <select id="sortSelect">
+          <option value="newest">Newest</option>
+          <option value="highest_rated">Highest Rated</option>
+          <option value="az">A–Z</option>
+        </select>
+      </div>
+    </div>
   </header>
 
   <main>
-    <div id="loading" style="display:none;">Loading…</div>
-    <div id="errorBox" style="display:none;"></div>
-    <ul id="gamesList"></ul>
+    <div id="loading" class="loading">Loading…</div>
+    <div id="errorBox" class="error"></div>
+    <div id="gamesGrid" class="grid"></div>
   </main>
 
   <script src="app.js"></script>

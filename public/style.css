@@ -7,6 +7,17 @@
   padding: 0;
 }
 
+:root {
+  /* Muted accent system */
+  --accent: #7aa2f7;           /* muted slate-blue */
+  --accent-soft: rgba(122,162,247,0.18);
+  --accent-border: rgba(122,162,247,0.35);
+
+  --surface-1: rgba(255,255,255,0.03);
+  --surface-2: rgba(255,255,255,0.06);
+  --border-soft: rgba(255,255,255,0.08);
+}
+
 body {
   background:
     radial-gradient(900px 500px at top, #0f172a 0%, #020617 60%);
@@ -22,7 +33,7 @@ body {
 .age-gate {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.94);
+  background: rgba(2,6,23,0.94);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -30,18 +41,17 @@ body {
 }
 
 .age-card {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15, 23, 42, 0.95),
-      rgba(2, 6, 23, 0.95)
-    );
+  background: linear-gradient(
+    180deg,
+    rgba(15,23,42,0.96),
+    rgba(2,6,23,0.96)
+  );
   padding: 2rem;
   border-radius: 22px;
   text-align: center;
   width: 90%;
   max-width: 420px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border-soft);
   box-shadow: 0 30px 80px rgba(0,0,0,0.6);
 }
 
@@ -56,14 +66,14 @@ body {
 }
 
 .age-card button {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #9aa8ff, #6b8cff);
   border: none;
-  color: #fff;
+  color: #020617;
   padding: 0.65rem 1.6rem;
   border-radius: 999px;
   cursor: pointer;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* =========================
@@ -94,8 +104,8 @@ body {
 .time-segment button,
 .section-segment button,
 .platforms button {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--surface-1);
+  border: 1px solid var(--border-soft);
   color: rgba(255,255,255,0.75);
   padding: 0.45rem 0.85rem;
   border-radius: 999px;
@@ -109,16 +119,20 @@ body {
 .section-segment button:hover,
 .platforms button:hover {
   color: #fff;
-  border-color: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.14);
 }
 
 .time-segment button.active,
 .section-segment button.active,
 .platforms button.active {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
+  background: linear-gradient(
+    135deg,
+    rgba(154,168,255,0.9),
+    rgba(107,140,255,0.9)
+  );
+  color: #020617;
   border-color: transparent;
-  box-shadow: 0 10px 26px rgba(37,99,235,0.35);
+  box-shadow: 0 10px 26px rgba(107,140,255,0.35);
 }
 
 .section-segment .count {
@@ -144,15 +158,14 @@ main {
    CARD
 ========================= */
 .card {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15, 23, 42, 0.95),
-      rgba(2, 6, 23, 0.95)
-    );
+  background: linear-gradient(
+    180deg,
+    rgba(15,23,42,0.95),
+    rgba(2,6,23,0.95)
+  );
   border-radius: 22px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--border-soft);
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
@@ -161,7 +174,7 @@ main {
 
 .card:hover {
   transform: translateY(-6px);
-  border-color: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.14);
   box-shadow: 0 24px 60px rgba(0,0,0,0.55);
 }
 
@@ -185,18 +198,18 @@ main {
   flex-wrap: wrap;
 }
 
-/* Category badge — anchor */
+/* Category = visual anchor */
 .badge-category {
   font-size: 0.62rem;
   font-weight: 700;
   padding: 4px 9px;
   border-radius: 999px;
-  background: rgba(59,130,246,0.15);
-  color: #93c5fd;
-  border: 1px solid rgba(59,130,246,0.35);
+  background: var(--accent-soft);
+  color: #dbeafe;
+  border: 1px solid var(--accent-border);
 }
 
-/* Platform badges — quieter */
+/* Platforms = secondary */
 .badge-platform {
   font-size: 0.6rem;
   font-weight: 600;
@@ -204,7 +217,7 @@ main {
   border-radius: 999px;
   background: rgba(255,255,255,0.04);
   color: rgba(255,255,255,0.7);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border-soft);
 }
 
 /* =========================
@@ -222,18 +235,6 @@ main {
 }
 
 /* =========================
-   STATES
-========================= */
-.loading {
-  opacity: 0.8;
-}
-
-.error {
-  color: #f87171;
-  margin-bottom: 1rem;
-}
-
-/* =========================
    SHOW MORE
 ========================= */
 .show-more {
@@ -241,21 +242,15 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,0.08),
-      rgba(255,255,255,0.03)
-    );
-  backdrop-filter: blur(8px);
-
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.08),
+    rgba(255,255,255,0.03)
+  );
   color: #fff;
   border: 1px solid rgba(255,255,255,0.12);
   padding: 0.75rem 1.8rem;
   border-radius: 999px;
-
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.15s ease;

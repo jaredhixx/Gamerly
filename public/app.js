@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — stable baseline + correct range filtering + age gate
+// Gamerly frontend — PLATFORM FILTER ONLY, newest → oldest
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -8,15 +8,10 @@ const errorBox = document.getElementById("errorBox");
 const ageGate = document.getElementById("ageGate");
 const ageConfirmBtn = document.getElementById("ageConfirmBtn");
 
-const rangeSelect = document.getElementById("rangeSelect");
-const sortSelect = document.getElementById("sortSelect");
 const platformButtons = document.querySelectorAll("[data-platform]");
 
 const state = {
   platforms: new Set(),
-  range: "this_week",
-  sort: "newest",
-  allGames: [],
 };
 
 /* =========================
@@ -49,47 +44,12 @@ function buildApiUrl() {
     params.set("platforms", [...state.platforms].join(","));
   }
 
-  params.set("sort", state.sort);
   return `/api/igdb?${params.toString()}`;
 }
 
 function formatDate(date) {
   if (!date) return "TBD";
   return new Date(date).toLocaleDateString();
-}
-
-/* =========================
-   RANGE FILTER (CLIENT SIDE)
-========================= */
-function applyRangeFilter(games) {
-  const now = Date.now();
-
-  const ONE_DAY = 24 * 60 * 60 * 1000;
-  const ONE_WEEK = 7 * ONE_DAY;
-  const THREE_MONTHS = 90 * ONE_DAY;
-  const SIX_MONTHS = 183 * ONE_DAY;
-
-  return games.filter(g => {
-    if (!g.releaseDate) return true; // keep unknown dates
-
-    const releaseTime = new Date(g.releaseDate).getTime();
-    const diff = releaseTime - now;
-
-    // 🚫 Global future cap: 6 months
-    if (diff > SIX_MONTHS) return false;
-
-    if (state.range === "this_week") {
-      // last 7 days OR next 14 days
-      return diff >= -ONE_WEEK && diff <= (14 * ONE_DAY);
-    }
-
-    if (state.range === "past_3_months") {
-      return diff >= -THREE_MONTHS && diff <= 0;
-    }
-
-    // all_time
-    return true;
-  });
 }
 
 /* =========================
@@ -141,10 +101,9 @@ async function fetchGames() {
       throw new Error(data.error || "Failed to load games");
     }
 
-    state.allGames = data.games;
-
-    const filtered = applyRangeFilter(state.allGames);
-    renderGames(filtered);
+    // IMPORTANT:
+    // We trust API ordering (newest → oldest)
+    renderGames(data.games);
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -153,7 +112,7 @@ async function fetchGames() {
 }
 
 /* =========================
-   EVENTS
+   EVENTS — PLATFORMS ONLY
 ========================= */
 platformButtons.forEach(btn => {
   btn.addEventListener("click", () => {
@@ -169,16 +128,6 @@ platformButtons.forEach(btn => {
 
     fetchGames();
   });
-});
-
-rangeSelect.addEventListener("change", () => {
-  state.range = rangeSelect.value;
-  renderGames(applyRangeFilter(state.allGames));
-});
-
-sortSelect.addEventListener("change", () => {
-  state.sort = sortSelect.value;
-  fetchGames();
 });
 
 /* =========================

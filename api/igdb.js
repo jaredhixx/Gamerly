@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly — IGDB API with proper ratings support
+// Gamerly — FIXED date window + ratings (stable)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -77,22 +77,27 @@ function normalizeGame(g) {
 }
 
 /* =========================
-   QUERY BUILDER
+   QUERY BUILDER (FIXED)
 ========================= */
 function buildQuery({ platforms }) {
+  const now = new Date();
+  const past = new Date();
+  const future = new Date();
+
+  past.setMonth(past.getMonth() - 6);
+  future.setMonth(future.getMonth() + 6);
+
   let platformIds = [];
 
   platforms.forEach(p => {
-    if (PLATFORM_MAP[p]) {
-      platformIds.push(...PLATFORM_MAP[p]);
-    }
+    if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
   });
 
   platformIds = [...new Set(platformIds)];
 
   const where = [
-    "name != null",
-    "first_release_date != null",
+    `first_release_date >= ${unix(past)}`,
+    `first_release_date <= ${unix(future)}`,
   ];
 
   if (platformIds.length) {
@@ -140,7 +145,6 @@ export default async function handler(req, res) {
     if (!igdbRes.ok) throw new Error("IGDB request failed");
 
     const now = Date.now();
-
     const outNow = [];
     const comingSoon = [];
 
@@ -148,8 +152,8 @@ export default async function handler(req, res) {
       const game = normalizeGame(g);
       if (!game.releaseDate) return;
 
-      const releaseTime = new Date(game.releaseDate).getTime();
-      releaseTime <= now ? outNow.push(game) : comingSoon.push(game);
+      const t = new Date(game.releaseDate).getTime();
+      t <= now ? outNow.push(game) : comingSoon.push(game);
     });
 
     res.status(200).json({

@@ -15,12 +15,16 @@ body {
 }
 
 /* =========================
-   AGE GATE
+   AGE GATE (MODERNIZED)
 ========================= */
 .age-gate {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.92);
+  background: radial-gradient(
+    800px 400px at top,
+    rgba(59,130,246,0.15),
+    rgba(0,0,0,0.95)
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,16 +33,39 @@ body {
 
 .age-card {
   background: #0b0f1a;
-  padding: 2rem;
-  border-radius: 18px;
-  text-align: center;
+  padding: 2.2rem 2rem;
+  border-radius: 22px;
   width: 90%;
   max-width: 420px;
-  border: 1px solid rgba(255,255,255,0.08);
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+}
+
+.age-card h2 {
+  font-size: 1.3rem;
+  margin-bottom: 0.6rem;
+}
+
+.age-card p {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  margin-bottom: 1.6rem;
+}
+
+.age-card button {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  color: #fff;
+  padding: 0.7rem 1.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 /* =========================
-   HEADER / SEGMENTS
+   HEADER / FILTERS
 ========================= */
 .header {
   padding: 1.5rem 1.5rem 0;
@@ -78,12 +105,6 @@ body {
   border-color: transparent;
 }
 
-.section-segment .count {
-  margin-left: 0.4rem;
-  font-size: 0.75rem;
-  opacity: 0.85;
-}
-
 /* =========================
    GRID
 ========================= */
@@ -101,6 +122,7 @@ main {
    CARD
 ========================= */
 .card {
+  position: relative;
   background: #0b0f1a;
   border-radius: 18px;
   overflow: hidden;
@@ -109,7 +131,7 @@ main {
 
 .card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 14px 32px rgba(0,0,0,0.45);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
 }
 
 .card img {
@@ -118,6 +140,36 @@ main {
   object-fit: cover;
 }
 
+/* PLATFORM ICON OVERLAY */
+.platform-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+
+.platform-chip {
+  padding: 4px 8px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(6px);
+  color: #fff;
+}
+
+.platform-chip.xbox {
+  color: #10b981;
+  border-color: rgba(16,185,129,0.5);
+}
+
+/* =========================
+   CARD BODY
+========================= */
 .card-body {
   padding: 0.8rem;
 }
@@ -134,64 +186,22 @@ main {
 }
 
 /* =========================
-   BADGES (FINAL POLISH)
+   CATEGORY BADGE
 ========================= */
-
 .badge-row {
   display: flex;
   gap: 6px;
   margin-bottom: 6px;
-  flex-wrap: wrap;
 }
 
-/* Base badge */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.badge-category {
   padding: 4px 9px;
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   border-radius: 999px;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-/* Category badge */
-.badge-category {
-  background: rgba(255,255,255,0.10);
-  color: #fff;
+  background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.18);
-}
-
-/* Platform text badge */
-.badge-platform {
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.85);
-  border: 1px solid rgba(255,255,255,0.12);
-}
-
-/* Xbox logo badge (only icon we use) */
-.badge-xbox {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #10b981;
-  font-weight: 800;
-}
-
-/* =========================
-   SHOW MORE
-========================= */
-.show-more {
-  margin: 2.5rem auto 0;
-  display: inline-flex;
-  padding: 0.7rem 1.6rem;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #fff;
-  cursor: pointer;
 }
 
 /* =========================

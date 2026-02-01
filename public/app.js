@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — FINAL architecture: broad fetch, client-side filtering only
+// Gamerly — FINAL stable filtering + platform icons restored
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -16,9 +16,9 @@ const platformButtons = document.querySelectorAll("[data-platform]");
 const PAGE_SIZE = 36;
 
 const state = {
-  section: "out-now",     // out-now | coming-soon
-  timeFilter: "all",      // all | today | week | month
-  platforms: new Set(),   // pc, xbox, etc
+  section: "out-now",
+  timeFilter: "all",
+  platforms: new Set(),
   visibleCount: PAGE_SIZE,
   data: { outNow: [], comingSoon: [] }
 };
@@ -47,25 +47,62 @@ if (isAgeVerified()) {
    API
 ========================= */
 function buildApiUrl() {
-  // Only platform filtering server-side (coarse)
-  const params = new URLSearchParams();
-  if (state.platforms.size) {
-    params.set("platforms", [...state.platforms].join(","));
-  }
-  return `/api/igdb?${params.toString()}`;
+  return "/api/igdb";
 }
 
 /* =========================
-   CLIENT-SIDE FILTERING
+   PLATFORM ICON OVERLAY
+========================= */
+function renderPlatformOverlay(game) {
+  if (!Array.isArray(game.platforms)) return "";
+
+  const seen = new Set();
+  const chips = [];
+
+  game.platforms.forEach(p => {
+    const n = p.toLowerCase();
+    if (n.includes("xbox") && !seen.has("xbox")) {
+      seen.add("xbox");
+      chips.push(`<span class="platform-chip xbox">Ⓧ</span>`);
+    }
+    if (n.includes("playstation") && !seen.has("ps")) {
+      seen.add("ps");
+      chips.push(`<span class="platform-chip">PS</span>`);
+    }
+    if (n.includes("pc") && !seen.has("pc")) {
+      seen.add("pc");
+      chips.push(`<span class="platform-chip">PC</span>`);
+    }
+    if (n.includes("nintendo") && !seen.has("switch")) {
+      seen.add("switch");
+      chips.push(`<span class="platform-chip">Switch</span>`);
+    }
+    if (n.includes("ios") && !seen.has("ios")) {
+      seen.add("ios");
+      chips.push(`<span class="platform-chip">iOS</span>`);
+    }
+    if (n.includes("android") && !seen.has("android")) {
+      seen.add("android");
+      chips.push(`<span class="platform-chip">Android</span>`);
+    }
+  });
+
+  return chips.length
+    ? `<div class="platform-overlay">${chips.join("")}</div>`
+    : "";
+}
+
+/* =========================
+   FILTERING (CLIENT-SIDE)
 ========================= */
 function applyFilters(games) {
   const now = Date.now();
   const DAY = 86400000;
 
   return games.filter(g => {
-    // PLATFORM FILTER (client-side safety net)
+    // PLATFORM FILTER
     if (state.platforms.size && Array.isArray(g.platforms)) {
-      const match = g.platforms.some(p => {
+      const ok = g.platforms.some(p => {
         const n = p.toLowerCase();
         return (
           (state.platforms.has("pc") && n.includes("pc")) ||
@@ -76,31 +113,27 @@ function applyFilters(games) {
           (state.platforms.has("android") && n.includes("android"))
         );
       });
-      if (!match) return false;
+      if (!ok) return false;
     }
 
-    // TIME FILTER
     if (state.timeFilter === "all") return true;
 
-    if (!g.releaseDate) {
-      // Undated games stay visible except "Today"
-      return state.timeFilter !== "today";
-    }
+    const t = g.releaseDate ? new Date(g.releaseDate).getTime() : null;
 
-    const t = new Date(g.releaseDate).getTime();
-
+    // OUT NOW — strict past
     if (state.section === "out-now") {
-      if (t > now) return false;
+      if (!t || t > now) return false;
 
       if (state.timeFilter === "today") return now - t < DAY;
       if (state.timeFilter === "week") return now - t < 7 * DAY;
       if (state.timeFilter === "month") return now - t < 30 * DAY;
     }
 
+    // COMING SOON — TRUST BACKEND
     if (state.section === "coming-soon") {
-      if (t <= now) return false;
+      if (!t) return true; // keep undated games
 
-      if (state.timeFilter === "today") return t - now < DAY;
+      if (state.timeFilter === "today") return t >= now && t - now < DAY;
       if (state.timeFilter === "week") return t - now < 7 * DAY;
       if (state.timeFilter === "month") return t - now < 30 * DAY;
     }
@@ -134,6 +167,7 @@ function render() {
     card.className = "card";
 
     card.innerHTML = `
+      ${renderPlatformOverlay(g)}
       <img loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
       <div class="card-body">
         <div class="card-title">${g.name}</div>
@@ -181,14 +215,11 @@ async function fetchGames() {
 /* =========================
    EVENTS
 ========================= */
-
-// See more
 showMoreBtn.onclick = () => {
   state.visibleCount += PAGE_SIZE;
   render();
 };
 
-// Section
 sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
@@ -203,7 +234,6 @@ sectionButtons.forEach(btn => {
   };
 });
 
-// Time
 timeButtons.forEach(btn => {
   btn.onclick = () => {
     timeButtons.forEach(b => b.classList.remove("active"));
@@ -221,7 +251,6 @@ timeButtons.forEach(btn => {
   };
 });
 
-// Platform
 platformButtons.forEach(btn => {
   btn.onclick = () => {
     btn.classList.toggle("active");

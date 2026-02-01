@@ -103,7 +103,7 @@ async function fetchGames() {
 
     // IMPORTANT:
     // We trust API ordering (newest → oldest)
-    renderGames(data.games);
+    renderGames(sortNewestFirst(data.games));
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -136,3 +136,11 @@ platformButtons.forEach(btn => {
 if (isAgeVerified()) {
   fetchGames();
 }
+function sortNewestFirst(games) {
+  return [...games].sort((a, b) => {
+    const aTime = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
+    const bTime = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
+    return bTime - aTime;
+  });
+}
+

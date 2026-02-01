@@ -59,7 +59,7 @@ export default async function handler(req, res) {
         fields name, first_release_date, rating, cover.url, platforms.name, updated_at;
         where ${whereParts.join(" & ")};
         sort updated_at desc;
-        limit 150;
+        limit 500;
       `,
     });
 

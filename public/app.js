@@ -1,4 +1,7 @@
-const grid = document.getElementById("gamesGrid");
+// public/app.js
+// Step 5: Fetch and render games from IGDB API
+
+const gamesList = document.getElementById("gamesList");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
 
@@ -10,12 +13,23 @@ const state = {
   platforms: new Set(),
   range: "this_week",
   sort: "newest",
-  allGames: [], // 🔑 cache raw API results
 };
 
-/* =========================
-   HELPERS
-========================= */
+// ---------- helpers ----------
+function setLoading(on) {
+  loading.style.display = on ? "block" : "none";
+}
+
+function setError(msg) {
+  if (!msg) {
+    errorBox.style.display = "none";
+    errorBox.textContent = "";
+  } else {
+    errorBox.style.display = "block";
+    errorBox.textContent = msg;
+  }
+}
+
 function buildApiUrl() {
   const params = new URLSearchParams();
 
@@ -23,75 +37,32 @@ function buildApiUrl() {
     params.set("platforms", [...state.platforms].join(","));
   }
 
+  params.set("range", state.range);
   params.set("sort", state.sort);
+
   return `/api/igdb?${params.toString()}`;
 }
 
-function formatDate(date) {
-  if (!date) return "TBD";
-  return new Date(date).toLocaleDateString();
-}
-
-/* =========================
-   RANGE FILTER (CLIENT SIDE)
-========================= */
-function applyRangeFilter(games) {
-  const now = Date.now();
-
-  if (state.range === "all_time") return games;
-
-  if (state.range === "past_3_months") {
-    const cutoff = now - 90 * 24 * 60 * 60 * 1000;
-    return games.filter(g => {
-      if (!g.releaseDate) return true;
-      return new Date(g.releaseDate).getTime() >= cutoff;
-    });
-  }
-
-  // this_week = show recent + upcoming
-  return games;
-}
-
-/* =========================
-   RENDER
-========================= */
+// ---------- rendering ----------
 function renderGames(games) {
-  grid.innerHTML = "";
+  gamesList.innerHTML = "";
 
   if (!games.length) {
-    grid.innerHTML = "<p>No games found.</p>";
+    gamesList.innerHTML = "<li>No games found.</li>";
     return;
   }
 
-  games.forEach(g => {
-    const card = document.createElement("div");
-    card.className = "card";
-
-    const img = document.createElement("img");
-    img.src = g.coverUrl || "";
-    img.alt = g.name;
-    img.onerror = () => (img.style.display = "none");
-
-    const body = document.createElement("div");
-    body.className = "card-body";
-    body.innerHTML = `
-      <div class="card-title">${g.name}</div>
-      <div class="card-meta">${formatDate(g.releaseDate)}</div>
-      <div class="card-meta">${g.rating ? g.rating + "/100" : "No rating"}</div>
-    `;
-
-    card.appendChild(img);
-    card.appendChild(body);
-    grid.appendChild(card);
-  });
+  for (const game of games) {
+    const li = document.createElement("li");
+    li.textContent = game.name;
+    gamesList.appendChild(li);
+  }
 }
 
-/* =========================
-   FETCH
-========================= */
+// ---------- API ----------
 async function fetchGames() {
-  loading.style.display = "block";
-  errorBox.textContent = "";
+  setError("");
+  setLoading(true);
 
   try {
     const res = await fetch(buildApiUrl());
@@ -101,20 +72,16 @@ async function fetchGames() {
       throw new Error(data.error || "Failed to load games");
     }
 
-    state.allGames = data.games;
-
-    const filtered = applyRangeFilter(state.allGames);
-    renderGames(filtered);
+    renderGames(data.games);
   } catch (err) {
-    errorBox.textContent = err.message;
+    renderGames([]);
+    setError(err.message);
   } finally {
-    loading.style.display = "none";
+    setLoading(false);
   }
 }
 
-/* =========================
-   EVENTS
-========================= */
+// ---------- events ----------
 platformButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     const platform = btn.dataset.platform;
@@ -133,7 +100,7 @@ platformButtons.forEach(btn => {
 
 rangeSelect.addEventListener("change", () => {
   state.range = rangeSelect.value;
-  renderGames(applyRangeFilter(state.allGames));
+  fetchGames();
 });
 
 sortSelect.addEventListener("change", () => {
@@ -141,7 +108,5 @@ sortSelect.addEventListener("change", () => {
   fetchGames();
 });
 
-/* =========================
-   INIT
-========================= */
+// ---------- init ----------
 fetchGames();

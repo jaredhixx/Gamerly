@@ -1,19 +1,49 @@
 // public/app.js
-// FINAL — simple, correct, fast
+// FINAL — correct data split + restored age verification
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
 
+const ageGate = document.getElementById("ageGate");
+const ageConfirmBtn = document.getElementById("ageConfirmBtn");
+
 const sectionButtons = document.querySelectorAll(".section-segment button");
 const platformButtons = document.querySelectorAll("[data-platform]");
 
-let state = {
+const state = {
   section: "out-now",
   platforms: new Set(),
   data: { outNow: [], comingSoon: [] },
 };
 
+/* =========================
+   AGE VERIFICATION
+========================= */
+function isAgeVerified() {
+  return localStorage.getItem("gamerly_age_verified") === "true";
+}
+
+function hideAgeGate() {
+  ageGate.style.display = "none";
+}
+
+function confirmAge() {
+  localStorage.setItem("gamerly_age_verified", "true");
+  hideAgeGate();
+  fetchGames();
+}
+
+if (isAgeVerified()) {
+  hideAgeGate();
+} else {
+  ageGate.style.display = "flex";
+  ageConfirmBtn.addEventListener("click", confirmAge);
+}
+
+/* =========================
+   API
+========================= */
 function buildApiUrl() {
   const params = new URLSearchParams();
   if (state.platforms.size) {
@@ -22,6 +52,9 @@ function buildApiUrl() {
   return `/api/igdb?${params.toString()}`;
 }
 
+/* =========================
+   RENDER
+========================= */
 function render(games) {
   grid.innerHTML = "";
 
@@ -30,10 +63,12 @@ function render(games) {
     card.className = "card";
 
     card.innerHTML = `
-      <img loading="lazy" src="${g.coverUrl || ""}">
+      <img loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
       <div class="card-body">
         <div class="card-title">${g.name}</div>
-        <div class="card-meta">${g.releaseDate ? new Date(g.releaseDate).toLocaleDateString() : "TBD"}</div>
+        <div class="card-meta">
+          ${g.releaseDate ? new Date(g.releaseDate).toLocaleDateString() : "TBD"}
+        </div>
       </div>
     `;
 
@@ -41,6 +76,9 @@ function render(games) {
   });
 }
 
+/* =========================
+   FETCH
+========================= */
 async function fetchGames() {
   loading.style.display = "block";
   errorBox.textContent = "";
@@ -52,6 +90,7 @@ async function fetchGames() {
 
     state.data = data;
 
+    // update counts
     sectionButtons[0].innerHTML = `Out Now <span class="count">${data.outNow.length}</span>`;
     sectionButtons[1].innerHTML = `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
 
@@ -63,11 +102,16 @@ async function fetchGames() {
   }
 }
 
+/* =========================
+   EVENTS
+========================= */
 sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    state.section = btn.textContent.toLowerCase().includes("coming") ? "coming-soon" : "out-now";
+    state.section = btn.textContent.toLowerCase().includes("coming")
+      ? "coming-soon"
+      : "out-now";
     render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };
 });
@@ -82,4 +126,9 @@ platformButtons.forEach(btn => {
   };
 });
 
-fetchGames();
+/* =========================
+   INIT
+========================= */
+if (isAgeVerified()) {
+  fetchGames();
+}

@@ -8,8 +8,7 @@
 }
 
 :root {
-  /* Muted accent system */
-  --accent: #7aa2f7;           /* muted slate-blue */
+  --accent: #7aa2f7;
   --accent-soft: rgba(122,162,247,0.18);
   --accent-border: rgba(122,162,247,0.35);
 
@@ -184,6 +183,9 @@ main {
   object-fit: cover;
 }
 
+/* =========================
+   CARD BODY
+========================= */
 .card-body {
   padding: 0.85rem 0.85rem 0.95rem;
 }
@@ -198,7 +200,7 @@ main {
   flex-wrap: wrap;
 }
 
-/* Category = visual anchor */
+/* Category badge (primary anchor) */
 .badge-category {
   font-size: 0.62rem;
   font-weight: 700;
@@ -209,15 +211,36 @@ main {
   border: 1px solid var(--accent-border);
 }
 
-/* Platforms = secondary */
-.badge-platform {
-  font-size: 0.6rem;
-  font-weight: 600;
-  padding: 4px 8px;
+/* =========================
+   PLATFORM ICON BADGES (FIXED)
+========================= */
+.badge-platform.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 22px;
+  height: 22px;
+
   border-radius: 999px;
   background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+
   color: rgba(255,255,255,0.7);
-  border: 1px solid var(--border-soft);
+}
+
+.badge-platform.icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+
+  stroke: currentColor;
+  fill: none;
+}
+
+.card:hover .badge-platform.icon {
+  color: rgba(255,255,255,0.9);
+  border-color: rgba(255,255,255,0.14);
 }
 
 /* =========================
@@ -235,6 +258,18 @@ main {
 }
 
 /* =========================
+   STATES
+========================= */
+.loading {
+  opacity: 0.8;
+}
+
+.error {
+  color: #f87171;
+  margin-bottom: 1rem;
+}
+
+/* =========================
    SHOW MORE
 ========================= */
 .show-more {
@@ -242,15 +277,18 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   background: linear-gradient(
     180deg,
     rgba(255,255,255,0.08),
     rgba(255,255,255,0.03)
   );
   color: #fff;
+
   border: 1px solid rgba(255,255,255,0.12);
   padding: 0.75rem 1.8rem;
   border-radius: 999px;
+
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.15s ease;

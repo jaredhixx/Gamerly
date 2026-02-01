@@ -1,5 +1,5 @@
 // public/app.js
-// FINAL — correct data split + age gate + time filters restored
+// Gamerly — platform + category badges added (UI only)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -51,7 +51,7 @@ function buildApiUrl() {
 }
 
 /* =========================
-   TIME FILTER LOGIC
+   TIME FILTERS
 ========================= */
 function applyTimeFilter(games) {
   if (state.timeFilter === "all") return games;
@@ -65,25 +65,58 @@ function applyTimeFilter(games) {
 
   return games.filter(g => {
     if (!g.releaseDate) return false;
-
     const t = new Date(g.releaseDate).getTime();
 
     if (state.timeFilter === "today") {
       return t >= todayStart && t < todayStart + 86400000;
     }
-
     if (state.timeFilter === "week") {
       return t >= todayStart - 6 * 86400000 &&
              t <= todayStart + 7 * 86400000;
     }
-
     if (state.timeFilter === "month") {
       return t >= todayStart - 29 * 86400000 &&
              t <= todayStart + 30 * 86400000;
     }
-
     return true;
   });
+}
+
+/* =========================
+   BADGE HELPERS
+========================= */
+function mapPlatformBadge(name) {
+  const n = name.toLowerCase();
+  if (n.includes("playstation")) return "PS";
+  if (n.includes("xbox")) return "Xbox";
+  if (n.includes("switch") || n.includes("nintendo")) return "Switch";
+  if (n.includes("pc")) return "PC";
+  if (n.includes("android")) return "Android";
+  if (n.includes("ios")) return "iOS";
+  return null;
+}
+
+function renderBadges(game) {
+  const badges = [];
+
+  // Category badge (single, clean)
+  if (game.category) {
+    badges.push(`<span class="badge badge-category">${game.category.replace("Role-playing (RPG)", "RPG")}</span>`);
+  }
+
+  // Platform badges
+  if (Array.isArray(game.platforms)) {
+    const seen = new Set();
+    game.platforms.forEach(p => {
+      const label = mapPlatformBadge(p);
+      if (label && !seen.has(label)) {
+        seen.add(label);
+        badges.push(`<span class="badge badge-platform">${label}</span>`);
+      }
+    });
+  }
+
+  return badges.join("");
 }
 
 /* =========================
@@ -106,6 +139,9 @@ function render(games) {
     card.innerHTML = `
       <img loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
       <div class="card-body">
+        <div class="badge-row">
+          ${renderBadges(g)}
+        </div>
         <div class="card-title">${g.name}</div>
         <div class="card-meta">
           ${g.releaseDate ? new Date(g.releaseDate).toLocaleDateString() : "TBD"}
@@ -131,7 +167,6 @@ async function fetchGames() {
 
     state.data = data;
 
-    // update counts (unfiltered totals)
     sectionButtons[0].innerHTML = `Out Now <span class="count">${data.outNow.length}</span>`;
     sectionButtons[1].innerHTML = `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
 
@@ -150,11 +185,9 @@ sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-
     state.section = btn.textContent.toLowerCase().includes("coming")
       ? "coming-soon"
       : "out-now";
-
     render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };
 });

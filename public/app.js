@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — time filters + platform filters + section switch
+// Gamerly frontend — section switch + count indicators
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -142,6 +142,20 @@ function splitByRelease(games) {
 }
 
 /* =========================
+   UPDATE COUNTS (NEW)
+========================= */
+function updateSectionCounts(outNowCount, comingSoonCount) {
+  sectionButtons.forEach(btn => {
+    const label = btn.textContent.toLowerCase();
+    if (label.includes("out now")) {
+      btn.innerHTML = `Out Now <span class="count">${outNowCount}</span>`;
+    } else {
+      btn.innerHTML = `Coming Soon <span class="count">${comingSoonCount}</span>`;
+    }
+  });
+}
+
+/* =========================
    RENDER
 ========================= */
 function renderSection(title, games) {
@@ -191,6 +205,8 @@ function renderGames(games) {
   grid.innerHTML = "";
 
   const { outNow, comingSoon } = splitByRelease(games);
+
+  updateSectionCounts(outNow.length, comingSoon.length);
 
   if (state.section === "coming-soon") {
     renderSection("Coming Soon", comingSoon);
@@ -259,7 +275,10 @@ sectionButtons.forEach(btn => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    state.section = btn.textContent.toLowerCase().replace(" ", "-");
+    state.section = btn.textContent.toLowerCase().includes("coming")
+      ? "coming-soon"
+      : "out-now";
+
     fetchGames();
   });
 });

@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — restored correct release classification
+// Gamerly — stable base with corrected Coming Soon time filtering (PC-safe)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -13,8 +13,8 @@ const timeButtons = document.querySelectorAll(".time-segment button");
 const platformButtons = document.querySelectorAll("[data-platform]");
 
 const state = {
-  section: "out-now",
-  timeFilter: "all",
+  section: "out-now",        // out-now | coming-soon
+  timeFilter: "all",         // all | today | week | month
   platforms: new Set(),
   data: { outNow: [], comingSoon: [] },
 };
@@ -28,15 +28,17 @@ function isAgeVerified() {
 
 function confirmAge() {
   localStorage.setItem("gamerly_age_verified", "true");
-  ageGate.style.display = "none";
+  if (ageGate) ageGate.style.display = "none";
   fetchGames();
 }
 
-if (isAgeVerified()) {
-  ageGate.style.display = "none";
-} else {
-  ageGate.style.display = "flex";
-  ageConfirmBtn.onclick = confirmAge;
+if (ageGate && ageConfirmBtn) {
+  if (isAgeVerified()) {
+    ageGate.style.display = "none";
+  } else {
+    ageGate.style.display = "flex";
+    ageConfirmBtn.onclick = confirmAge;
+  }
 }
 
 /* =========================
@@ -51,63 +53,78 @@ function buildApiUrl() {
 }
 
 /* =========================
-   TIME FILTERS (CORRECTED)
+   TIME FILTERS (CORRECT, PC-SAFE)
+   Key rule:
+   - Out Now: strict past windows
+   - Coming Soon: trust API; keep undated; only apply upper bound
 ========================= */
 function applyTimeFilter(games) {
   if (state.timeFilter === "all") return games;
 
-  const now = Date.now();
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const DAY = 86400000;
 
-  return games.filter(g => {
-    if (!g.releaseDate) {
-      // undated games only belong in Coming Soon
-      return state.section === "coming-soon";
-    }
+  // Helper: parse release time safely
+  const toTime = (g) => (g.releaseDate ? new Date(g.releaseDate).getTime() : null);
 
-    const t = new Date(g.releaseDate).getTime();
+  // OUT NOW (strict, past-facing)
+  if (state.section === "out-now") {
+    return games.filter(g => {
+      const t = toTime(g);
+      if (!t) return false;
 
-    // OUT NOW = anything already released
-    if (state.section === "out-now") {
-      if (t > now) return false;
-
-      if (state.timeFilter === "today") {
-        return now - t < DAY;
-      }
-      if (state.timeFilter === "week") {
-        return now - t < 7 * DAY;
-      }
-      if (state.timeFilter === "month") {
-        return now - t < 30 * DAY;
-      }
-      return true;
-    }
-
-    // COMING SOON = anything in the future
-    if (state.section === "coming-soon") {
-      if (t <= now) return false;
+      // Must be released already (use now, not midnight)
+      if (t > Date.now()) return false;
 
       if (state.timeFilter === "today") {
-        return t - now < DAY;
+        return t >= todayStart && t < todayStart + DAY;
       }
       if (state.timeFilter === "week") {
-        return t - now < 7 * DAY;
+        return t >= todayStart - 6 * DAY && t < todayStart + DAY;
       }
       if (state.timeFilter === "month") {
-        return t - now < 30 * DAY;
+        return t >= todayStart - 29 * DAY && t < todayStart + DAY;
       }
       return true;
-    }
+    });
+  }
 
-    return true;
-  });
+  // COMING SOON (trust API classification)
+  if (state.section === "coming-soon") {
+    // relaxed windows (these were the “good build” values)
+    const WEEK_CAP_DAYS = 10;
+    const MONTH_CAP_DAYS = 45;
+
+    return games.filter(g => {
+      const t = toTime(g);
+
+      // Keep undated games (common on PC)
+      if (!t) return true;
+
+      // For Coming Soon, do NOT require t > now — IGDB uses UTC-midnight-ish values.
+      // We only cap how far ahead it is, relative to today.
+      if (state.timeFilter === "today") {
+        return t >= todayStart && t < todayStart + DAY;
+      }
+      if (state.timeFilter === "week") {
+        return t < todayStart + (WEEK_CAP_DAYS * DAY);
+      }
+      if (state.timeFilter === "month") {
+        return t < todayStart + (MONTH_CAP_DAYS * DAY);
+      }
+      return true;
+    });
+  }
+
+  return games;
 }
 
 /* =========================
-   PLATFORM OVERLAY
+   PLATFORM OVERLAY CHIPS
 ========================= */
 function mapPlatformChip(name) {
-  const n = name.toLowerCase();
+  const n = String(name || "").toLowerCase();
   if (n.includes("xbox")) return { cls: "xbox", label: "Ⓧ" };
   if (n.includes("playstation")) return { cls: "", label: "PS" };
   if (n.includes("pc")) return { cls: "", label: "PC" };
@@ -174,8 +191,8 @@ function render(games) {
    FETCH
 ========================= */
 async function fetchGames() {
-  loading.style.display = "block";
-  errorBox.textContent = "";
+  if (loading) loading.style.display = "block";
+  if (errorBox) errorBox.textContent = "";
 
   try {
     const res = await fetch(buildApiUrl());
@@ -184,16 +201,18 @@ async function fetchGames() {
 
     state.data = data;
 
-    sectionButtons[0].innerHTML =
-      `Out Now <span class="count">${data.outNow.length}</span>`;
-    sectionButtons[1].innerHTML =
-      `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
+    if (sectionButtons[0]) {
+      sectionButtons[0].innerHTML = `Out Now <span class="count">${data.outNow.length}</span>`;
+    }
+    if (sectionButtons[1]) {
+      sectionButtons[1].innerHTML = `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
+    }
 
     render(state.section === "out-now" ? data.outNow : data.comingSoon);
   } catch (err) {
-    errorBox.textContent = err.message;
+    if (errorBox) errorBox.textContent = err.message || "Failed to load games.";
   } finally {
-    loading.style.display = "none";
+    if (loading) loading.style.display = "none";
   }
 }
 
@@ -204,9 +223,11 @@ sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
+
     state.section = btn.textContent.toLowerCase().includes("coming")
       ? "coming-soon"
       : "out-now";
+
     render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };
 });
@@ -230,9 +251,11 @@ timeButtons.forEach(btn => {
 platformButtons.forEach(btn => {
   btn.onclick = () => {
     btn.classList.toggle("active");
+
     btn.classList.contains("active")
       ? state.platforms.add(btn.dataset.platform)
       : state.platforms.delete(btn.dataset.platform);
+
     fetchGames();
   };
 });

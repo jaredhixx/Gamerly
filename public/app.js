@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — merged stable build + IGDB rating (NO regressions)
+// Gamerly — stable render + IGDB ratings + platform icons (FINAL SAFE BUILD)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -59,11 +59,7 @@ function applyTimeFilter(games) {
   if (state.timeFilter === "all") return games;
 
   const now = new Date();
-  const today = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).getTime();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
   return games.filter(g => {
     if (!g.releaseDate) return false;
@@ -73,28 +69,26 @@ function applyTimeFilter(games) {
       return t >= today && t < today + 86400000;
     }
     if (state.timeFilter === "week") {
-      return t >= today - 6 * 86400000 &&
-             t <= today + 7 * 86400000;
+      return t >= today - 6 * 86400000 && t <= today + 7 * 86400000;
     }
     if (state.timeFilter === "month") {
-      return t >= today - 29 * 86400000 &&
-             t <= today + 30 * 86400000;
+      return t >= today - 29 * 86400000 && t <= today + 30 * 86400000;
     }
     return true;
   });
 }
 
 /* =========================
-   BADGE HELPERS
+   PLATFORM ICONS
 ========================= */
-function mapPlatformBadge(name) {
+function mapPlatformChip(name) {
   const n = name.toLowerCase();
-  if (n.includes("xbox")) return "xbox";
-  if (n.includes("playstation")) return "ps";
-  if (n.includes("nintendo") || n.includes("switch")) return "switch";
-  if (n.includes("pc")) return "pc";
-  if (n.includes("ios")) return "ios";
-  if (n.includes("android")) return "android";
+  if (n.includes("xbox")) return { key: "xbox", label: "Xbox" };
+  if (n.includes("playstation")) return { key: "ps", label: "PS" };
+  if (n.includes("nintendo")) return { key: "nintendo", label: "N" };
+  if (n.includes("pc")) return { key: "pc", label: "PC" };
+  if (n.includes("ios")) return { key: "ios", label: "iOS" };
+  if (n.includes("android")) return { key: "android", label: "Android" };
   return null;
 }
 
@@ -105,26 +99,45 @@ function renderPlatformOverlay(game) {
   const chips = [];
 
   game.platforms.forEach(p => {
-    const key = mapPlatformBadge(p);
-    if (key && !seen.has(key)) {
-      seen.add(key);
-      chips.push(`<span class="platform-chip ${key}">${key.toUpperCase()}</span>`);
+    const mapped = mapPlatformChip(p);
+    if (mapped && !seen.has(mapped.key)) {
+      seen.add(mapped.key);
+      chips.push(
+        `<span class="platform-chip ${mapped.key}">${mapped.label}</span>`
+      );
     }
   });
 
-  if (!chips.length) return "";
-  return `<div class="platform-overlay">${chips.join("")}</div>`;
+  return chips.length
+    ? `<div class="platform-overlay">${chips.join("")}</div>`
+    : "";
 }
 
+/* =========================
+   CATEGORY
+========================= */
 function renderCategoryBadge(game) {
   if (!game.category) return "";
   const label = game.category.replace("Role-playing (RPG)", "RPG");
   return `<div class="badge-row"><span class="badge-category">${label}</span></div>`;
 }
 
+/* =========================
+   RATINGS (IGDB)
+========================= */
 function renderRating(game) {
-  if (!game.rating || game.rating < 1) return "";
-  return `<div class="rating-pill">${Math.round(game.rating)}</div>`;
+  const rating =
+    game.aggregated_rating ??
+    game.rating ??
+    null;
+
+  if (!rating) return "";
+
+  return `
+    <div class="rating-pill">
+      ${Math.round(rating)}
+    </div>
+  `;
 }
 
 /* =========================

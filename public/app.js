@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — FRONTEND-ONLY split (LOCKED, calendar-safe)
+// Gamerly — frontend-only split + clean ratings (LOCKED)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -32,8 +32,8 @@ let allGames = [];
 let outNowGames = [];
 let comingSoonGames = [];
 
-let activeSection = "out";     // out | soon
-let activeTime = "all";        // all | today | week | month
+let activeSection = "out";   // out | soon
+let activeTime = "all";      // all | today | week | month
 let activePlatform = "all";
 
 let visibleCount = 0;
@@ -58,7 +58,7 @@ async function loadGames() {
     splitByCalendarDay();
     updateCounts();
     applyFilters(true);
-  } catch (err) {
+  } catch {
     errorBox.textContent = "Failed to load games.";
   } finally {
     loading.style.display = "none";
@@ -66,14 +66,13 @@ async function loadGames() {
 }
 
 /* =========================
-   CALENDAR-DAY SPLIT (LOCKED)
+   CALENDAR SPLIT (LOCKED)
 ========================= */
 function splitByCalendarDay() {
   outNowGames = [];
   comingSoonGames = [];
 
   const now = new Date();
-
   const endOfToday = new Date(
     now.getFullYear(),
     now.getMonth(),
@@ -91,13 +90,9 @@ function splitByCalendarDay() {
   allGames.forEach(game => {
     if (!game.releaseDate) return;
 
-    const releaseTime = new Date(game.releaseDate).getTime();
-
-    if (releaseTime <= endOfToday) {
-      outNowGames.push(game);
-    } else if (releaseTime >= startOfTomorrow) {
-      comingSoonGames.push(game);
-    }
+    const t = new Date(game.releaseDate).getTime();
+    if (t <= endOfToday) outNowGames.push(game);
+    else if (t >= startOfTomorrow) comingSoonGames.push(game);
   });
 }
 
@@ -106,7 +101,6 @@ function splitByCalendarDay() {
 ========================= */
 function updateCounts() {
   const buttons = document.querySelectorAll(".section-segment button");
-
   if (buttons.length >= 2) {
     buttons[0].innerHTML = `Out Now <span class="count">${outNowGames.length}</span>`;
     buttons[1].innerHTML = `Coming Soon <span class="count">${comingSoonGames.length}</span>`;
@@ -124,7 +118,7 @@ function applyFilters(reset = false) {
       ? [...outNowGames]
       : [...comingSoonGames];
 
-  /* PLATFORM FILTER */
+  // Platform filter
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
     list = list.filter(game =>
@@ -133,22 +127,15 @@ function applyFilters(reset = false) {
     );
   }
 
-  /* TIME FILTER (ONLY FOR COMING SOON) */
+  // Time filter (only for coming soon)
   if (activeSection === "soon" && activeTime !== "all") {
     const now = new Date();
 
     list = list.filter(game => {
       const d = new Date(game.releaseDate);
-
-      if (activeTime === "today") {
-        return d.toDateString() === now.toDateString();
-      }
-      if (activeTime === "week") {
-        return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
-      }
-      if (activeTime === "month") {
-        return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
-      }
+      if (activeTime === "today") return d.toDateString() === now.toDateString();
+      if (activeTime === "week") return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
+      if (activeTime === "month") return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
       return true;
     });
   }
@@ -162,7 +149,6 @@ function applyFilters(reset = false) {
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
   visibleCount = slice.length;
-
   grid.innerHTML = "";
 
   if (!slice.length) {
@@ -172,11 +158,14 @@ function render(list) {
   }
 
   slice.forEach(game => {
+    const ratingBadge = renderRating(game);
+
     const card = document.createElement("div");
     card.className = "card";
 
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
+      ${ratingBadge}
       <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
         <div class="badge-row">
@@ -194,6 +183,31 @@ function render(list) {
 
   showMoreBtn.style.display =
     visibleCount < list.length ? "block" : "none";
+}
+
+/* =========================
+   RATING BADGE (CLEAN)
+========================= */
+function renderRating(game) {
+  const score = game.aggregated_rating;
+  const count = game.aggregated_rating_count;
+
+  if (
+    typeof score !== "number" ||
+    typeof count !== "number" ||
+    score < 60 ||
+    count < 3
+  ) {
+    return "";
+  }
+
+  const rounded = Math.round(score);
+
+  return `
+    <div class="rating-badge">
+      ${rounded}
+    </div>
+  `;
 }
 
 /* =========================

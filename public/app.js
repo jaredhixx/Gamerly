@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — stable, trustworthy baseline (PC + iOS coming soon fixed)
+// Gamerly — restored correct release classification
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -13,8 +13,8 @@ const timeButtons = document.querySelectorAll(".time-segment button");
 const platformButtons = document.querySelectorAll("[data-platform]");
 
 const state = {
-  section: "out-now",        // out-now | coming-soon
-  timeFilter: "all",         // all | today | week | month
+  section: "out-now",
+  timeFilter: "all",
   platforms: new Set(),
   data: { outNow: [], comingSoon: [] },
 };
@@ -28,17 +28,15 @@ function isAgeVerified() {
 
 function confirmAge() {
   localStorage.setItem("gamerly_age_verified", "true");
-  if (ageGate) ageGate.style.display = "none";
+  ageGate.style.display = "none";
   fetchGames();
 }
 
-if (ageGate && ageConfirmBtn) {
-  if (isAgeVerified()) {
-    ageGate.style.display = "none";
-  } else {
-    ageGate.style.display = "flex";
-    ageConfirmBtn.onclick = confirmAge;
-  }
+if (isAgeVerified()) {
+  ageGate.style.display = "none";
+} else {
+  ageGate.style.display = "flex";
+  ageConfirmBtn.onclick = confirmAge;
 }
 
 /* =========================
@@ -53,64 +51,60 @@ function buildApiUrl() {
 }
 
 /* =========================
-   TIME FILTERS (FINAL, CORRECT)
+   TIME FILTERS (CORRECTED)
 ========================= */
 function applyTimeFilter(games) {
   if (state.timeFilter === "all") return games;
 
-  const now = new Date();
-  const todayStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).getTime();
-
+  const now = Date.now();
   const DAY = 86400000;
 
-  // OUT NOW → strict past windows
-  if (state.section === "out-now") {
-    return games.filter(g => {
-      if (!g.releaseDate) return false;
-      const t = new Date(g.releaseDate).getTime();
+  return games.filter(g => {
+    if (!g.releaseDate) {
+      // undated games only belong in Coming Soon
+      return state.section === "coming-soon";
+    }
+
+    const t = new Date(g.releaseDate).getTime();
+
+    // OUT NOW = anything already released
+    if (state.section === "out-now") {
+      if (t > now) return false;
 
       if (state.timeFilter === "today") {
-        return t >= todayStart && t < todayStart + DAY;
+        return now - t < DAY;
       }
       if (state.timeFilter === "week") {
-        return t >= todayStart - 6 * DAY && t <= todayStart;
+        return now - t < 7 * DAY;
       }
       if (state.timeFilter === "month") {
-        return t >= todayStart - 29 * DAY && t <= todayStart;
+        return now - t < 30 * DAY;
       }
       return true;
-    });
-  }
+    }
 
-  // COMING SOON → trust IGDB, keep undated games
-  if (state.section === "coming-soon") {
-    return games.filter(g => {
-      if (!g.releaseDate) return true; // CRITICAL: keep PC/iOS soft-dated games
-
-      const t = new Date(g.releaseDate).getTime();
+    // COMING SOON = anything in the future
+    if (state.section === "coming-soon") {
+      if (t <= now) return false;
 
       if (state.timeFilter === "today") {
-        return t >= todayStart && t < todayStart + DAY;
+        return t - now < DAY;
       }
       if (state.timeFilter === "week") {
-        return t >= todayStart && t <= todayStart + 7 * DAY;
+        return t - now < 7 * DAY;
       }
       if (state.timeFilter === "month") {
-        return t >= todayStart && t <= todayStart + 31 * DAY;
+        return t - now < 30 * DAY;
       }
       return true;
-    });
-  }
+    }
 
-  return games;
+    return true;
+  });
 }
 
 /* =========================
-   PLATFORM OVERLAY (UNCHANGED)
+   PLATFORM OVERLAY
 ========================= */
 function mapPlatformChip(name) {
   const n = name.toLowerCase();
@@ -163,9 +157,7 @@ function render(games) {
       <img loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
       <div class="card-body">
         <div class="badge-row">
-          ${g.category
-            ? `<span class="badge-category">${g.category.replace("Role-playing (RPG)", "RPG")}</span>`
-            : ""}
+          ${g.category ? `<span class="badge-category">${g.category.replace("Role-playing (RPG)", "RPG")}</span>` : ""}
         </div>
         <div class="card-title">${g.name}</div>
         <div class="card-meta">
@@ -197,11 +189,7 @@ async function fetchGames() {
     sectionButtons[1].innerHTML =
       `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
 
-    render(
-      state.section === "out-now"
-        ? data.outNow
-        : data.comingSoon
-    );
+    render(state.section === "out-now" ? data.outNow : data.comingSoon);
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -216,16 +204,10 @@ sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-
     state.section = btn.textContent.toLowerCase().includes("coming")
       ? "coming-soon"
       : "out-now";
-
-    render(
-      state.section === "out-now"
-        ? state.data.outNow
-        : state.data.comingSoon
-    );
+    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };
 });
 
@@ -241,11 +223,7 @@ timeButtons.forEach(btn => {
       label.includes("month") ? "month" :
       "all";
 
-    render(
-      state.section === "out-now"
-        ? state.data.outNow
-        : state.data.comingSoon
-    );
+    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };
 });
 
@@ -255,7 +233,6 @@ platformButtons.forEach(btn => {
     btn.classList.contains("active")
       ? state.platforms.add(btn.dataset.platform)
       : state.platforms.delete(btn.dataset.platform);
-
     fetchGames();
   };
 });

@@ -36,6 +36,18 @@ let visibleCount = 0;
 const PAGE_SIZE = 24;
 
 /* =========================
+   PLATFORM MAP (IGDB)
+========================= */
+const PLATFORM_MAP = {
+  pc: [6],
+  playstation: [48, 49, 167],
+  xbox: [49, 169],
+  nintendo: [130, 167],
+  ios: [39],
+  android: [34],
+};
+
+/* =========================
    FETCH (LOCKED)
 ========================= */
 async function loadGames() {
@@ -45,7 +57,6 @@ async function loadGames() {
 
     const res = await fetch("/api/igdb");
     const data = await res.json();
-
     if (!data.ok) throw new Error("API failed");
 
     outNowGames = data.outNow || [];
@@ -78,22 +89,21 @@ function applyFilters(reset = false) {
 
   /* PLATFORM FILTER */
   if (activePlatform !== "all") {
-    const key = activePlatform.toLowerCase();
+    const validIds = PLATFORM_MAP[activePlatform] || [];
     list = list.filter(game =>
-      Array.isArray(game.platforms) &&
-      game.platforms.some(p => p.toLowerCase().includes(key))
+      Array.isArray(game.platformIds) &&
+      game.platformIds.some(id => validIds.includes(id))
     );
   }
 
   /* TIME FILTER
-     - Out Now: NO time filtering (intentional, stable)
-     - Coming Soon: precise windows
+     - Out Now: intentionally NONE
+     - Coming Soon: bounded windows
   */
   if (activeSection === "soon" && activeTime !== "all") {
     const now = new Date();
 
     list = list.filter(game => {
-      if (!game.releaseDate) return false;
       const d = new Date(game.releaseDate);
 
       if (activeTime === "today") {
@@ -133,10 +143,12 @@ function render(list) {
 
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
-      <img src="${game.coverUrl || ""}" loading="lazy" />
+      <img src="${game.cover || ""}" loading="lazy" />
       <div class="card-body">
         <div class="badge-row">
-          ${game.category ? `<span class="badge-category">${game.category}</span>` : ""}
+          ${(game.genres || [])
+            .map(g => `<span class="badge-category">${g}</span>`)
+            .join("")}
         </div>
         <div class="card-title">${game.name}</div>
         <div class="card-meta">
@@ -153,20 +165,21 @@ function render(list) {
 }
 
 /* =========================
-   PLATFORM ICONS (LOCKED)
+   PLATFORM ICONS (IGDB SAFE)
 ========================= */
 function renderPlatforms(game) {
-  if (!Array.isArray(game.platforms)) return "";
+  if (!Array.isArray(game.platformIds)) return "";
 
-  const p = game.platforms.join(" ").toLowerCase();
+  const ids = game.platformIds;
   const chips = [];
 
-  if (p.includes("windows")) chips.push(`<span class="platform-chip pc">PC</span>`);
-  if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
-  if (p.includes("playstation")) chips.push(`<span class="platform-chip">PS</span>`);
-  if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
-  if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
-  if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
+  if (ids.includes(6)) chips.push(`<span class="platform-chip pc">PC</span>`);
+  if ([48,49,169].some(id => ids.includes(id)))
+    chips.push(`<span class="platform-chip xbox">Xbox</span>`);
+  if ([130,167].some(id => ids.includes(id)))
+    chips.push(`<span class="platform-chip">Switch</span>`);
+  if (ids.includes(39)) chips.push(`<span class="platform-chip">iOS</span>`);
+  if (ids.includes(34)) chips.push(`<span class="platform-chip">Android</span>`);
 
   return chips.join("");
 }

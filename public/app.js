@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — stable baseline + tasteful platform glyphs (ROI-safe)
+// Gamerly — Stable build (platform icons refined, logic locked)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -13,8 +13,8 @@ const timeButtons = document.querySelectorAll(".time-segment button");
 const platformButtons = document.querySelectorAll("[data-platform]");
 
 const state = {
-  section: "out-now",
-  timeFilter: "all",
+  section: "out-now", // out-now | coming-soon
+  timeFilter: "all",  // all | today | week | month
   platforms: new Set(),
   data: { outNow: [], comingSoon: [] },
 };
@@ -32,11 +32,11 @@ function confirmAge() {
   fetchGames();
 }
 
-if (!isAgeVerified()) {
+if (isAgeVerified()) {
+  ageGate.style.display = "none";
+} else {
   ageGate.style.display = "flex";
   ageConfirmBtn.onclick = confirmAge;
-} else {
-  ageGate.style.display = "none";
 }
 
 /* =========================
@@ -83,73 +83,44 @@ function applyTimeFilter(games) {
 }
 
 /* =========================
-   PLATFORM GLYPHS (MINIMAL)
+   PLATFORM BADGES (FINAL)
 ========================= */
-const PLATFORM_GLYPHS = {
-  pc: `<svg viewBox="0 0 24 24" aria-hidden="true">
-         <rect x="3" y="4" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
-         <path d="M8 20h8" stroke="currentColor" stroke-width="1.5"/>
-       </svg>`,
-
-  playstation: `<svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 3v18" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M12 3l6 4v10l-6-4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-                </svg>`,
-
-  xbox: `<svg viewBox="0 0 24 24" aria-hidden="true">
-           <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
-           <path d="M7 7l10 10M17 7L7 17" stroke="currentColor" stroke-width="1.2"/>
-         </svg>`,
-
-  nintendo: `<svg viewBox="0 0 24 24" aria-hidden="true">
-               <rect x="4" y="6" width="16" height="12" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
-             </svg>`,
-
-  ios: `<svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 4c1.5 1.2 2 2.6 2 4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M8 10c0-2.2 1.8-4 4-4s4 1.8 4 4v6c0 2.2-1.8 4-4 4s-4-1.8-4-4z"
-                fill="none" stroke="currentColor" stroke-width="1.5"/>
-        </svg>`,
-
-  android: `<svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="6" y="7" width="12" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M9 4l-1-2M15 4l1-2" stroke="currentColor" stroke-width="1.2"/>
-            </svg>`
-};
-
-function platformKey(name) {
+function mapPlatformBadge(name) {
   const n = name.toLowerCase();
-  if (n.includes("playstation")) return "playstation";
-  if (n.includes("xbox")) return "xbox";
-  if (n.includes("switch") || n.includes("nintendo")) return "nintendo";
-  if (n.includes("pc")) return "pc";
-  if (n.includes("android")) return "android";
-  if (n.includes("ios")) return "ios";
+
+  if (n.includes("xbox")) return { type: "xbox", label: "XBOX" };
+  if (n.includes("playstation")) return { type: "text", label: "PS" };
+  if (n.includes("pc")) return { type: "text", label: "PC" };
+  if (n.includes("switch") || n.includes("nintendo")) return { type: "text", label: "Switch" };
+  if (n.includes("ios")) return { type: "text", label: "iOS" };
+  if (n.includes("android")) return { type: "text", label: "Android" };
+
   return null;
 }
 
 function renderBadges(game) {
   const badges = [];
 
+  // Category badge (single, clean)
   if (game.category) {
     badges.push(
-      `<span class="badge badge-category">
-        ${game.category.replace("Role-playing (RPG)", "RPG")}
-      </span>`
+      `<span class="badge badge-category">${game.category.replace("Role-playing (RPG)", "RPG")}</span>`
     );
   }
 
+  // Platform badges
   if (Array.isArray(game.platforms)) {
     const seen = new Set();
     game.platforms.forEach(p => {
-      const key = platformKey(p);
-      if (key && !seen.has(key)) {
-        seen.add(key);
-        badges.push(
-          `<span class="badge badge-platform icon" title="${key}">
-            ${PLATFORM_GLYPHS[key]}
-          </span>`
-        );
+      const data = mapPlatformBadge(p);
+      if (!data || seen.has(data.label)) return;
+
+      seen.add(data.label);
+
+      if (data.type === "xbox") {
+        badges.push(`<span class="badge badge-xbox">Ⓧ</span>`);
+      } else {
+        badges.push(`<span class="badge badge-platform">${data.label}</span>`);
       }
     });
   }
@@ -175,7 +146,12 @@ function render(games) {
     card.className = "card";
 
     card.innerHTML = `
-      <img loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
+      <img
+        class="lazy-img"
+        loading="lazy"
+        src="${g.coverUrl || ""}"
+        alt="${g.name}"
+      >
       <div class="card-body">
         <div class="badge-row">
           ${renderBadges(g)}
@@ -186,6 +162,9 @@ function render(games) {
         </div>
       </div>
     `;
+
+    const img = card.querySelector("img");
+    img.onload = () => img.classList.add("loaded");
 
     grid.appendChild(card);
   });
@@ -225,10 +204,15 @@ sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
+
     state.section = btn.textContent.toLowerCase().includes("coming")
       ? "coming-soon"
       : "out-now";
-    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
+
+    render(state.section === "out-now"
+      ? state.data.outNow
+      : state.data.comingSoon
+    );
   };
 });
 
@@ -244,7 +228,10 @@ timeButtons.forEach(btn => {
       label.includes("month") ? "month" :
       "all";
 
-    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
+    render(state.section === "out-now"
+      ? state.data.outNow
+      : state.data.comingSoon
+    );
   };
 });
 
@@ -254,6 +241,7 @@ platformButtons.forEach(btn => {
     btn.classList.contains("active")
       ? state.platforms.add(btn.dataset.platform)
       : state.platforms.delete(btn.dataset.platform);
+
     fetchGames();
   };
 });

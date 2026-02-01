@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly IGDB API — FINAL, STABLE, UI-COMPATIBLE VERSION
+// Gamerly IGDB API — STABLE, REVIEWED, MATCHES ORIGINAL WORKING BEHAVIOR
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -42,8 +42,6 @@ async function getTwitchToken() {
 ========================= */
 function normalizeCover(url) {
   if (!url) return null;
-
-  // add protocol + upgrade size
   return `https:${url}`.replace("t_thumb", "t_cover_big");
 }
 
@@ -60,7 +58,7 @@ function normalizeGame(g) {
 }
 
 /* =========================
-   IGDB QUERY (SAFE + SIMPLE)
+   IGDB QUERY (THIS IS KEY)
 ========================= */
 function buildIgdbQuery() {
   return `
@@ -68,9 +66,10 @@ function buildIgdbQuery() {
       name,
       first_release_date,
       rating,
-      cover.url;
-    sort first_release_date desc;
-    limit 50;
+      cover.url,
+      updated_at;
+    sort updated_at desc;
+    limit 200;
   `;
 }
 
@@ -98,17 +97,17 @@ export default async function handler(req, res) {
     }
 
     /* =========================
-       SERVER-SIDE FUTURE FILTER
+       SERVER-SIDE FUTURE CAP
     ========================= */
     const now = Date.now();
     const sixMonthsAhead = now + 183 * 24 * 60 * 60 * 1000;
 
     const filteredGames = rawGames.filter(g => {
-      if (!g.first_release_date) return true;
+      if (!g.first_release_date) return true; // allow unknown
       return g.first_release_date * 1000 <= sixMonthsAhead;
     });
 
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+    res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=600");
 
     res.status(200).json({
       ok: true,

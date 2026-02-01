@@ -4,7 +4,7 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   AGE GATE
+   AGE GATE (LOCKED + SAFE)
 ========================= */
 const ageGate = document.getElementById("ageGate");
 const ageBtn = document.getElementById("ageConfirmBtn");
@@ -23,20 +23,20 @@ if (ageGate && ageBtn) {
 }
 
 /* =========================
-   STATE
+   STATE (LOCKED)
 ========================= */
 let outNowGames = [];
 let comingSoonGames = [];
 
-let activeSection = "out";    // out | soon
-let activeTime = "all";       // all | today | week | month
+let activeSection = "out";   // out | soon
+let activeTime = "all";      // all | today | week | month
 let activePlatform = "all";
 
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 
 /* =========================
-   FETCH
+   FETCH (FIXED — NO FALSE FAILS)
 ========================= */
 async function loadGames() {
   try {
@@ -46,20 +46,24 @@ async function loadGames() {
     const res = await fetch("/api/igdb");
     const data = await res.json();
 
-    if (!data.ok) throw new Error("API failed");
+    // ✅ STRUCTURE CHECK (not flag-based)
+    if (!data || (!Array.isArray(data.outNow) && !Array.isArray(data.comingSoon))) {
+      throw new Error("Invalid API response");
+    }
 
     outNowGames = Array.isArray(data.outNow) ? data.outNow : [];
     comingSoonGames = Array.isArray(data.comingSoon) ? data.comingSoon : [];
 
-    // restore counts
-    document.querySelector(".section-segment button[data-section='out']")
-      .innerHTML = `Out Now <span class="count">${outNowGames.length}</span>`;
+    // Restore section counts (trust signal)
+    const outBtn = document.querySelector(".section-segment button:nth-child(1)");
+    const soonBtn = document.querySelector(".section-segment button:nth-child(2)");
 
-    document.querySelector(".section-segment button[data-section='soon']")
-      .innerHTML = `Coming Soon <span class="count">${comingSoonGames.length}</span>`;
+    if (outBtn) outBtn.innerHTML = `Out Now <span class="count">${outNowGames.length}</span>`;
+    if (soonBtn) soonBtn.innerHTML = `Coming Soon <span class="count">${comingSoonGames.length}</span>`;
 
     applyFilters(true);
-  } catch (e) {
+  } catch (err) {
+    console.error(err);
     errorBox.textContent = "Failed to load games.";
   } finally {
     loading.style.display = "none";
@@ -67,7 +71,7 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE
+   FILTER PIPELINE (LOCKED)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
@@ -77,7 +81,7 @@ function applyFilters(reset = false) {
       ? [...outNowGames]
       : [...comingSoonGames];
 
-  // PLATFORM FILTER
+  /* PLATFORM FILTER */
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
     list = list.filter(game =>
@@ -86,7 +90,10 @@ function applyFilters(reset = false) {
     );
   }
 
-  // TIME FILTER (COMING SOON ONLY)
+  /* TIME FILTER
+     - Out Now: intentionally NO time filter
+     - Coming Soon: future windows only
+  */
   if (activeSection === "soon" && activeTime !== "all") {
     const now = new Date();
 
@@ -111,7 +118,7 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   RENDER
+   RENDER (LOCKED)
 ========================= */
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -138,7 +145,7 @@ function render(list) {
         </div>
         <div class="card-title">${game.name}</div>
         <div class="card-meta">
-          ${new Date(game.releaseDate).toLocaleDateString()}
+          ${game.releaseDate ? new Date(game.releaseDate).toLocaleDateString() : ""}
         </div>
       </div>
     `;
@@ -151,7 +158,7 @@ function render(list) {
 }
 
 /* =========================
-   PLATFORM ICONS
+   PLATFORM ICONS (LOCKED)
 ========================= */
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";
@@ -170,28 +177,24 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   EVENTS
+   EVENTS (LOCKED)
 ========================= */
-
-// TIME BUTTONS (explicit mapping)
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {
-    activeTime = btn.dataset.time || "all";
+    activeTime = btn.textContent.toLowerCase().replace(" ", "");
     setActive(btn);
     applyFilters(true);
   };
 });
 
-// SECTION BUTTONS
 document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
-    activeSection = btn.dataset.section;
+    activeSection = btn.textContent.includes("Out") ? "out" : "soon";
     setActive(btn);
     applyFilters(true);
   };
 });
 
-// PLATFORM BUTTONS
 document.querySelectorAll(".platforms button").forEach(btn => {
   btn.onclick = () => {
     activePlatform = btn.dataset.platform || "all";

@@ -1,9 +1,10 @@
 // public/app.js
-// Gamerly — Base stabilization build (filters + see more fixed)
+// Gamerly — Base-stable build with DOM safety guards
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
+
 const showMoreBtn = document.getElementById("showMore");
 
 const ageGate = document.getElementById("ageGate");
@@ -16,15 +17,15 @@ const platformButtons = document.querySelectorAll("[data-platform]");
 const PAGE_SIZE = 36;
 
 const state = {
-  section: "out-now",        // out-now | coming-soon
-  timeFilter: "all",         // all | today | week | month
+  section: "out-now",
+  timeFilter: "all",
   platforms: new Set(),
   data: { outNow: [], comingSoon: [] },
   visibleCount: PAGE_SIZE,
 };
 
 /* =========================
-   AGE VERIFICATION
+   AGE VERIFICATION (GUARDED)
 ========================= */
 function isAgeVerified() {
   return localStorage.getItem("gamerly_age_verified") === "true";
@@ -32,15 +33,17 @@ function isAgeVerified() {
 
 function confirmAge() {
   localStorage.setItem("gamerly_age_verified", "true");
-  ageGate.style.display = "none";
+  if (ageGate) ageGate.style.display = "none";
   fetchGames();
 }
 
-if (isAgeVerified()) {
-  ageGate.style.display = "none";
-} else {
-  ageGate.style.display = "flex";
-  ageConfirmBtn.onclick = confirmAge;
+if (ageGate && ageConfirmBtn) {
+  if (isAgeVerified()) {
+    ageGate.style.display = "none";
+  } else {
+    ageGate.style.display = "flex";
+    ageConfirmBtn.onclick = confirmAge;
+  }
 }
 
 /* =========================
@@ -55,7 +58,7 @@ function buildApiUrl() {
 }
 
 /* =========================
-   TIME FILTERS (FIXED)
+   TIME FILTERS (STABLE)
 ========================= */
 function applyTimeFilter(games) {
   if (state.timeFilter === "all") return games;
@@ -72,27 +75,15 @@ function applyTimeFilter(games) {
     const t = new Date(g.releaseDate).getTime();
 
     if (state.section === "out-now") {
-      if (state.timeFilter === "today") {
-        return t >= todayStart && t < todayStart + 86400000;
-      }
-      if (state.timeFilter === "week") {
-        return t >= todayStart - 6 * 86400000 && t <= todayStart;
-      }
-      if (state.timeFilter === "month") {
-        return t >= todayStart - 29 * 86400000 && t <= todayStart;
-      }
+      if (state.timeFilter === "today") return t >= todayStart && t < todayStart + 86400000;
+      if (state.timeFilter === "week") return t >= todayStart - 6 * 86400000 && t <= todayStart;
+      if (state.timeFilter === "month") return t >= todayStart - 29 * 86400000 && t <= todayStart;
     }
 
     if (state.section === "coming-soon") {
-      if (state.timeFilter === "today") {
-        return t >= todayStart && t < todayStart + 86400000;
-      }
-      if (state.timeFilter === "week") {
-        return t > todayStart && t <= todayStart + 7 * 86400000;
-      }
-      if (state.timeFilter === "month") {
-        return t > todayStart && t <= todayStart + 30 * 86400000;
-      }
+      if (state.timeFilter === "today") return t >= todayStart && t < todayStart + 86400000;
+      if (state.timeFilter === "week") return t > todayStart && t <= todayStart + 7 * 86400000;
+      if (state.timeFilter === "month") return t > todayStart && t <= todayStart + 30 * 86400000;
     }
 
     return true;
@@ -100,7 +91,7 @@ function applyTimeFilter(games) {
 }
 
 /* =========================
-   PLATFORM OVERLAY
+   PLATFORM OVERLAY (SAFE)
 ========================= */
 function mapPlatformChip(name) {
   const n = name.toLowerCase();
@@ -132,9 +123,11 @@ function renderPlatformOverlay(game) {
 }
 
 /* =========================
-   RENDER
+   RENDER (SAFE)
 ========================= */
 function render(games) {
+  if (!grid) return;
+
   grid.innerHTML = "";
 
   const filtered = applyTimeFilter(games);
@@ -142,7 +135,7 @@ function render(games) {
 
   if (!visible.length) {
     grid.innerHTML = "<p>No games found.</p>";
-    showMoreBtn.style.display = "none";
+    if (showMoreBtn) showMoreBtn.style.display = "none";
     return;
   }
 
@@ -170,16 +163,18 @@ function render(games) {
     grid.appendChild(card);
   });
 
-  showMoreBtn.style.display =
-    state.visibleCount < filtered.length ? "inline-flex" : "none";
+  if (showMoreBtn) {
+    showMoreBtn.style.display =
+      state.visibleCount < filtered.length ? "inline-flex" : "none";
+  }
 }
 
 /* =========================
    FETCH
 ========================= */
 async function fetchGames() {
-  loading.style.display = "block";
-  errorBox.textContent = "";
+  if (loading) loading.style.display = "block";
+  if (errorBox) errorBox.textContent = "";
   state.visibleCount = PAGE_SIZE;
 
   try {
@@ -189,34 +184,38 @@ async function fetchGames() {
 
     state.data = data;
 
-    sectionButtons[0].innerHTML =
-      `Out Now <span class="count">${data.outNow.length}</span>`;
-    sectionButtons[1].innerHTML =
-      `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
+    if (sectionButtons[0])
+      sectionButtons[0].innerHTML = `Out Now <span class="count">${data.outNow.length}</span>`;
+    if (sectionButtons[1])
+      sectionButtons[1].innerHTML = `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
 
     render(state.section === "out-now" ? data.outNow : data.comingSoon);
   } catch (err) {
-    errorBox.textContent = err.message;
+    if (errorBox) errorBox.textContent = err.message;
   } finally {
-    loading.style.display = "none";
+    if (loading) loading.style.display = "none";
   }
 }
 
 /* =========================
-   EVENTS
+   EVENTS (GUARDED)
 ========================= */
-showMoreBtn.onclick = () => {
-  state.visibleCount += PAGE_SIZE;
-  render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
-};
+if (showMoreBtn) {
+  showMoreBtn.onclick = () => {
+    state.visibleCount += PAGE_SIZE;
+    render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
+  };
+}
 
 sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
+
     state.section = btn.textContent.toLowerCase().includes("coming")
       ? "coming-soon"
       : "out-now";
+
     state.visibleCount = PAGE_SIZE;
     render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };

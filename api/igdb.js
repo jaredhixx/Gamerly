@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly IGDB API — normalized, filtered, 6-month future cap
+// Gamerly IGDB API — normalized, filtered, 6-month future cap (FIXED LOGIC)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -10,7 +10,7 @@ let tokenExpiry = 0;
 async function getTwitchToken() {
   const now = Date.now();
 
-  // Reuse token with 60s safety buffer
+  // Reuse token with 60s buffer
   if (cachedToken && now < tokenExpiry - 60_000) {
     return cachedToken;
   }
@@ -84,15 +84,16 @@ function buildQuery({ platforms, range, sort }) {
   const now = new Date();
   const nowUnix = unix(now);
 
-  // 🔒 HARD FUTURE CAP: ~6 months (183 days)
+  // 🔒 HARD FUTURE CAP — ~6 months (183 days)
   const sixMonthsAheadUnix = nowUnix + (183 * 24 * 60 * 60);
 
   const dateFilters = [];
 
   // LOWER bounds
-  if (range === "this_week") {
-    dateFilters.push(`first_release_date >= ${nowUnix - 7 * 24 * 60 * 60}`);
-  } else if (range === "past_3_months") {
+  // IMPORTANT:
+  // - this_week has NO lower bound (allows upcoming games)
+  // - past_3_months is backward-looking
+  if (range === "past_3_months") {
     dateFilters.push(`first_release_date >= ${nowUnix - 90 * 24 * 60 * 60}`);
   }
 

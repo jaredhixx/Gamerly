@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly IGDB API — expanded coverage (updated + recent releases)
+// Gamerly IGDB API — FINAL COVERAGE FIX (includes release_dates)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -31,17 +31,22 @@ const PLATFORM_MAP = {
 };
 
 function normalizeGame(g) {
+  const releaseDate =
+    g.first_release_date
+      ? new Date(g.first_release_date * 1000)
+      : g.release_dates?.[0]?.date
+        ? new Date(g.release_dates[0].date * 1000)
+        : null;
+
   return {
+    id: g.id,
     name: g.name,
-    releaseDate: g.first_release_date
-      ? new Date(g.first_release_date * 1000).toISOString()
-      : null,
+    releaseDate: releaseDate ? releaseDate.toISOString() : null,
     rating: g.rating ? Math.round(g.rating) : null,
     coverUrl: g.cover?.url
       ? `https:${g.cover.url}`.replace("t_thumb", "t_cover_big")
       : null,
     platforms: g.platforms?.map(p => p.name) || [],
-    _id: g.id,
   };
 }
 
@@ -61,15 +66,14 @@ export default async function handler(req, res) {
     }
 
     const token = await getTwitchToken();
-
-    const allGames = new Map(); // de-dupe by ID
+    const allGames = new Map();
 
     const PAGE_SIZE = 200;
     const MAX_PAGES = 3;
 
-    // 1️⃣ Recently UPDATED games
+    // 1️⃣ Recently UPDATED
     for (let page = 0; page < MAX_PAGES; page++) {
-      const res1 = await fetch("https://api.igdb.com/v4/games", {
+      const r = await fetch("https://api.igdb.com/v4/games", {
         method: "POST",
         headers: {
           "Client-ID": process.env.IGDB_CLIENT_ID,
@@ -77,7 +81,7 @@ export default async function handler(req, res) {
           "Content-Type": "text/plain",
         },
         body: `
-          fields name, first_release_date, rating, cover.url, platforms.name, updated_at;
+          fields name, rating, cover.url, platforms.name, updated_at;
           where ${whereParts.join(" & ")};
           sort updated_at desc;
           limit ${PAGE_SIZE};
@@ -85,15 +89,14 @@ export default async function handler(req, res) {
         `,
       });
 
-      const batch = await res1.json();
-      if (!res1.ok || !batch.length) break;
-
+      const batch = await r.json();
+      if (!r.ok || !batch.length) break;
       batch.forEach(g => allGames.set(g.id, normalizeGame(g)));
     }
 
-    // 2️⃣ Recently RELEASED games
+    // 2️⃣ Recently RELEASED (first_release_date)
     for (let page = 0; page < MAX_PAGES; page++) {
-      const res2 = await fetch("https://api.igdb.com/v4/games", {
+      const r = await fetch("https://api.igdb.com/v4/games", {
         method: "POST",
         headers: {
           "Client-ID": process.env.IGDB_CLIENT_ID,
@@ -109,9 +112,31 @@ export default async function handler(req, res) {
         `,
       });
 
-      const batch = await res2.json();
-      if (!res2.ok || !batch.length) break;
+      const batch = await r.json();
+      if (!r.ok || !batch.length) break;
+      batch.forEach(g => allGames.set(g.id, normalizeGame(g)));
+    }
 
+    // 3️⃣ PER-PLATFORM RELEASE DATES (THE MISSING WINDOW FIX)
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const r = await fetch("https://api.igdb.com/v4/games", {
+        method: "POST",
+        headers: {
+          "Client-ID": process.env.IGDB_CLIENT_ID,
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "text/plain",
+        },
+        body: `
+          fields name, release_dates.date, rating, cover.url, platforms.name;
+          where ${whereParts.join(" & ")};
+          sort release_dates.date desc;
+          limit ${PAGE_SIZE};
+          offset ${page * PAGE_SIZE};
+        `,
+      });
+
+      const batch = await r.json();
+      if (!r.ok || !batch.length) break;
       batch.forEach(g => allGames.set(g.id, normalizeGame(g)));
     }
 

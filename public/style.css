@@ -1,116 +1,218 @@
+/* =========================
+   RESET / BASE
+========================= */
+
 * {
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #0e0e11;
-  color: #f2f2f2;
+  padding: 0;
+  background: #0b0d10;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* =========================
+   HEADER
+========================= */
+
 .header {
-  padding: 16px;
-  border-bottom: 1px solid #222;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, #0b0d10 0%, #0b0d10 70%, #0e1117 100%);
 }
 
 .logo {
-  margin: 0 0 12px;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  letter-spacing: -0.5px;
 }
+
+/* =========================
+   PLATFORM BUTTONS
+========================= */
 
 .controls {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.platforms button,
-.filters select,
-.age-card button {
-  background: #1c1c22;
+.platforms button {
+  background: #151821;
+  border: 1px solid rgba(255,255,255,0.08);
   color: #fff;
-  border: 1px solid #2c2c35;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.platforms button:hover {
+  background: #1c2030;
 }
 
 .platforms button.active {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-color: transparent;
 }
 
-.platforms {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.filters {
-  display: flex;
-  gap: 8px;
-}
+/* =========================
+   MAIN
+========================= */
 
 main {
-  padding: 16px;
+  padding: 1.5rem;
 }
 
-.loading,
+/* =========================
+   LOADING / ERROR
+========================= */
+
+.loading {
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
 .error {
-  margin: 12px 0;
+  color: #ff6b6b;
+  margin-bottom: 1rem;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
+/* =========================
+   SECTION HEADERS
+========================= */
+
+.section-wrapper {
+  margin-top: 2.5rem;
 }
+
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  letter-spacing: -0.3px;
+}
+
+/* =========================
+   GRID
+========================= */
+
+.grid-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+}
+
+/* =========================
+   CARD
+========================= */
 
 .card {
-  background: #1a1a20;
-  border-radius: 10px;
+  background: #12141c;
+  border-radius: 14px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+/* =========================
+   CARD IMAGE
+========================= */
 
 .card img {
   width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
-  background: #111;
+  background: #0f1117;
 }
 
+/* =========================
+   CARD BODY
+========================= */
+
 .card-body {
-  padding: 10px;
+  padding: 0.75rem 0.85rem 0.9rem;
 }
 
 .card-title {
-  font-size: 14px;
+  font-size: 0.95rem;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 0.35rem;
+  line-height: 1.25;
 }
 
 .card-meta {
-  font-size: 12px;
-  opacity: 0.8;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 0.2rem;
 }
 
-/* AGE GATE */
+/* =========================
+   AGE GATE
+========================= */
+
 .age-gate {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.85);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   z-index: 999;
 }
 
 .age-card {
-  background: #1a1a20;
-  padding: 24px;
-  border-radius: 12px;
+  background: #12141c;
+  padding: 2rem;
+  border-radius: 14px;
+  max-width: 340px;
+  width: 90%;
   text-align: center;
-  max-width: 320px;
+}
+
+.age-card h2 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.age-card p {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 1.25rem;
+}
+
+.age-card button {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  color: #fff;
+  padding: 0.6rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 480px) {
+  .logo {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.15rem;
+  }
 }

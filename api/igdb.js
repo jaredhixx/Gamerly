@@ -1,5 +1,5 @@
 // api/igdb.js
-// IGDB endpoint with correct date windowing
+// IGDB endpoint with correct past + future windowing
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -74,12 +74,16 @@ function buildQuery({ platforms, limit }) {
   platformIds = [...new Set(platformIds)];
 
   const now = Math.floor(Date.now() / 1000);
-  const sixMonthsAhead = now + 183 * 24 * 60 * 60;
+  const sixMonths = 183 * 24 * 60 * 60;
+
+  const pastBound = now - sixMonths;
+  const futureBound = now + sixMonths;
 
   const where = [
     "name != null",
     "first_release_date != null",
-    `first_release_date <= ${sixMonthsAhead}`,
+    `first_release_date >= ${pastBound}`,
+    `first_release_date <= ${futureBound}`,
   ];
 
   if (platformIds.length) {

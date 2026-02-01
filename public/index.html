@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <!-- AGE VERIFICATION OVERLAY -->
+  <!-- AGE VERIFICATION -->
   <div id="ageGate" class="age-gate">
     <div class="age-card">
       <h2>Age Verification</h2>
@@ -21,7 +21,15 @@
   <header class="header">
     <h1 class="logo">Gamerly</h1>
 
-    <!-- PLATFORM FILTERS ONLY -->
+    <!-- TIME SEGMENT (UI ONLY) -->
+    <div class="time-segment">
+      <button class="active">All</button>
+      <button>Today</button>
+      <button>This Week</button>
+      <button>This Month</button>
+    </div>
+
+    <!-- PLATFORM FILTERS -->
     <div class="controls">
       <div class="platforms">
         <button data-platform="pc">PC</button>
@@ -34,16 +42,13 @@
     </div>
   </header>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN -->
   <main>
     <div id="loading" class="loading">Loading…</div>
     <div id="errorBox" class="error"></div>
-
-    <!-- GAME GRID -->
-    <div id="gamesGrid" class="grid"></div>
+    <div id="gamesGrid"></div>
   </main>
 
-  <!-- APP SCRIPT -->
   <script src="app.js"></script>
 </body>
 </html>

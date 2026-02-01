@@ -221,3 +221,14 @@ main {
   transform: translateY(0);
   box-shadow: 0 6px 16px rgba(0,0,0,0.3);
 }
+
+/* Lazy image fade-in */
+
+.lazy-img {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.lazy-img.loaded {
+  opacity: 1;
+}

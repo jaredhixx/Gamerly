@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — Stable build (platform icons refined, logic locked)
+// Gamerly — Stable build with platform overlay + modern age gate
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -83,49 +83,40 @@ function applyTimeFilter(games) {
 }
 
 /* =========================
-   PLATFORM BADGES (FINAL)
+   PLATFORM OVERLAY CHIPS
 ========================= */
-function mapPlatformBadge(name) {
+function mapPlatformChip(name) {
   const n = name.toLowerCase();
 
-  if (n.includes("xbox")) return { type: "xbox", label: "XBOX" };
-  if (n.includes("playstation")) return { type: "text", label: "PS" };
-  if (n.includes("pc")) return { type: "text", label: "PC" };
-  if (n.includes("switch") || n.includes("nintendo")) return { type: "text", label: "Switch" };
-  if (n.includes("ios")) return { type: "text", label: "iOS" };
-  if (n.includes("android")) return { type: "text", label: "Android" };
+  if (n.includes("xbox")) return { cls: "xbox", label: "Ⓧ" };
+  if (n.includes("playstation")) return { cls: "", label: "PS" };
+  if (n.includes("pc")) return { cls: "", label: "PC" };
+  if (n.includes("switch") || n.includes("nintendo")) return { cls: "", label: "Switch" };
+  if (n.includes("ios")) return { cls: "", label: "iOS" };
+  if (n.includes("android")) return { cls: "", label: "Android" };
 
   return null;
 }
 
-function renderBadges(game) {
-  const badges = [];
+function renderPlatformOverlay(game) {
+  if (!Array.isArray(game.platforms)) return "";
 
-  // Category badge (single, clean)
-  if (game.category) {
-    badges.push(
-      `<span class="badge badge-category">${game.category.replace("Role-playing (RPG)", "RPG")}</span>`
+  const seen = new Set();
+  const chips = [];
+
+  game.platforms.forEach(p => {
+    const chip = mapPlatformChip(p);
+    if (!chip || seen.has(chip.label)) return;
+
+    seen.add(chip.label);
+    chips.push(
+      `<span class="platform-chip ${chip.cls}">${chip.label}</span>`
     );
-  }
+  });
 
-  // Platform badges
-  if (Array.isArray(game.platforms)) {
-    const seen = new Set();
-    game.platforms.forEach(p => {
-      const data = mapPlatformBadge(p);
-      if (!data || seen.has(data.label)) return;
-
-      seen.add(data.label);
-
-      if (data.type === "xbox") {
-        badges.push(`<span class="badge badge-xbox">Ⓧ</span>`);
-      } else {
-        badges.push(`<span class="badge badge-platform">${data.label}</span>`);
-      }
-    });
-  }
-
-  return badges.join("");
+  return chips.length
+    ? `<div class="platform-overlay">${chips.join("")}</div>`
+    : "";
 }
 
 /* =========================
@@ -146,6 +137,7 @@ function render(games) {
     card.className = "card";
 
     card.innerHTML = `
+      ${renderPlatformOverlay(g)}
       <img
         class="lazy-img"
         loading="lazy"
@@ -154,7 +146,9 @@ function render(games) {
       >
       <div class="card-body">
         <div class="badge-row">
-          ${renderBadges(g)}
+          ${g.category
+            ? `<span class="badge-category">${g.category.replace("Role-playing (RPG)", "RPG")}</span>`
+            : ""}
         </div>
         <div class="card-title">${g.name}</div>
         <div class="card-meta">
@@ -189,7 +183,11 @@ async function fetchGames() {
     sectionButtons[1].innerHTML =
       `Coming Soon <span class="count">${data.comingSoon.length}</span>`;
 
-    render(state.section === "out-now" ? data.outNow : data.comingSoon);
+    render(
+      state.section === "out-now"
+        ? data.outNow
+        : data.comingSoon
+    );
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -209,9 +207,10 @@ sectionButtons.forEach(btn => {
       ? "coming-soon"
       : "out-now";
 
-    render(state.section === "out-now"
-      ? state.data.outNow
-      : state.data.comingSoon
+    render(
+      state.section === "out-now"
+        ? state.data.outNow
+        : state.data.comingSoon
     );
   };
 });
@@ -228,9 +227,10 @@ timeButtons.forEach(btn => {
       label.includes("month") ? "month" :
       "all";
 
-    render(state.section === "out-now"
-      ? state.data.outNow
-      : state.data.comingSoon
+    render(
+      state.section === "out-now"
+        ? state.data.outNow
+        : state.data.comingSoon
     );
   };
 });

@@ -85,7 +85,9 @@ function mapPlatformChip(name) {
   const n = name.toLowerCase();
   if (n.includes("xbox")) return { key: "xbox", label: "Xbox" };
   if (n.includes("playstation")) return { key: "ps", label: "PS" };
-  if (n.includes("nintendo")) return { key: "nintendo", label: "N" };
+  if (n.includes("nintendo") || n.includes("switch")) {
+  return { key: "switch", label: "SW" };
+}
   if (n.includes("pc")) return { key: "pc", label: "PC" };
   if (n.includes("ios")) return { key: "ios", label: "iOS" };
   if (n.includes("android")) return { key: "android", label: "Android" };

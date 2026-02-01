@@ -1,5 +1,6 @@
 // api/igdb.js
 // Gamerly IGDB API — paginated overfetch for full catalog feel
+// vercel paid
 
 let cachedToken = null;
 let tokenExpiry = 0;

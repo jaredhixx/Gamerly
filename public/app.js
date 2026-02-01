@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — IGDB rating (clean, numeric, safe)
+// Gamerly — merged stable build + IGDB rating (NO regressions)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -59,7 +59,7 @@ function applyTimeFilter(games) {
   if (state.timeFilter === "all") return games;
 
   const now = new Date();
-  const startOfToday = new Date(
+  const today = new Date(
     now.getFullYear(),
     now.getMonth(),
     now.getDate()
@@ -70,27 +70,61 @@ function applyTimeFilter(games) {
     const t = new Date(g.releaseDate).getTime();
 
     if (state.timeFilter === "today") {
-      return t >= startOfToday && t < startOfToday + 86400000;
+      return t >= today && t < today + 86400000;
     }
     if (state.timeFilter === "week") {
-      return t >= startOfToday - 6 * 86400000 &&
-             t <= startOfToday + 7 * 86400000;
+      return t >= today - 6 * 86400000 &&
+             t <= today + 7 * 86400000;
     }
     if (state.timeFilter === "month") {
-      return t >= startOfToday - 29 * 86400000 &&
-             t <= startOfToday + 30 * 86400000;
+      return t >= today - 29 * 86400000 &&
+             t <= today + 30 * 86400000;
     }
     return true;
   });
 }
 
 /* =========================
-   RENDER HELPERS
+   BADGE HELPERS
 ========================= */
+function mapPlatformBadge(name) {
+  const n = name.toLowerCase();
+  if (n.includes("xbox")) return "xbox";
+  if (n.includes("playstation")) return "ps";
+  if (n.includes("nintendo") || n.includes("switch")) return "switch";
+  if (n.includes("pc")) return "pc";
+  if (n.includes("ios")) return "ios";
+  if (n.includes("android")) return "android";
+  return null;
+}
+
+function renderPlatformOverlay(game) {
+  if (!Array.isArray(game.platforms)) return "";
+
+  const seen = new Set();
+  const chips = [];
+
+  game.platforms.forEach(p => {
+    const key = mapPlatformBadge(p);
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      chips.push(`<span class="platform-chip ${key}">${key.toUpperCase()}</span>`);
+    }
+  });
+
+  if (!chips.length) return "";
+  return `<div class="platform-overlay">${chips.join("")}</div>`;
+}
+
+function renderCategoryBadge(game) {
+  if (!game.category) return "";
+  const label = game.category.replace("Role-playing (RPG)", "RPG");
+  return `<div class="badge-row"><span class="badge-category">${label}</span></div>`;
+}
+
 function renderRating(game) {
   if (!game.rating || game.rating < 1) return "";
-  const score = Math.round(game.rating);
-  return `<div class="rating-pill">${score}</div>`;
+  return `<div class="rating-pill">${Math.round(game.rating)}</div>`;
 }
 
 /* =========================
@@ -114,10 +148,12 @@ function render(games) {
 
     card.innerHTML = `
       <div class="card-media">
+        ${renderPlatformOverlay(g)}
         ${renderRating(g)}
         <img loading="lazy" src="${g.coverUrl || ""}" alt="${g.name}">
       </div>
       <div class="card-body">
+        ${renderCategoryBadge(g)}
         <div class="card-title">${g.name}</div>
         <div class="card-meta">
           ${g.releaseDate ? new Date(g.releaseDate).toLocaleDateString() : "TBD"}
@@ -165,11 +201,9 @@ sectionButtons.forEach(btn => {
   btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-
     state.section = btn.textContent.toLowerCase().includes("coming")
       ? "coming-soon"
       : "out-now";
-
     state.visibleCount = 18;
     render(state.section === "out-now" ? state.data.outNow : state.data.comingSoon);
   };

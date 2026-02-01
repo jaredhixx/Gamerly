@@ -1,12 +1,10 @@
 // api/igdb.js
-// Gamerly IGDB API — FINAL STABLE VERSION (no zero-result traps)
+// Step 4: Normalized IGDB API with filters
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
-/* =========================
-   AUTH
-========================= */
+// ===== AUTH =====
 async function getTwitchToken() {
   const now = Date.now();
 
@@ -29,7 +27,7 @@ async function getTwitchToken() {
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(`Twitch OAuth failed: ${JSON.stringify(data)}`);
+    throw new Error(`OAuth failed: ${JSON.stringify(data)}`);
   }
 
   cachedToken = data.access_token;
@@ -37,9 +35,7 @@ async function getTwitchToken() {
   return cachedToken;
 }
 
-/* =========================
-   PLATFORM MAP
-========================= */
+// ===== CONSTANTS =====
 const PLATFORM_MAP = {
   pc: [6],
   playstation: [48, 167],
@@ -49,9 +45,11 @@ const PLATFORM_MAP = {
   android: [34],
 };
 
-/* =========================
-   HELPERS
-========================= */
+// ===== HELPERS =====
+function unix(date) {
+  return Math.floor(date.getTime() / 1000);
+}
+
 function normalizeCover(url) {
   if (!url) return null;
   return `https:${url}`.replace("t_thumb", "t_cover_big");
@@ -72,46 +70,47 @@ function normalizeGame(g) {
   };
 }
 
-/* =========================
-   IGDB QUERY (SAFE)
-========================= */
-function buildIgdbQuery({ platforms, sort }) {
+// ===== QUERY BUILDER =====
+function buildQuery({ platforms, range, sort }) {
+  const now = new Date();
+  const nowUnix = unix(now);
+
+  let dateFilter = "";
+
+  if (range === "this_week") {
+    dateFilter = `first_release_date >= ${nowUnix - 604800}`;
+  } else if (range === "past_3_months") {
+    dateFilter = `first_release_date >= ${nowUnix - 7776000}`;
+  }
+
   let platformIds = [];
   platforms.forEach(p => {
     if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
   });
+
   platformIds = [...new Set(platformIds)];
 
   const whereParts = ["name != null"];
+  if (dateFilter) whereParts.push(dateFilter);
+  if (platformIds.length) whereParts.push(`platforms = (${platformIds.join(",")})`);
 
-  if (platformIds.length) {
-    whereParts.push(`platforms = (${platformIds.join(",")})`);
-  }
-
-  let sortClause = "sort updated_at desc;";
+  let sortClause = "sort first_release_date desc;";
   if (sort === "highest_rated") sortClause = "sort rating desc;";
   if (sort === "az") sortClause = "sort name asc;";
 
   return `
-    fields
-      name,
-      first_release_date,
-      rating,
-      cover.url,
-      platforms.name,
-      updated_at;
+    fields name, first_release_date, rating, cover.url, platforms.name;
     where ${whereParts.join(" & ")};
     ${sortClause}
-    limit 300;
+    limit 36;
   `;
 }
 
-/* =========================
-   HANDLER
-========================= */
+// ===== HANDLER =====
 export default async function handler(req, res) {
   try {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
+    const range = req.query.range || "this_week";
     const sort = req.query.sort || "newest";
 
     const token = await getTwitchToken();
@@ -123,32 +122,19 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "text/plain",
       },
-      body: buildIgdbQuery({ platforms, sort }),
+      body: buildQuery({ platforms, range, sort }),
     });
 
-    const rawGames = await igdbRes.json();
+    const data = await igdbRes.json();
 
     if (!igdbRes.ok) {
-      throw new Error(JSON.stringify(rawGames));
+      throw new Error(JSON.stringify(data));
     }
-
-    /* =========================
-       SERVER-SIDE FUTURE CAP
-    ========================= */
-    const now = Date.now();
-    const sixMonthsAhead = now + 183 * 24 * 60 * 60 * 1000;
-
-    const filteredGames = rawGames.filter(g => {
-      if (!g.first_release_date) return true;
-      return g.first_release_date * 1000 <= sixMonthsAhead;
-    });
-
-    res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=600");
 
     res.status(200).json({
       ok: true,
-      meta: { platforms, sort, futureCapMonths: 6 },
-      games: filteredGames.map(normalizeGame),
+      meta: { platforms, range, sort },
+      games: data.map(normalizeGame),
     });
   } catch (err) {
     res.status(500).json({

@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly IGDB API — filters + platforms FIXED, stable data flow
+// Gamerly IGDB API — FINAL STABLE VERSION (no zero-result traps)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -38,7 +38,7 @@ async function getTwitchToken() {
 }
 
 /* =========================
-   PLATFORM MAP (SAFE)
+   PLATFORM MAP
 ========================= */
 const PLATFORM_MAP = {
   pc: [6],
@@ -73,28 +73,21 @@ function normalizeGame(g) {
 }
 
 /* =========================
-   IGDB QUERY BUILDER
+   IGDB QUERY (SAFE)
 ========================= */
 function buildIgdbQuery({ platforms, sort }) {
-  // Platform filtering (safe in IGDB)
   let platformIds = [];
   platforms.forEach(p => {
-    if (PLATFORM_MAP[p]) {
-      platformIds.push(...PLATFORM_MAP[p]);
-    }
+    if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
   });
   platformIds = [...new Set(platformIds)];
 
-  const whereParts = [
-    "name != null",
-    "category = (0,8,9,10)",
-  ];
+  const whereParts = ["name != null"];
 
   if (platformIds.length) {
     whereParts.push(`platforms = (${platformIds.join(",")})`);
   }
 
-  // SAFE sorting
   let sortClause = "sort updated_at desc;";
   if (sort === "highest_rated") sortClause = "sort rating desc;";
   if (sort === "az") sortClause = "sort name asc;";
@@ -109,7 +102,7 @@ function buildIgdbQuery({ platforms, sort }) {
       updated_at;
     where ${whereParts.join(" & ")};
     ${sortClause}
-    limit 200;
+    limit 300;
   `;
 }
 
@@ -140,7 +133,7 @@ export default async function handler(req, res) {
     }
 
     /* =========================
-       SERVER-SIDE SANITY FILTER
+       SERVER-SIDE FUTURE CAP
     ========================= */
     const now = Date.now();
     const sixMonthsAhead = now + 183 * 24 * 60 * 60 * 1000;

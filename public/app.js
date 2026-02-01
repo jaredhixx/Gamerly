@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — All + Today + This Week (safe incremental build)
+// Gamerly frontend — All + Today + This Week (corrected definitions)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -71,7 +71,11 @@ function applyFutureCap(games) {
 ========================= */
 function applyTodayFilter(games) {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const start = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).getTime();
   const end = start + 24 * 60 * 60 * 1000;
 
   return games.filter(g => {
@@ -82,17 +86,26 @@ function applyTodayFilter(games) {
 }
 
 /* =========================
-   THIS WEEK FILTER (NEW)
+   THIS WEEK FILTER (CORRECTED)
+   Out Now: today + previous 6 days
+   Coming Soon: next 7 days
 ========================= */
 function applyWeekFilter(games) {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const end = start + 7 * 24 * 60 * 60 * 1000;
+
+  const todayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).getTime();
+
+  const pastStart = todayStart - 6 * 24 * 60 * 60 * 1000;
+  const futureEnd = todayStart + 7 * 24 * 60 * 60 * 1000;
 
   return games.filter(g => {
     if (!g.releaseDate) return false;
     const t = new Date(g.releaseDate).getTime();
-    return t >= start && t <= end;
+    return t >= pastStart && t <= futureEnd;
   });
 }
 

@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — platform filters + 6-month future cap
+// Gamerly frontend — platform filters + 6-month cap + Out Now / Coming Soon
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -39,11 +39,9 @@ if (!isAgeVerified()) {
 ========================= */
 function buildApiUrl() {
   const params = new URLSearchParams();
-
   if (state.platforms.size) {
     params.set("platforms", [...state.platforms].join(","));
   }
-
   return `/api/igdb?${params.toString()}`;
 }
 
@@ -60,22 +58,57 @@ function applyFutureCap(games) {
   const SIX_MONTHS = 183 * 24 * 60 * 60 * 1000;
 
   return games.filter(g => {
-    if (!g.releaseDate) return true; // keep unknown dates for now
-    const releaseTime = new Date(g.releaseDate).getTime();
-    return releaseTime - now <= SIX_MONTHS;
+    if (!g.releaseDate) return true;
+    const t = new Date(g.releaseDate).getTime();
+    return t - now <= SIX_MONTHS;
   });
+}
+
+/* =========================
+   SORT (NEWEST → OLDEST)
+========================= */
+function sortNewestFirst(games) {
+  return [...games].sort((a, b) => {
+    const aTime = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
+    const bTime = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
+    return bTime - aTime;
+  });
+}
+
+/* =========================
+   SPLIT OUT NOW / COMING SOON
+========================= */
+function splitByRelease(games) {
+  const now = Date.now();
+  const outNow = [];
+  const comingSoon = [];
+
+  games.forEach(g => {
+    if (!g.releaseDate) {
+      outNow.push(g);
+    } else {
+      const t = new Date(g.releaseDate).getTime();
+      if (t <= now) outNow.push(g);
+      else comingSoon.push(g);
+    }
+  });
+
+  return { outNow, comingSoon };
 }
 
 /* =========================
    RENDER
 ========================= */
-function renderGames(games) {
-  grid.innerHTML = "";
+function renderSection(title, games) {
+  if (!games.length) return;
 
-  if (!games.length) {
-    grid.innerHTML = "<p>No games found.</p>";
-    return;
-  }
+  const header = document.createElement("h2");
+  header.className = "section-title";
+  header.textContent = title;
+  grid.appendChild(header);
+
+  const section = document.createElement("div");
+  section.className = "grid-section";
 
   games.forEach(g => {
     const card = document.createElement("div");
@@ -96,8 +129,24 @@ function renderGames(games) {
 
     card.appendChild(img);
     card.appendChild(body);
-    grid.appendChild(card);
+    section.appendChild(card);
   });
+
+  grid.appendChild(section);
+}
+
+function renderGames(games) {
+  grid.innerHTML = "";
+
+  if (!games.length) {
+    grid.innerHTML = "<p>No games found.</p>";
+    return;
+  }
+
+  const { outNow, comingSoon } = splitByRelease(games);
+
+  renderSection("Out Now", outNow);
+  renderSection("Coming Soon", comingSoon);
 }
 
 /* =========================
@@ -115,15 +164,9 @@ async function fetchGames() {
       throw new Error(data.error || "Failed to load games");
     }
 
-    const cappedGames = applyFutureCap(data.games);
-
-const sortedGames = cappedGames.sort((a, b) => {
-  const aTime = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
-  const bTime = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
-  return bTime - aTime; // newest → oldest
-});
-
-renderGames(sortedGames);
+    const capped = applyFutureCap(data.games);
+    const sorted = sortNewestFirst(capped);
+    renderGames(sorted);
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -136,16 +179,14 @@ renderGames(sortedGames);
 ========================= */
 platformButtons.forEach(btn => {
   btn.addEventListener("click", () => {
-    const platform = btn.dataset.platform;
-
-    if (state.platforms.has(platform)) {
-      state.platforms.delete(platform);
+    const p = btn.dataset.platform;
+    if (state.platforms.has(p)) {
+      state.platforms.delete(p);
       btn.classList.remove("active");
     } else {
-      state.platforms.add(platform);
+      state.platforms.add(p);
       btn.classList.add("active");
     }
-
     fetchGames();
   });
 });

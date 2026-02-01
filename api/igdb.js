@@ -1,5 +1,5 @@
 // api/igdb.js
-// IGDB endpoint with staged loading support (IGDB-safe limits)
+// IGDB endpoint with correct date windowing
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -73,9 +73,13 @@ function buildQuery({ platforms, limit }) {
 
   platformIds = [...new Set(platformIds)];
 
+  const now = Math.floor(Date.now() / 1000);
+  const sixMonthsAhead = now + 183 * 24 * 60 * 60;
+
   const where = [
     "name != null",
     "first_release_date != null",
+    `first_release_date <= ${sixMonthsAhead}`,
   ];
 
   if (platformIds.length) {
@@ -96,7 +100,6 @@ export default async function handler(req, res) {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
     const mode = req.query.mode || "full";
 
-    // ✅ IGDB SAFE LIMITS
     const limit = mode === "initial" ? 72 : 500;
 
     const token = await getTwitchToken();
@@ -112,9 +115,7 @@ export default async function handler(req, res) {
     });
 
     const data = await igdbRes.json();
-    if (!igdbRes.ok) {
-      throw new Error(JSON.stringify(data));
-    }
+    if (!igdbRes.ok) throw new Error(JSON.stringify(data));
 
     res.status(200).json({
       ok: true,

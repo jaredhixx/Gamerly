@@ -116,7 +116,14 @@ async function fetchGames() {
     }
 
     const cappedGames = applyFutureCap(data.games);
-    renderGames(cappedGames);
+
+const sortedGames = cappedGames.sort((a, b) => {
+  const aTime = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
+  const bTime = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
+  return bTime - aTime; // newest → oldest
+});
+
+renderGames(sortedGames);
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {

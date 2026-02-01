@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — PLATFORM FILTER ONLY, newest → oldest
+// Gamerly frontend — platform filters + 6-month future cap
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -53,6 +53,20 @@ function formatDate(date) {
 }
 
 /* =========================
+   FUTURE CAP (6 MONTHS)
+========================= */
+function applyFutureCap(games) {
+  const now = Date.now();
+  const SIX_MONTHS = 183 * 24 * 60 * 60 * 1000;
+
+  return games.filter(g => {
+    if (!g.releaseDate) return true; // keep unknown dates for now
+    const releaseTime = new Date(g.releaseDate).getTime();
+    return releaseTime - now <= SIX_MONTHS;
+  });
+}
+
+/* =========================
    RENDER
 ========================= */
 function renderGames(games) {
@@ -101,9 +115,8 @@ async function fetchGames() {
       throw new Error(data.error || "Failed to load games");
     }
 
-    // IMPORTANT:
-    // We trust API ordering (newest → oldest)
-    renderGames(sortNewestFirst(data.games));
+    const cappedGames = applyFutureCap(data.games);
+    renderGames(cappedGames);
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -136,11 +149,3 @@ platformButtons.forEach(btn => {
 if (isAgeVerified()) {
   fetchGames();
 }
-function sortNewestFirst(games) {
-  return [...games].sort((a, b) => {
-    const aTime = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
-    const bTime = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
-    return bTime - aTime;
-  });
-}
-

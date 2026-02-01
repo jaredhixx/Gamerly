@@ -4,7 +4,7 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   AGE GATE
+   AGE GATE (LOCKED)
 ========================= */
 const ageGate = document.getElementById("ageGate");
 const ageBtn = document.getElementById("ageConfirmBtn");
@@ -28,15 +28,15 @@ if (ageGate && ageBtn) {
 let outNowGames = [];
 let comingSoonGames = [];
 
-let activeSection = "out";      // out | soon
-let activeTime = "all";         // all | today | week | month
+let activeSection = "out";   // out | soon
+let activeTime = "all";      // all | today | week | month
 let activePlatform = "all";
 
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 
 /* =========================
-   FETCH
+   FETCH (LOCKED)
 ========================= */
 async function loadGames() {
   try {
@@ -51,7 +51,7 @@ async function loadGames() {
     outNowGames = data.outNow || [];
     comingSoonGames = data.comingSoon || [];
 
-    // restore counts
+    // Restore counts (trust signal)
     document.querySelector(".section-segment button:nth-child(1)").innerHTML =
       `Out Now <span class="count">${outNowGames.length}</span>`;
     document.querySelector(".section-segment button:nth-child(2)").innerHTML =
@@ -71,50 +71,49 @@ async function loadGames() {
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
-  const now = new Date();
   let list =
     activeSection === "out"
       ? [...outNowGames]
       : [...comingSoonGames];
 
-  /* PLATFORM */
+  /* PLATFORM FILTER */
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
-    list = list.filter(g =>
-      Array.isArray(g.platforms) &&
-      g.platforms.some(p => p.toLowerCase().includes(key))
+    list = list.filter(game =>
+      Array.isArray(game.platforms) &&
+      game.platforms.some(p => p.toLowerCase().includes(key))
     );
   }
 
-  /* TIME (SECTION-AWARE) */
-  list = list.filter(g => {
-    if (!g.releaseDate) return false;
-    const d = new Date(g.releaseDate);
+  /* TIME FILTER
+     - Out Now: NO time filtering (intentional, stable)
+     - Coming Soon: precise windows
+  */
+  if (activeSection === "soon" && activeTime !== "all") {
+    const now = new Date();
 
-    if (activeTime === "today") {
-      return d.toDateString() === now.toDateString();
-    }
+    list = list.filter(game => {
+      if (!game.releaseDate) return false;
+      const d = new Date(game.releaseDate);
 
-    if (activeTime === "week") {
-      return activeSection === "out"
-        ? now - d >= 0 && now - d <= 7 * 86400000
-        : d - now >= 0 && d - now <= 7 * 86400000;
-    }
-
-    if (activeTime === "month") {
-      return activeSection === "out"
-        ? now - d >= 0 && now - d <= 30 * 86400000
-        : d - now >= 0 && d - now <= 30 * 86400000;
-    }
-
-    return true;
-  });
+      if (activeTime === "today") {
+        return d.toDateString() === now.toDateString();
+      }
+      if (activeTime === "week") {
+        return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
+      }
+      if (activeTime === "month") {
+        return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
+      }
+      return true;
+    });
+  }
 
   render(list);
 }
 
 /* =========================
-   RENDER
+   RENDER (LOCKED)
 ========================= */
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -154,7 +153,7 @@ function render(list) {
 }
 
 /* =========================
-   PLATFORM ICONS
+   PLATFORM ICONS (LOCKED)
 ========================= */
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";

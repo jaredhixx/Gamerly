@@ -62,15 +62,25 @@ async function loadGames() {
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
-  let list = [...allGames];
   const now = new Date();
 
-  // SECTION (frontend-only split — locked)
-  list = list.filter(game => {
-    if (!game.releaseDate) return false;
-    const d = new Date(game.releaseDate);
-    return activeSection === "out" ? d <= now : d > now;
+  const outNowGames = allGames.filter(g => {
+    if (!g.releaseDate) return false;
+    return new Date(g.releaseDate) <= now;
   });
+
+  const comingSoonGames = allGames.filter(g => {
+    if (!g.releaseDate) return false;
+    return new Date(g.releaseDate) > now;
+  });
+
+  // 🔒 COUNTERS (RESTORED)
+  updateSectionCounts(outNowGames.length, comingSoonGames.length);
+
+  let list =
+    activeSection === "out"
+      ? [...outNowGames]
+      : [...comingSoonGames];
 
   // TIME FILTER
   if (activeTime !== "all") {
@@ -99,6 +109,18 @@ function applyFilters(reset = false) {
   }
 
   render(list);
+}
+
+/* =========================
+   SECTION COUNTS (NEW)
+========================= */
+function updateSectionCounts(outCount, soonCount) {
+  const buttons = document.querySelectorAll(".section-segment button");
+
+  if (buttons.length < 2) return;
+
+  buttons[0].innerHTML = `Out Now <span class="count">${outCount}</span>`;
+  buttons[1].innerHTML = `Coming Soon <span class="count">${soonCount}</span>`;
 }
 
 /* =========================
@@ -143,7 +165,7 @@ function render(list) {
 }
 
 /* =========================
-   RATINGS (NEW – SAFE)
+   RATINGS
 ========================= */
 function renderRating(game) {
   const score = game.aggregated_rating;
@@ -166,7 +188,7 @@ function renderRating(game) {
 }
 
 /* =========================
-   PLATFORM ICONS (LOCKED)
+   PLATFORM ICONS
 ========================= */
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";

@@ -1,3 +1,6 @@
+// public/app.js
+// Gamerly — FRONTEND-ONLY split (LOCKED, calendar-safe)
+
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
@@ -26,12 +29,15 @@ if (ageGate && ageBtn) {
    STATE
 ========================= */
 let allGames = [];
+let outNowGames = [];
+let comingSoonGames = [];
+
+let activeSection = "out";     // out | soon
+let activeTime = "all";        // all | today | week | month
+let activePlatform = "all";
+
 let visibleCount = 0;
 const PAGE_SIZE = 24;
-
-let activeSection = "out";   // out | soon
-let activeTime = "all";      // all | today | week | month
-let activePlatform = "all";
 
 /* =========================
    FETCH
@@ -44,18 +50,66 @@ async function loadGames() {
     const res = await fetch("/api/igdb");
     const data = await res.json();
 
-    if (!data || !Array.isArray(data.games)) {
+    if (!data.ok || !Array.isArray(data.games)) {
       throw new Error("Invalid API response");
     }
 
     allGames = data.games;
+    splitByCalendarDay();
     updateCounts();
     applyFilters(true);
   } catch (err) {
-    console.error(err);
     errorBox.textContent = "Failed to load games.";
   } finally {
     loading.style.display = "none";
+  }
+}
+
+/* =========================
+   CALENDAR-DAY SPLIT (LOCKED)
+========================= */
+function splitByCalendarDay() {
+  outNowGames = [];
+  comingSoonGames = [];
+
+  const now = new Date();
+
+  const endOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23, 59, 59, 999
+  ).getTime();
+
+  const startOfTomorrow = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+    0, 0, 0, 0
+  ).getTime();
+
+  allGames.forEach(game => {
+    if (!game.releaseDate) return;
+
+    const releaseTime = new Date(game.releaseDate).getTime();
+
+    if (releaseTime <= endOfToday) {
+      outNowGames.push(game);
+    } else if (releaseTime >= startOfTomorrow) {
+      comingSoonGames.push(game);
+    }
+  });
+}
+
+/* =========================
+   COUNTS
+========================= */
+function updateCounts() {
+  const buttons = document.querySelectorAll(".section-segment button");
+
+  if (buttons.length >= 2) {
+    buttons[0].innerHTML = `Out Now <span class="count">${outNowGames.length}</span>`;
+    buttons[1].innerHTML = `Coming Soon <span class="count">${comingSoonGames.length}</span>`;
   }
 }
 
@@ -65,52 +119,41 @@ async function loadGames() {
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
-  const now = new Date();
+  let list =
+    activeSection === "out"
+      ? [...outNowGames]
+      : [...comingSoonGames];
 
-  let list = allGames.filter(g => {
-    const d = new Date(g.releaseDate);
-    return activeSection === "out" ? d <= now : d > now;
-  });
-
+  /* PLATFORM FILTER */
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
-    list = list.filter(g =>
-      g.platforms.some(p => p.toLowerCase().includes(key))
+    list = list.filter(game =>
+      Array.isArray(game.platforms) &&
+      game.platforms.some(p => p.toLowerCase().includes(key))
     );
   }
 
+  /* TIME FILTER (ONLY FOR COMING SOON) */
   if (activeSection === "soon" && activeTime !== "all") {
-    list = list.filter(g => {
-      const d = new Date(g.releaseDate);
+    const now = new Date();
+
+    list = list.filter(game => {
+      const d = new Date(game.releaseDate);
 
       if (activeTime === "today") {
         return d.toDateString() === now.toDateString();
       }
       if (activeTime === "week") {
-        return d <= new Date(now.getTime() + 7 * 86400000);
+        return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
       }
       if (activeTime === "month") {
-        return d <= new Date(now.getTime() + 30 * 86400000);
+        return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
       }
       return true;
     });
   }
 
   render(list);
-}
-
-/* =========================
-   COUNTS
-========================= */
-function updateCounts() {
-  const now = new Date();
-  const outNowCount = allGames.filter(g => new Date(g.releaseDate) <= now).length;
-  const soonCount = allGames.length - outNowCount;
-
-  document.querySelector(".section-segment button:nth-child(1)").innerHTML =
-    `Out Now <span class="count">${outNowCount}</span>`;
-  document.querySelector(".section-segment button:nth-child(2)").innerHTML =
-    `Coming Soon <span class="count">${soonCount}</span>`;
 }
 
 /* =========================
@@ -136,22 +179,29 @@ function render(list) {
       <div class="platform-overlay">${renderPlatforms(game)}</div>
       <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
-        ${game.category ? `<div class="badge-row"><span class="badge-category">${game.category}</span></div>` : ""}
+        <div class="badge-row">
+          ${game.category ? `<span class="badge-category">${game.category}</span>` : ""}
+        </div>
         <div class="card-title">${game.name}</div>
-        <div class="card-meta">${new Date(game.releaseDate).toLocaleDateString()}</div>
+        <div class="card-meta">
+          ${new Date(game.releaseDate).toLocaleDateString()}
+        </div>
       </div>
     `;
 
     grid.appendChild(card);
   });
 
-  showMoreBtn.style.display = visibleCount < list.length ? "block" : "none";
+  showMoreBtn.style.display =
+    visibleCount < list.length ? "block" : "none";
 }
 
 /* =========================
    PLATFORM ICONS
 ========================= */
 function renderPlatforms(game) {
+  if (!Array.isArray(game.platforms)) return "";
+
   const p = game.platforms.join(" ").toLowerCase();
   const chips = [];
 
@@ -168,6 +218,14 @@ function renderPlatforms(game) {
 /* =========================
    EVENTS
 ========================= */
+document.querySelectorAll(".time-segment button").forEach(btn => {
+  btn.onclick = () => {
+    activeTime = btn.textContent.toLowerCase().replace(" ", "");
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
 document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
     activeSection = btn.textContent.includes("Out") ? "out" : "soon";
@@ -190,7 +248,9 @@ showMoreBtn.onclick = () => applyFilters();
    UI HELPER
 ========================= */
 function setActive(button) {
-  button.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  button.parentElement
+    .querySelectorAll("button")
+    .forEach(b => b.classList.remove("active"));
   button.classList.add("active");
 }
 

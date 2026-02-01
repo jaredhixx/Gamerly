@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly — FINAL stable filtering + platform icons restored
+// Gamerly — FINAL locked filtering (industry-standard semantics)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -51,7 +51,7 @@ function buildApiUrl() {
 }
 
 /* =========================
-   PLATFORM ICON OVERLAY
+   PLATFORM ICONS
 ========================= */
 function renderPlatformOverlay(game) {
   if (!Array.isArray(game.platforms)) return "";
@@ -93,7 +93,7 @@ function renderPlatformOverlay(game) {
 }
 
 /* =========================
-   FILTERING (CLIENT-SIDE)
+   FILTERING (LOCKED)
 ========================= */
 function applyFilters(games) {
   const now = Date.now();
@@ -116,26 +116,25 @@ function applyFilters(games) {
       if (!ok) return false;
     }
 
-    if (state.timeFilter === "all") return true;
-
-    const t = g.releaseDate ? new Date(g.releaseDate).getTime() : null;
-
-    // OUT NOW — strict past
     if (state.section === "out-now") {
-      if (!t || t > now) return false;
+      if (!g.releaseDate) return false;
+      const t = new Date(g.releaseDate).getTime();
+      if (t > now) return false;
 
       if (state.timeFilter === "today") return now - t < DAY;
       if (state.timeFilter === "week") return now - t < 7 * DAY;
       if (state.timeFilter === "month") return now - t < 30 * DAY;
+      return true;
     }
 
-    // COMING SOON — TRUST BACKEND
+    // COMING SOON — DO NOT DATE-SLICE
     if (state.section === "coming-soon") {
-      if (!t) return true; // keep undated games
-
-      if (state.timeFilter === "today") return t >= now && t - now < DAY;
-      if (state.timeFilter === "week") return t - now < 7 * DAY;
-      if (state.timeFilter === "month") return t - now < 30 * DAY;
+      if (state.timeFilter === "today") {
+        if (!g.releaseDate) return false;
+        const t = new Date(g.releaseDate).getTime();
+        return t >= now && t - now < DAY;
+      }
+      return true; // week/month behave like all
     }
 
     return true;

@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly IGDB API — FINAL COVERAGE FIX (includes release_dates)
+// Gamerly IGDB API — FINAL FIX (time-windowed future releases)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -31,7 +31,7 @@ const PLATFORM_MAP = {
 };
 
 function normalizeGame(g) {
-  const releaseDate =
+  const date =
     g.first_release_date
       ? new Date(g.first_release_date * 1000)
       : g.release_dates?.[0]?.date
@@ -41,13 +41,36 @@ function normalizeGame(g) {
   return {
     id: g.id,
     name: g.name,
-    releaseDate: releaseDate ? releaseDate.toISOString() : null,
+    releaseDate: date ? date.toISOString() : null,
     rating: g.rating ? Math.round(g.rating) : null,
     coverUrl: g.cover?.url
       ? `https:${g.cover.url}`.replace("t_thumb", "t_cover_big")
       : null,
     platforms: g.platforms?.map(p => p.name) || [],
   };
+}
+
+async function fetchWindow(token, whereParts, from, to) {
+  const res = await fetch("https://api.igdb.com/v4/games", {
+    method: "POST",
+    headers: {
+      "Client-ID": process.env.IGDB_CLIENT_ID,
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "text/plain",
+    },
+    body: `
+      fields name, first_release_date, release_dates.date, rating, cover.url, platforms.name;
+      where ${whereParts.join(" & ")} &
+            release_dates.date >= ${from} &
+            release_dates.date < ${to};
+      sort release_dates.date asc;
+      limit 500;
+    `,
+  });
+
+  const batch = await res.json();
+  if (!res.ok) throw new Error(JSON.stringify(batch));
+  return batch;
 }
 
 export default async function handler(req, res) {
@@ -68,76 +91,39 @@ export default async function handler(req, res) {
     const token = await getTwitchToken();
     const allGames = new Map();
 
-    const PAGE_SIZE = 200;
-    const MAX_PAGES = 3;
+    // 🔹 Past + recently updated (unchanged)
+    const baseRes = await fetch("https://api.igdb.com/v4/games", {
+      method: "POST",
+      headers: {
+        "Client-ID": process.env.IGDB_CLIENT_ID,
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "text/plain",
+      },
+      body: `
+        fields name, first_release_date, rating, cover.url, platforms.name, updated_at;
+        where ${whereParts.join(" & ")};
+        sort updated_at desc;
+        limit 500;
+      `,
+    });
 
-    // 1️⃣ Recently UPDATED
-    for (let page = 0; page < MAX_PAGES; page++) {
-      const r = await fetch("https://api.igdb.com/v4/games", {
-        method: "POST",
-        headers: {
-          "Client-ID": process.env.IGDB_CLIENT_ID,
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "text/plain",
-        },
-        body: `
-          fields name, rating, cover.url, platforms.name, updated_at;
-          where ${whereParts.join(" & ")};
-          sort updated_at desc;
-          limit ${PAGE_SIZE};
-          offset ${page * PAGE_SIZE};
-        `,
-      });
+    const baseGames = await baseRes.json();
+    baseGames.forEach(g => allGames.set(g.id, normalizeGame(g)));
 
-      const batch = await r.json();
-      if (!r.ok || !batch.length) break;
-      batch.forEach(g => allGames.set(g.id, normalizeGame(g)));
-    }
+    // 🔹 FUTURE WINDOWS (3-month slices)
+    const YEAR_2026 = [
+      [Date.UTC(2026, 0, 1), Date.UTC(2026, 3, 1)],
+      [Date.UTC(2026, 3, 1), Date.UTC(2026, 6, 1)],
+      [Date.UTC(2026, 6, 1), Date.UTC(2026, 9, 1)],
+      [Date.UTC(2026, 9, 1), Date.UTC(2027, 0, 1)],
+    ];
 
-    // 2️⃣ Recently RELEASED (first_release_date)
-    for (let page = 0; page < MAX_PAGES; page++) {
-      const r = await fetch("https://api.igdb.com/v4/games", {
-        method: "POST",
-        headers: {
-          "Client-ID": process.env.IGDB_CLIENT_ID,
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "text/plain",
-        },
-        body: `
-          fields name, first_release_date, rating, cover.url, platforms.name;
-          where ${whereParts.join(" & ")};
-          sort first_release_date desc;
-          limit ${PAGE_SIZE};
-          offset ${page * PAGE_SIZE};
-        `,
-      });
+    for (const [fromMs, toMs] of YEAR_2026) {
+      const from = Math.floor(fromMs / 1000);
+      const to = Math.floor(toMs / 1000);
 
-      const batch = await r.json();
-      if (!r.ok || !batch.length) break;
-      batch.forEach(g => allGames.set(g.id, normalizeGame(g)));
-    }
-
-    // 3️⃣ PER-PLATFORM RELEASE DATES (THE MISSING WINDOW FIX)
-    for (let page = 0; page < MAX_PAGES; page++) {
-      const r = await fetch("https://api.igdb.com/v4/games", {
-        method: "POST",
-        headers: {
-          "Client-ID": process.env.IGDB_CLIENT_ID,
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "text/plain",
-        },
-        body: `
-          fields name, release_dates.date, rating, cover.url, platforms.name;
-          where ${whereParts.join(" & ")};
-          sort release_dates.date desc;
-          limit ${PAGE_SIZE};
-          offset ${page * PAGE_SIZE};
-        `,
-      });
-
-      const batch = await r.json();
-      if (!r.ok || !batch.length) break;
-      batch.forEach(g => allGames.set(g.id, normalizeGame(g)));
+      const windowGames = await fetchWindow(token, whereParts, from, to);
+      windowGames.forEach(g => allGames.set(g.id, normalizeGame(g)));
     }
 
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");

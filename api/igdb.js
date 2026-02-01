@@ -1,5 +1,5 @@
 // api/igdb.js
-// FINAL — correct Out Now / Coming Soon separation
+// FINAL — Out Now / Coming Soon + platform + category support
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -30,9 +30,27 @@ const PLATFORM_MAP = {
   android: [34],
 };
 
+// Priority order matters (clean UX)
+const CATEGORY_PRIORITY = [
+  "Role-playing (RPG)",
+  "Shooter",
+  "Strategy",
+  "Adventure",
+  "Simulation",
+  "Fighting",
+  "Racing",
+  "Puzzle",
+  "Indie",
+];
+
 function normalizeCover(url) {
   if (!url) return null;
   return `https:${url}`.replace("t_thumb", "t_cover_big");
+}
+
+function pickPrimaryCategory(genres = []) {
+  const names = genres.map(g => g.name);
+  return CATEGORY_PRIORITY.find(c => names.includes(c)) || null;
 }
 
 function normalizeGame(g) {
@@ -47,6 +65,7 @@ function normalizeGame(g) {
     platforms: Array.isArray(g.platforms)
       ? g.platforms.map(p => p.name).filter(Boolean)
       : [],
+    category: pickPrimaryCategory(g.genres),
   };
 }
 
@@ -60,10 +79,7 @@ function buildWhere({ platforms, mode }) {
 
   const where = ["name != null", "first_release_date != null"];
 
-  if (mode === "out-now") {
-    where.push(`first_release_date <= ${now}`);
-  }
-
+  if (mode === "out-now") where.push(`first_release_date <= ${now}`);
   if (mode === "coming-soon") {
     where.push(`first_release_date > ${now}`);
     where.push(`first_release_date <= ${now + sixMonths}`);
@@ -76,7 +92,7 @@ function buildWhere({ platforms, mode }) {
   return where.join(" & ");
 }
 
-async function queryIGDB({ platforms, mode, limit }) {
+async function queryIGDB({ platforms, mode }) {
   const token = await getTwitchToken();
 
   const res = await fetch("https://api.igdb.com/v4/games", {
@@ -87,10 +103,11 @@ async function queryIGDB({ platforms, mode, limit }) {
       "Content-Type": "text/plain",
     },
     body: `
-      fields name, first_release_date, rating, cover.url, platforms.name;
+      fields name, first_release_date, rating, cover.url,
+             platforms.name, genres.name;
       where ${buildWhere({ platforms, mode })};
       sort first_release_date desc;
-      limit ${limit};
+      limit 500;
     `,
   });
 
@@ -102,18 +119,13 @@ async function queryIGDB({ platforms, mode, limit }) {
 export default async function handler(req, res) {
   try {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
-    const limit = 500;
 
     const [outNow, comingSoon] = await Promise.all([
-      queryIGDB({ platforms, mode: "out-now", limit }),
-      queryIGDB({ platforms, mode: "coming-soon", limit }),
+      queryIGDB({ platforms, mode: "out-now" }),
+      queryIGDB({ platforms, mode: "coming-soon" }),
     ]);
 
-    res.status(200).json({
-      ok: true,
-      outNow,
-      comingSoon,
-    });
+    res.status(200).json({ ok: true, outNow, comingSoon });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }

@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly — FINAL backend (stable, industry-correct)
+// Gamerly — FINAL stable backend (real-world tuned)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -117,7 +117,7 @@ export default async function handler(req, res) {
       .filter(g => g.releaseDate && g.coverUrl);
 
     const now = Date.now();
-    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    const OUT_NOW_WINDOW = 120 * 24 * 60 * 60 * 1000; // 120 days
 
     const outNow = [];
     const comingSoon = [];
@@ -127,7 +127,7 @@ export default async function handler(req, res) {
 
       if (t > now) {
         comingSoon.push(game);
-      } else if (now - t <= THIRTY_DAYS) {
+      } else if (now - t <= OUT_NOW_WINDOW) {
         outNow.push(game);
       }
     });

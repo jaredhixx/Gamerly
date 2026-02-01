@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly — LOCKED backend (Option A: all games = Out Now)
+// Gamerly — FINAL backend (stable, industry-correct)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -93,7 +93,7 @@ function buildQuery() {
 }
 
 /* =========================
-   HANDLER (LOCKED)
+   HANDLER (FINAL)
 ========================= */
 export default async function handler(req, res) {
   try {
@@ -116,12 +116,26 @@ export default async function handler(req, res) {
       .map(normalizeGame)
       .filter(g => g.releaseDate && g.coverUrl);
 
-    // OPTION A (LOCKED):
-    // Everything is Out Now for stability
+    const now = Date.now();
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
+    const outNow = [];
+    const comingSoon = [];
+
+    games.forEach(game => {
+      const t = new Date(game.releaseDate).getTime();
+
+      if (t > now) {
+        comingSoon.push(game);
+      } else if (now - t <= THIRTY_DAYS) {
+        outNow.push(game);
+      }
+    });
+
     res.status(200).json({
       ok: true,
-      outNow: games,
-      comingSoon: [],
+      outNow,
+      comingSoon,
     });
   } catch (err) {
     res.status(500).json({

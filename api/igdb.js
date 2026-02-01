@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly IGDB API — FINAL FIX (handles null release dates correctly)
+// Gamerly IGDB API — RELIABLE version (date filtering done server-side)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -77,30 +77,19 @@ function normalizeGame(g) {
 }
 
 /* =========================
-   QUERY BUILDER
+   IGDB QUERY (NO DATE FILTERS)
 ========================= */
-function buildQuery({ platforms, range, sort }) {
-  const nowUnix = unix(new Date());
-  const sixMonthsAheadUnix = nowUnix + 183 * 24 * 60 * 60;
-
-  const whereParts = [
-    "name != null",
-    "category = (0,8,9,10)",
-    // 👇 THIS IS THE CRITICAL FIX
-    `(first_release_date = null | first_release_date <= ${sixMonthsAheadUnix})`,
-  ];
-
-  // Past 3 months lower bound only
-  if (range === "past_3_months") {
-    whereParts.push(`first_release_date >= ${nowUnix - 90 * 24 * 60 * 60}`);
-  }
-
-  // Platform filtering
+function buildIgdbQuery({ platforms, sort }) {
   let platformIds = [];
   platforms.forEach(p => {
     if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
   });
   platformIds = [...new Set(platformIds)];
+
+  const whereParts = [
+    "name != null",
+    "category = (0,8,9,10)",
+  ];
 
   if (platformIds.length) {
     whereParts.push(`platforms = (${platformIds.join(",")})`);
@@ -119,7 +108,7 @@ function buildQuery({ platforms, range, sort }) {
       platforms.name;
     where ${whereParts.join(" & ")};
     ${sortClause}
-    limit 36;
+    limit 50;
   `;
 }
 
@@ -129,7 +118,6 @@ function buildQuery({ platforms, range, sort }) {
 export default async function handler(req, res) {
   try {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
-    const range = req.query.range || "this_week";
     const sort = req.query.sort || "newest";
 
     const token = await getTwitchToken();
@@ -141,21 +129,37 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "text/plain",
       },
-      body: buildQuery({ platforms, range, sort }),
+      body: buildIgdbQuery({ platforms, sort }),
     });
 
-    const data = await igdbRes.json();
+    const rawGames = await igdbRes.json();
 
     if (!igdbRes.ok) {
-      throw new Error(JSON.stringify(data));
+      throw new Error(JSON.stringify(rawGames));
     }
+
+    /* =========================
+       SERVER-SIDE DATE FILTER
+    ========================= */
+    const now = Date.now();
+    const sixMonthsAhead = now + 183 * 24 * 60 * 60 * 1000;
+
+    const filteredGames = rawGames.filter(g => {
+      if (!g.first_release_date) return true; // allow unknown dates
+      const releaseMs = g.first_release_date * 1000;
+      return releaseMs <= sixMonthsAhead;
+    });
 
     res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
 
     res.status(200).json({
       ok: true,
-      meta: { platforms, range, sort, futureCapMonths: 6 },
-      games: data.map(normalizeGame),
+      meta: {
+        platforms,
+        sort,
+        futureCapMonths: 6,
+      },
+      games: filteredGames.map(normalizeGame),
     });
   } catch (err) {
     res.status(500).json({

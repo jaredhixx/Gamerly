@@ -6,46 +6,55 @@ const rangeSelect = document.getElementById("rangeSelect");
 const sortSelect = document.getElementById("sortSelect");
 const platformButtons = document.querySelectorAll("[data-platform]");
 
-const ageGate = document.getElementById("ageGate");
-const ageConfirmBtn = document.getElementById("ageConfirmBtn");
-
 const state = {
   platforms: new Set(),
   range: "this_week",
   sort: "newest",
+  allGames: [], // 🔑 cache raw API results
 };
 
-function isAgeVerified() {
-  return localStorage.getItem("gamerly_age_verified") === "true";
-}
-
-function verifyAge() {
-  localStorage.setItem("gamerly_age_verified", "true");
-  ageGate.style.display = "none";
-  fetchGames();
-}
-
-if (!isAgeVerified()) {
-  ageConfirmBtn.addEventListener("click", verifyAge);
-} else {
-  ageGate.style.display = "none";
-}
-
-function buildUrl() {
+/* =========================
+   HELPERS
+========================= */
+function buildApiUrl() {
   const params = new URLSearchParams();
+
   if (state.platforms.size) {
     params.set("platforms", [...state.platforms].join(","));
   }
-  params.set("range", state.range);
+
   params.set("sort", state.sort);
   return `/api/igdb?${params.toString()}`;
 }
 
 function formatDate(date) {
-  if (!date) return "Unknown release";
+  if (!date) return "TBD";
   return new Date(date).toLocaleDateString();
 }
 
+/* =========================
+   RANGE FILTER (CLIENT SIDE)
+========================= */
+function applyRangeFilter(games) {
+  const now = Date.now();
+
+  if (state.range === "all_time") return games;
+
+  if (state.range === "past_3_months") {
+    const cutoff = now - 90 * 24 * 60 * 60 * 1000;
+    return games.filter(g => {
+      if (!g.releaseDate) return true;
+      return new Date(g.releaseDate).getTime() >= cutoff;
+    });
+  }
+
+  // this_week = show recent + upcoming
+  return games;
+}
+
+/* =========================
+   RENDER
+========================= */
 function renderGames(games) {
   grid.innerHTML = "";
 
@@ -54,18 +63,17 @@ function renderGames(games) {
     return;
   }
 
-  for (const g of games) {
+  games.forEach(g => {
     const card = document.createElement("div");
     card.className = "card";
 
     const img = document.createElement("img");
     img.src = g.coverUrl || "";
-    img.onerror = () => (img.src = "");
     img.alt = g.name;
+    img.onerror = () => (img.style.display = "none");
 
     const body = document.createElement("div");
     body.className = "card-body";
-
     body.innerHTML = `
       <div class="card-title">${g.name}</div>
       <div class="card-meta">${formatDate(g.releaseDate)}</div>
@@ -75,22 +83,28 @@ function renderGames(games) {
     card.appendChild(img);
     card.appendChild(body);
     grid.appendChild(card);
-  }
+  });
 }
 
+/* =========================
+   FETCH
+========================= */
 async function fetchGames() {
   loading.style.display = "block";
   errorBox.textContent = "";
 
   try {
-    const res = await fetch(buildUrl());
+    const res = await fetch(buildApiUrl());
     const data = await res.json();
 
     if (!res.ok || !data.ok) {
       throw new Error(data.error || "Failed to load games");
     }
 
-    renderGames(data.games);
+    state.allGames = data.games;
+
+    const filtered = applyRangeFilter(state.allGames);
+    renderGames(filtered);
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -98,14 +112,20 @@ async function fetchGames() {
   }
 }
 
+/* =========================
+   EVENTS
+========================= */
 platformButtons.forEach(btn => {
   btn.addEventListener("click", () => {
-    const p = btn.dataset.platform;
-    btn.classList.toggle("active");
+    const platform = btn.dataset.platform;
 
-    state.platforms.has(p)
-      ? state.platforms.delete(p)
-      : state.platforms.add(p);
+    if (state.platforms.has(platform)) {
+      state.platforms.delete(platform);
+      btn.classList.remove("active");
+    } else {
+      state.platforms.add(platform);
+      btn.classList.add("active");
+    }
 
     fetchGames();
   });
@@ -113,7 +133,7 @@ platformButtons.forEach(btn => {
 
 rangeSelect.addEventListener("change", () => {
   state.range = rangeSelect.value;
-  fetchGames();
+  renderGames(applyRangeFilter(state.allGames));
 });
 
 sortSelect.addEventListener("change", () => {
@@ -121,6 +141,7 @@ sortSelect.addEventListener("change", () => {
   fetchGames();
 });
 
-if (isAgeVerified()) {
-  fetchGames();
-}
+/* =========================
+   INIT
+========================= */
+fetchGames();

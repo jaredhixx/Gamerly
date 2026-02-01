@@ -1,9 +1,16 @@
-const gamesList = document.getElementById("gamesList");
+const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
 
 const ageGate = document.getElementById("ageGate");
 const ageConfirmBtn = document.getElementById("ageConfirmBtn");
+
+/* =========================
+   SAFETY CHECK
+========================= */
+if (!grid || !ageGate || !ageConfirmBtn) {
+  console.error("Required DOM elements missing. Check index.html IDs.");
+}
 
 /* =========================
    AGE VERIFICATION
@@ -29,17 +36,37 @@ if (!isAgeVerified()) {
    RENDER
 ========================= */
 function renderGames(games) {
-  gamesList.innerHTML = "";
+  grid.innerHTML = "";
 
   if (!games.length) {
-    gamesList.innerHTML = "<li>No games found.</li>";
+    grid.innerHTML = "<p>No games found.</p>";
     return;
   }
 
-  games.forEach(game => {
-    const li = document.createElement("li");
-    li.textContent = game.name;
-    gamesList.appendChild(li);
+  games.forEach(g => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const img = document.createElement("img");
+    img.src = g.coverUrl || "";
+    img.alt = g.name;
+    img.onerror = () => (img.style.display = "none");
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+    body.innerHTML = `
+      <div class="card-title">${g.name}</div>
+      <div class="card-meta">
+        ${g.releaseDate ? new Date(g.releaseDate).toLocaleDateString() : "TBD"}
+      </div>
+      <div class="card-meta">
+        ${g.rating ? g.rating + "/100" : "No rating"}
+      </div>
+    `;
+
+    card.appendChild(img);
+    card.appendChild(body);
+    grid.appendChild(card);
   });
 }
 
@@ -66,6 +93,9 @@ async function fetchGames() {
   }
 }
 
+/* =========================
+   INIT
+========================= */
 if (isAgeVerified()) {
   fetchGames();
 }

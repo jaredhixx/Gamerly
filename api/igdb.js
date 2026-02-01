@@ -1,13 +1,16 @@
 // api/igdb.js
-// Step 4: Normalized IGDB API with filters
+// Gamerly IGDB API — normalized, filtered, 6-month future cap
 
 let cachedToken = null;
 let tokenExpiry = 0;
 
-// ===== AUTH =====
+/* =========================
+   AUTH
+========================= */
 async function getTwitchToken() {
   const now = Date.now();
 
+  // Reuse token with 60s safety buffer
   if (cachedToken && now < tokenExpiry - 60_000) {
     return cachedToken;
   }
@@ -27,7 +30,7 @@ async function getTwitchToken() {
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(`OAuth failed: ${JSON.stringify(data)}`);
+    throw new Error(`Twitch OAuth failed: ${JSON.stringify(data)}`);
   }
 
   cachedToken = data.access_token;
@@ -35,17 +38,21 @@ async function getTwitchToken() {
   return cachedToken;
 }
 
-// ===== CONSTANTS =====
+/* =========================
+   CONSTANTS
+========================= */
 const PLATFORM_MAP = {
   pc: [6],
-  playstation: [48, 167],
-  xbox: [49, 169],
-  nintendo: [130],
+  playstation: [48, 167], // PS4, PS5
+  xbox: [49, 169],        // Xbox One, Series X|S
+  nintendo: [130],        // Switch
   ios: [39],
   android: [34],
 };
 
-// ===== HELPERS =====
+/* =========================
+   HELPERS
+========================= */
 function unix(date) {
   return Math.floor(date.getTime() / 1000);
 }
@@ -70,51 +77,67 @@ function normalizeGame(g) {
   };
 }
 
-// ===== QUERY BUILDER =====
+/* =========================
+   QUERY BUILDER
+========================= */
 function buildQuery({ platforms, range, sort }) {
   const now = new Date();
-const nowUnix = unix(now);
+  const nowUnix = unix(now);
 
-// 6 months into the future (approx 183 days)
-const sixMonthsAheadUnix = nowUnix + (183 * 24 * 60 * 60);
+  // 🔒 HARD FUTURE CAP: ~6 months (183 days)
+  const sixMonthsAheadUnix = nowUnix + (183 * 24 * 60 * 60);
 
-let dateFilters = [];
+  const dateFilters = [];
 
-// LOWER bounds (range)
-if (range === "this_week") {
-  dateFilters.push(`first_release_date >= ${nowUnix - 604800}`);
-} else if (range === "past_3_months") {
-  dateFilters.push(`first_release_date >= ${nowUnix - 7776000}`);
-}
+  // LOWER bounds
+  if (range === "this_week") {
+    dateFilters.push(`first_release_date >= ${nowUnix - 7 * 24 * 60 * 60}`);
+  } else if (range === "past_3_months") {
+    dateFilters.push(`first_release_date >= ${nowUnix - 90 * 24 * 60 * 60}`);
+  }
 
-// UPPER bound (hard cap: 6 months ahead)
-dateFilters.push(`first_release_date <= ${sixMonthsAheadUnix}`);
+  // UPPER bound (always applied)
+  dateFilters.push(`first_release_date <= ${sixMonthsAheadUnix}`);
 
-
+  // Platform filtering
   let platformIds = [];
   platforms.forEach(p => {
-    if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
+    if (PLATFORM_MAP[p]) {
+      platformIds.push(...PLATFORM_MAP[p]);
+    }
   });
-
   platformIds = [...new Set(platformIds)];
 
-  const whereParts = ["name != null"];
-  if (dateFilter) whereParts.push(dateFilter);
-  if (platformIds.length) whereParts.push(`platforms = (${platformIds.join(",")})`);
+  const whereParts = [
+    "name != null",
+    "category = (0,8,9,10)", // main games + remakes/ports
+    ...dateFilters,
+  ];
+
+  if (platformIds.length) {
+    whereParts.push(`platforms = (${platformIds.join(",")})`);
+  }
 
   let sortClause = "sort first_release_date desc;";
   if (sort === "highest_rated") sortClause = "sort rating desc;";
   if (sort === "az") sortClause = "sort name asc;";
 
   return `
-    fields name, first_release_date, rating, cover.url, platforms.name;
+    fields
+      name,
+      first_release_date,
+      rating,
+      cover.url,
+      platforms.name;
     where ${whereParts.join(" & ")};
     ${sortClause}
     limit 36;
   `;
 }
 
-// ===== HANDLER =====
+/* =========================
+   HANDLER
+========================= */
 export default async function handler(req, res) {
   try {
     const platforms = (req.query.platforms || "").split(",").filter(Boolean);
@@ -139,9 +162,16 @@ export default async function handler(req, res) {
       throw new Error(JSON.stringify(data));
     }
 
+    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+
     res.status(200).json({
       ok: true,
-      meta: { platforms, range, sort },
+      meta: {
+        platforms,
+        range,
+        sort,
+        futureCapMonths: 6,
+      },
       games: data.map(normalizeGame),
     });
   } catch (err) {

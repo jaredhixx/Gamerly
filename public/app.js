@@ -4,7 +4,7 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   AGE GATE (LOCKED + SAFE)
+   AGE GATE
 ========================= */
 const ageGate = document.getElementById("ageGate");
 const ageBtn = document.getElementById("ageConfirmBtn");
@@ -23,20 +23,18 @@ if (ageGate && ageBtn) {
 }
 
 /* =========================
-   STATE (LOCKED)
+   STATE
 ========================= */
-let outNowGames = [];
-let comingSoonGames = [];
+let allGames = [];
+let visibleCount = 0;
+const PAGE_SIZE = 24;
 
 let activeSection = "out";   // out | soon
 let activeTime = "all";      // all | today | week | month
 let activePlatform = "all";
 
-let visibleCount = 0;
-const PAGE_SIZE = 24;
-
 /* =========================
-   FETCH (FIXED — NO FALSE FAILS)
+   FETCH
 ========================= */
 async function loadGames() {
   try {
@@ -46,21 +44,12 @@ async function loadGames() {
     const res = await fetch("/api/igdb");
     const data = await res.json();
 
-    // ✅ STRUCTURE CHECK (not flag-based)
-    if (!data || (!Array.isArray(data.outNow) && !Array.isArray(data.comingSoon))) {
+    if (!data || !Array.isArray(data.games)) {
       throw new Error("Invalid API response");
     }
 
-    outNowGames = Array.isArray(data.outNow) ? data.outNow : [];
-    comingSoonGames = Array.isArray(data.comingSoon) ? data.comingSoon : [];
-
-    // Restore section counts (trust signal)
-    const outBtn = document.querySelector(".section-segment button:nth-child(1)");
-    const soonBtn = document.querySelector(".section-segment button:nth-child(2)");
-
-    if (outBtn) outBtn.innerHTML = `Out Now <span class="count">${outNowGames.length}</span>`;
-    if (soonBtn) soonBtn.innerHTML = `Coming Soon <span class="count">${comingSoonGames.length}</span>`;
-
+    allGames = data.games;
+    updateCounts();
     applyFilters(true);
   } catch (err) {
     console.error(err);
@@ -71,44 +60,37 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (LOCKED)
+   FILTER PIPELINE
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
-  let list =
-    activeSection === "out"
-      ? [...outNowGames]
-      : [...comingSoonGames];
+  const now = new Date();
 
-  /* PLATFORM FILTER */
+  let list = allGames.filter(g => {
+    const d = new Date(g.releaseDate);
+    return activeSection === "out" ? d <= now : d > now;
+  });
+
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
-    list = list.filter(game =>
-      Array.isArray(game.platforms) &&
-      game.platforms.some(p => p.toLowerCase().includes(key))
+    list = list.filter(g =>
+      g.platforms.some(p => p.toLowerCase().includes(key))
     );
   }
 
-  /* TIME FILTER
-     - Out Now: intentionally NO time filter
-     - Coming Soon: future windows only
-  */
   if (activeSection === "soon" && activeTime !== "all") {
-    const now = new Date();
-
-    list = list.filter(game => {
-      if (!game.releaseDate) return false;
-      const d = new Date(game.releaseDate);
+    list = list.filter(g => {
+      const d = new Date(g.releaseDate);
 
       if (activeTime === "today") {
         return d.toDateString() === now.toDateString();
       }
       if (activeTime === "week") {
-        return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
+        return d <= new Date(now.getTime() + 7 * 86400000);
       }
       if (activeTime === "month") {
-        return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
+        return d <= new Date(now.getTime() + 30 * 86400000);
       }
       return true;
     });
@@ -118,7 +100,21 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   RENDER (LOCKED)
+   COUNTS
+========================= */
+function updateCounts() {
+  const now = new Date();
+  const outNowCount = allGames.filter(g => new Date(g.releaseDate) <= now).length;
+  const soonCount = allGames.length - outNowCount;
+
+  document.querySelector(".section-segment button:nth-child(1)").innerHTML =
+    `Out Now <span class="count">${outNowCount}</span>`;
+  document.querySelector(".section-segment button:nth-child(2)").innerHTML =
+    `Coming Soon <span class="count">${soonCount}</span>`;
+}
+
+/* =========================
+   RENDER
 ========================= */
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -138,31 +134,24 @@ function render(list) {
 
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
-      <img src="${game.coverUrl || ""}" loading="lazy" />
+      <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
-        <div class="badge-row">
-          ${game.category ? `<span class="badge-category">${game.category}</span>` : ""}
-        </div>
+        ${game.category ? `<div class="badge-row"><span class="badge-category">${game.category}</span></div>` : ""}
         <div class="card-title">${game.name}</div>
-        <div class="card-meta">
-          ${game.releaseDate ? new Date(game.releaseDate).toLocaleDateString() : ""}
-        </div>
+        <div class="card-meta">${new Date(game.releaseDate).toLocaleDateString()}</div>
       </div>
     `;
 
     grid.appendChild(card);
   });
 
-  showMoreBtn.style.display =
-    visibleCount < list.length ? "block" : "none";
+  showMoreBtn.style.display = visibleCount < list.length ? "block" : "none";
 }
 
 /* =========================
-   PLATFORM ICONS (LOCKED)
+   PLATFORM ICONS
 ========================= */
 function renderPlatforms(game) {
-  if (!Array.isArray(game.platforms)) return "";
-
   const p = game.platforms.join(" ").toLowerCase();
   const chips = [];
 
@@ -177,16 +166,8 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   EVENTS (LOCKED)
+   EVENTS
 ========================= */
-document.querySelectorAll(".time-segment button").forEach(btn => {
-  btn.onclick = () => {
-    activeTime = btn.textContent.toLowerCase().replace(" ", "");
-    setActive(btn);
-    applyFilters(true);
-  };
-});
-
 document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
     activeSection = btn.textContent.includes("Out") ? "out" : "soon";
@@ -209,9 +190,7 @@ showMoreBtn.onclick = () => applyFilters();
    UI HELPER
 ========================= */
 function setActive(button) {
-  button.parentElement
-    .querySelectorAll("button")
-    .forEach(b => b.classList.remove("active"));
+  button.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));
   button.classList.add("active");
 }
 

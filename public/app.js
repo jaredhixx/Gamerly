@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — baseline + TODAY filter only
+// Gamerly frontend — All + Today + This Week (safe incremental build)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -13,7 +13,7 @@ const timeButtons = document.querySelectorAll(".time-segment button");
 
 const state = {
   platforms: new Set(),
-  timeFilter: "all", // all | today
+  timeFilter: "all", // all | today | week
 };
 
 /* =========================
@@ -67,11 +67,9 @@ function applyFutureCap(games) {
 }
 
 /* =========================
-   TODAY FILTER (NEW)
+   TODAY FILTER
 ========================= */
 function applyTodayFilter(games) {
-  if (state.timeFilter !== "today") return games;
-
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const end = start + 24 * 60 * 60 * 1000;
@@ -80,6 +78,21 @@ function applyTodayFilter(games) {
     if (!g.releaseDate) return false;
     const t = new Date(g.releaseDate).getTime();
     return t >= start && t < end;
+  });
+}
+
+/* =========================
+   THIS WEEK FILTER (NEW)
+========================= */
+function applyWeekFilter(games) {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const end = start + 7 * 24 * 60 * 60 * 1000;
+
+  return games.filter(g => {
+    if (!g.releaseDate) return false;
+    const t = new Date(g.releaseDate).getTime();
+    return t >= start && t <= end;
   });
 }
 
@@ -189,9 +202,14 @@ async function fetchGames() {
     }
 
     let games = applyFutureCap(data.games);
-    games = applyTodayFilter(games);
-    games = sortNewestFirst(games);
 
+    if (state.timeFilter === "today") {
+      games = applyTodayFilter(games);
+    } else if (state.timeFilter === "week") {
+      games = applyWeekFilter(games);
+    }
+
+    games = sortNewestFirst(games);
     renderGames(games);
   } catch (err) {
     errorBox.textContent = err.message;
@@ -220,7 +238,7 @@ platformButtons.forEach(btn => {
 });
 
 /* =========================
-   TIME SEGMENT EVENTS (TODAY ONLY)
+   TIME SEGMENT EVENTS
 ========================= */
 timeButtons.forEach(btn => {
   btn.addEventListener("click", () => {
@@ -228,7 +246,10 @@ timeButtons.forEach(btn => {
     btn.classList.add("active");
 
     const label = btn.textContent.toLowerCase();
-    state.timeFilter = label === "today" ? "today" : "all";
+
+    if (label === "today") state.timeFilter = "today";
+    else if (label === "this week") state.timeFilter = "week";
+    else state.timeFilter = "all";
 
     fetchGames();
   });

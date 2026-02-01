@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — section switch + count indicators
+// Gamerly frontend — progressive rendering + counts + filters
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -12,10 +12,15 @@ const platformButtons = document.querySelectorAll("[data-platform]");
 const timeButtons = document.querySelectorAll(".time-segment button");
 const sectionButtons = document.querySelectorAll(".section-segment button");
 
+const INITIAL_RENDER = 36;
+const LOAD_MORE_STEP = 36;
+
 const state = {
   platforms: new Set(),
-  timeFilter: "all",     // all | today | week | month
-  section: "out-now",   // out-now | coming-soon
+  timeFilter: "all",      // all | today | week | month
+  section: "out-now",    // out-now | coming-soon
+  visibleCount: INITIAL_RENDER,
+  lastResults: { outNow: [], comingSoon: [] }
 };
 
 /* =========================
@@ -28,7 +33,7 @@ function isAgeVerified() {
 function confirmAge() {
   localStorage.setItem("gamerly_age_verified", "true");
   ageGate.style.display = "none";
-  fetchGames();
+  fetchGames(true);
 }
 
 if (!isAgeVerified()) {
@@ -55,126 +60,70 @@ function formatDate(date) {
 }
 
 /* =========================
-   6-MONTH FUTURE CAP
+   FILTERS & SORT
 ========================= */
 function applyFutureCap(games) {
   const now = Date.now();
   const SIX_MONTHS = 183 * 24 * 60 * 60 * 1000;
-
-  return games.filter(g => {
-    if (!g.releaseDate) return true;
-    const t = new Date(g.releaseDate).getTime();
-    return t - now <= SIX_MONTHS;
-  });
+  return games.filter(g => !g.releaseDate || new Date(g.releaseDate).getTime() - now <= SIX_MONTHS);
 }
 
-/* =========================
-   TIME FILTERS
-========================= */
-function applyTodayFilter(games) {
+function applyTimeFilter(games) {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const end = start + 24 * 60 * 60 * 1000;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
   return games.filter(g => {
     if (!g.releaseDate) return false;
     const t = new Date(g.releaseDate).getTime();
-    return t >= start && t < end;
+
+    if (state.timeFilter === "today") return t >= today && t < today + 86400000;
+    if (state.timeFilter === "week") return t >= today - 6 * 86400000 && t <= today + 7 * 86400000;
+    if (state.timeFilter === "month") return t >= today - 29 * 86400000 && t <= today + 30 * 86400000;
+    return true;
   });
 }
 
-function applyWeekFilter(games) {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const pastStart = todayStart - 6 * 24 * 60 * 60 * 1000;
-  const futureEnd = todayStart + 7 * 24 * 60 * 60 * 1000;
-
-  return games.filter(g => {
-    if (!g.releaseDate) return false;
-    const t = new Date(g.releaseDate).getTime();
-    return t >= pastStart && t <= futureEnd;
-  });
-}
-
-function applyMonthFilter(games) {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const pastStart = todayStart - 29 * 24 * 60 * 60 * 1000;
-  const futureEnd = todayStart + 30 * 24 * 60 * 60 * 1000;
-
-  return games.filter(g => {
-    if (!g.releaseDate) return false;
-    const t = new Date(g.releaseDate).getTime();
-    return t >= pastStart && t <= futureEnd;
-  });
-}
-
-/* =========================
-   SORT
-========================= */
 function sortNewestFirst(games) {
-  return [...games].sort((a, b) => {
-    const aTime = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
-    const bTime = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
-    return bTime - aTime;
-  });
+  return [...games].sort((a, b) =>
+    new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0)
+  );
 }
 
-/* =========================
-   SPLIT SECTIONS
-========================= */
 function splitByRelease(games) {
   const now = Date.now();
   const outNow = [];
   const comingSoon = [];
 
   games.forEach(g => {
-    if (!g.releaseDate) {
-      outNow.push(g);
-    } else {
-      const t = new Date(g.releaseDate).getTime();
-      if (t <= now) outNow.push(g);
-      else comingSoon.push(g);
-    }
+    if (!g.releaseDate || new Date(g.releaseDate).getTime() <= now) outNow.push(g);
+    else comingSoon.push(g);
   });
 
   return { outNow, comingSoon };
 }
 
 /* =========================
-   UPDATE COUNTS (NEW)
+   COUNTS
 ========================= */
-function updateSectionCounts(outNowCount, comingSoonCount) {
+function updateSectionCounts(outNow, comingSoon) {
   sectionButtons.forEach(btn => {
-    const label = btn.textContent.toLowerCase();
-    if (label.includes("out now")) {
-      btn.innerHTML = `Out Now <span class="count">${outNowCount}</span>`;
+    if (btn.textContent.toLowerCase().includes("out now")) {
+      btn.innerHTML = `Out Now <span class="count">${outNow.length}</span>`;
     } else {
-      btn.innerHTML = `Coming Soon <span class="count">${comingSoonCount}</span>`;
+      btn.innerHTML = `Coming Soon <span class="count">${comingSoon.length}</span>`;
     }
   });
 }
 
 /* =========================
-   RENDER
+   RENDERING
 ========================= */
-function renderSection(title, games) {
-  if (!games.length) {
-    grid.innerHTML = "<p>No games found.</p>";
-    return;
-  }
+function renderCards(games) {
+  grid.innerHTML = "";
 
-  const wrapper = document.createElement("div");
-  wrapper.className = "section-wrapper";
+  const visible = games.slice(0, state.visibleCount);
 
-  const header = document.createElement("h2");
-  header.className = "section-title";
-  header.textContent = title;
-
-  const sectionGrid = document.createElement("div");
-  sectionGrid.className = "grid-section";
-
-  games.forEach(g => {
+  visible.forEach(g => {
     const card = document.createElement("div");
     card.className = "card";
 
@@ -193,32 +142,35 @@ function renderSection(title, games) {
 
     card.appendChild(img);
     card.appendChild(body);
-    sectionGrid.appendChild(card);
+    grid.appendChild(card);
   });
 
-  wrapper.appendChild(header);
-  wrapper.appendChild(sectionGrid);
-  grid.appendChild(wrapper);
+  if (games.length > state.visibleCount) {
+    const btn = document.createElement("button");
+    btn.className = "show-more";
+    btn.textContent = `Show more (${games.length - state.visibleCount} remaining)`;
+    btn.onclick = () => {
+      state.visibleCount += LOAD_MORE_STEP;
+      renderCards(games);
+    };
+    grid.appendChild(btn);
+  }
 }
 
-function renderGames(games) {
-  grid.innerHTML = "";
+function renderGames() {
+  const { outNow, comingSoon } = state.lastResults;
+  updateSectionCounts(outNow, comingSoon);
 
-  const { outNow, comingSoon } = splitByRelease(games);
-
-  updateSectionCounts(outNow.length, comingSoon.length);
-
-  if (state.section === "coming-soon") {
-    renderSection("Coming Soon", comingSoon);
-  } else {
-    renderSection("Out Now", outNow);
-  }
+  const active = state.section === "coming-soon" ? comingSoon : outNow;
+  renderCards(active);
 }
 
 /* =========================
    FETCH
 ========================= */
-async function fetchGames() {
+async function fetchGames(reset = false) {
+  if (reset) state.visibleCount = INITIAL_RENDER;
+
   loading.style.display = "block";
   errorBox.textContent = "";
 
@@ -228,13 +180,11 @@ async function fetchGames() {
     if (!res.ok || !data.ok) throw new Error(data.error || "Failed to load games");
 
     let games = applyFutureCap(data.games);
-
-    if (state.timeFilter === "today") games = applyTodayFilter(games);
-    else if (state.timeFilter === "week") games = applyWeekFilter(games);
-    else if (state.timeFilter === "month") games = applyMonthFilter(games);
-
+    games = applyTimeFilter(games);
     games = sortNewestFirst(games);
-    renderGames(games);
+
+    state.lastResults = splitByRelease(games);
+    renderGames();
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -246,46 +196,41 @@ async function fetchGames() {
    EVENTS
 ========================= */
 platformButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const p = btn.dataset.platform;
+  btn.onclick = () => {
     btn.classList.toggle("active");
-    btn.classList.contains("active") ? state.platforms.add(p) : state.platforms.delete(p);
-    fetchGames();
-  });
+    btn.classList.contains("active") ? state.platforms.add(btn.dataset.platform) : state.platforms.delete(btn.dataset.platform);
+    fetchGames(true);
+  };
 });
 
 timeButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.onclick = () => {
     timeButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    const label = btn.textContent.toLowerCase();
-    state.timeFilter =
-      label === "today" ? "today" :
-      label === "this week" ? "week" :
-      label === "this month" ? "month" :
-      "all";
+    state.timeFilter = btn.textContent.toLowerCase().includes("today") ? "today"
+      : btn.textContent.toLowerCase().includes("week") ? "week"
+      : btn.textContent.toLowerCase().includes("month") ? "month"
+      : "all";
 
-    fetchGames();
-  });
+    fetchGames(true);
+  };
 });
 
 sectionButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.onclick = () => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    state.section = btn.textContent.toLowerCase().includes("coming")
-      ? "coming-soon"
-      : "out-now";
-
-    fetchGames();
-  });
+    state.section = btn.textContent.toLowerCase().includes("coming") ? "coming-soon" : "out-now";
+    state.visibleCount = INITIAL_RENDER;
+    renderGames();
+  };
 });
 
 /* =========================
    INIT
 ========================= */
 if (isAgeVerified()) {
-  fetchGames();
+  fetchGames(true);
 }

@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — LOCKED baseline before time filters
+// Gamerly frontend — baseline + TODAY filter only
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -9,9 +9,11 @@ const ageGate = document.getElementById("ageGate");
 const ageConfirmBtn = document.getElementById("ageConfirmBtn");
 
 const platformButtons = document.querySelectorAll("[data-platform]");
+const timeButtons = document.querySelectorAll(".time-segment button");
 
 const state = {
   platforms: new Set(),
+  timeFilter: "all", // all | today
 };
 
 /* =========================
@@ -61,6 +63,23 @@ function applyFutureCap(games) {
     if (!g.releaseDate) return true;
     const t = new Date(g.releaseDate).getTime();
     return t - now <= SIX_MONTHS;
+  });
+}
+
+/* =========================
+   TODAY FILTER (NEW)
+========================= */
+function applyTodayFilter(games) {
+  if (state.timeFilter !== "today") return games;
+
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const end = start + 24 * 60 * 60 * 1000;
+
+  return games.filter(g => {
+    if (!g.releaseDate) return false;
+    const t = new Date(g.releaseDate).getTime();
+    return t >= start && t < end;
   });
 }
 
@@ -169,9 +188,11 @@ async function fetchGames() {
       throw new Error(data.error || "Failed to load games");
     }
 
-    const capped = applyFutureCap(data.games);
-    const sorted = sortNewestFirst(capped);
-    renderGames(sorted);
+    let games = applyFutureCap(data.games);
+    games = applyTodayFilter(games);
+    games = sortNewestFirst(games);
+
+    renderGames(games);
   } catch (err) {
     errorBox.textContent = err.message;
   } finally {
@@ -193,6 +214,21 @@ platformButtons.forEach(btn => {
       state.platforms.add(p);
       btn.classList.add("active");
     }
+
+    fetchGames();
+  });
+});
+
+/* =========================
+   TIME SEGMENT EVENTS (TODAY ONLY)
+========================= */
+timeButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    timeButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const label = btn.textContent.toLowerCase();
+    state.timeFilter = label === "today" ? "today" : "all";
 
     fetchGames();
   });

@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly IGDB API — STABLE, REVIEWED, MATCHES ORIGINAL WORKING BEHAVIOR
+// Gamerly IGDB API — filters + platforms FIXED, stable data flow
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -38,6 +38,18 @@ async function getTwitchToken() {
 }
 
 /* =========================
+   PLATFORM MAP (SAFE)
+========================= */
+const PLATFORM_MAP = {
+  pc: [6],
+  playstation: [48, 167],
+  xbox: [49, 169],
+  nintendo: [130],
+  ios: [39],
+  android: [34],
+};
+
+/* =========================
    HELPERS
 ========================= */
 function normalizeCover(url) {
@@ -54,21 +66,49 @@ function normalizeGame(g) {
       : null,
     rating: typeof g.rating === "number" ? Math.round(g.rating) : null,
     coverUrl: normalizeCover(g.cover?.url),
+    platforms: Array.isArray(g.platforms)
+      ? g.platforms.map(p => p.name).filter(Boolean)
+      : [],
   };
 }
 
 /* =========================
-   IGDB QUERY (THIS IS KEY)
+   IGDB QUERY BUILDER
 ========================= */
-function buildIgdbQuery() {
+function buildIgdbQuery({ platforms, sort }) {
+  // Platform filtering (safe in IGDB)
+  let platformIds = [];
+  platforms.forEach(p => {
+    if (PLATFORM_MAP[p]) {
+      platformIds.push(...PLATFORM_MAP[p]);
+    }
+  });
+  platformIds = [...new Set(platformIds)];
+
+  const whereParts = [
+    "name != null",
+    "category = (0,8,9,10)",
+  ];
+
+  if (platformIds.length) {
+    whereParts.push(`platforms = (${platformIds.join(",")})`);
+  }
+
+  // SAFE sorting
+  let sortClause = "sort updated_at desc;";
+  if (sort === "highest_rated") sortClause = "sort rating desc;";
+  if (sort === "az") sortClause = "sort name asc;";
+
   return `
     fields
       name,
       first_release_date,
       rating,
       cover.url,
+      platforms.name,
       updated_at;
-    sort updated_at desc;
+    where ${whereParts.join(" & ")};
+    ${sortClause}
     limit 200;
   `;
 }
@@ -78,6 +118,9 @@ function buildIgdbQuery() {
 ========================= */
 export default async function handler(req, res) {
   try {
+    const platforms = (req.query.platforms || "").split(",").filter(Boolean);
+    const sort = req.query.sort || "newest";
+
     const token = await getTwitchToken();
 
     const igdbRes = await fetch("https://api.igdb.com/v4/games", {
@@ -87,7 +130,7 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "text/plain",
       },
-      body: buildIgdbQuery(),
+      body: buildIgdbQuery({ platforms, sort }),
     });
 
     const rawGames = await igdbRes.json();
@@ -97,13 +140,13 @@ export default async function handler(req, res) {
     }
 
     /* =========================
-       SERVER-SIDE FUTURE CAP
+       SERVER-SIDE SANITY FILTER
     ========================= */
     const now = Date.now();
     const sixMonthsAhead = now + 183 * 24 * 60 * 60 * 1000;
 
     const filteredGames = rawGames.filter(g => {
-      if (!g.first_release_date) return true; // allow unknown
+      if (!g.first_release_date) return true;
       return g.first_release_date * 1000 <= sixMonthsAhead;
     });
 
@@ -111,7 +154,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       ok: true,
-      count: filteredGames.length,
+      meta: { platforms, sort, futureCapMonths: 6 },
       games: filteredGames.map(normalizeGame),
     });
   } catch (err) {

@@ -4,7 +4,7 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   AGE GATE (LOCKED)
+   AGE GATE
 ========================= */
 const ageGate = document.getElementById("ageGate");
 const ageBtn = document.getElementById("ageConfirmBtn");
@@ -36,7 +36,7 @@ let visibleCount = 0;
 const PAGE_SIZE = 24;
 
 /* =========================
-   FETCH (LOCKED)
+   FETCH
 ========================= */
 async function loadGames() {
   try {
@@ -51,14 +51,14 @@ async function loadGames() {
     outNowGames = data.outNow || [];
     comingSoonGames = data.comingSoon || [];
 
-    // counts (restore trust)
+    // restore counts
     document.querySelector(".section-segment button:nth-child(1)").innerHTML =
-      `Out Now ${outNowGames.length}`;
+      `Out Now <span class="count">${outNowGames.length}</span>`;
     document.querySelector(".section-segment button:nth-child(2)").innerHTML =
-      `Coming Soon ${comingSoonGames.length}`;
+      `Coming Soon <span class="count">${comingSoonGames.length}</span>`;
 
     applyFilters(true);
-  } catch (e) {
+  } catch {
     errorBox.textContent = "Failed to load games.";
   } finally {
     loading.style.display = "none";
@@ -66,42 +66,47 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (LOCKED)
+   FILTER PIPELINE (FINAL)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
+  const now = new Date();
   let list =
     activeSection === "out"
       ? [...outNowGames]
       : [...comingSoonGames];
 
-  // PLATFORM
+  /* PLATFORM */
   if (activePlatform !== "all") {
-    const platformKey = activePlatform.toLowerCase();
-    list = list.filter(game =>
-      Array.isArray(game.platforms) &&
-      game.platforms.some(p =>
-        p.toLowerCase().includes(platformKey)
-      )
+    const key = activePlatform.toLowerCase();
+    list = list.filter(g =>
+      Array.isArray(g.platforms) &&
+      g.platforms.some(p => p.toLowerCase().includes(key))
     );
   }
 
-  // TIME
-  const now = new Date();
-  list = list.filter(game => {
-    if (!game.releaseDate) return false;
-    const d = new Date(game.releaseDate);
+  /* TIME (SECTION-AWARE) */
+  list = list.filter(g => {
+    if (!g.releaseDate) return false;
+    const d = new Date(g.releaseDate);
 
     if (activeTime === "today") {
       return d.toDateString() === now.toDateString();
     }
+
     if (activeTime === "week") {
-      return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
+      return activeSection === "out"
+        ? now - d >= 0 && now - d <= 7 * 86400000
+        : d - now >= 0 && d - now <= 7 * 86400000;
     }
+
     if (activeTime === "month") {
-      return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
+      return activeSection === "out"
+        ? now - d >= 0 && now - d <= 30 * 86400000
+        : d - now >= 0 && d - now <= 30 * 86400000;
     }
+
     return true;
   });
 
@@ -109,7 +114,7 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   RENDER (LOCKED)
+   RENDER
 ========================= */
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -149,15 +154,15 @@ function render(list) {
 }
 
 /* =========================
-   PLATFORM ICONS (LOCKED)
+   PLATFORM ICONS
 ========================= */
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";
 
-  const chips = [];
   const p = game.platforms.join(" ").toLowerCase();
+  const chips = [];
 
-  if (p.includes("pc")) chips.push(`<span class="platform-chip pc">PC</span>`);
+  if (p.includes("windows")) chips.push(`<span class="platform-chip pc">PC</span>`);
   if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
   if (p.includes("playstation")) chips.push(`<span class="platform-chip">PS</span>`);
   if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
@@ -168,7 +173,7 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   EVENTS (LOCKED)
+   EVENTS
 ========================= */
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {
@@ -200,14 +205,13 @@ showMoreBtn.onclick = () => applyFilters();
    UI HELPER
 ========================= */
 function setActive(button) {
-  const group = button.parentElement;
-  group.querySelectorAll("button").forEach(b =>
-    b.classList.remove("active")
-  );
+  button.parentElement
+    .querySelectorAll("button")
+    .forEach(b => b.classList.remove("active"));
   button.classList.add("active");
 }
 
 /* =========================
-   INIT (LOCKED)
+   INIT
 ========================= */
 loadGames();

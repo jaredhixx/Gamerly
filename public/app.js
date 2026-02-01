@@ -1,49 +1,33 @@
-// public/app.js
-// Step 5: Fetch and render games from IGDB API
-
 const gamesList = document.getElementById("gamesList");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
 
-const rangeSelect = document.getElementById("rangeSelect");
-const sortSelect = document.getElementById("sortSelect");
-const platformButtons = document.querySelectorAll("[data-platform]");
+const ageGate = document.getElementById("ageGate");
+const ageConfirmBtn = document.getElementById("ageConfirmBtn");
 
-const state = {
-  platforms: new Set(),
-  range: "this_week",
-  sort: "newest",
-};
-
-// ---------- helpers ----------
-function setLoading(on) {
-  loading.style.display = on ? "block" : "none";
+/* =========================
+   AGE VERIFICATION
+========================= */
+function isAgeVerified() {
+  return localStorage.getItem("gamerly_age_verified") === "true";
 }
 
-function setError(msg) {
-  if (!msg) {
-    errorBox.style.display = "none";
-    errorBox.textContent = "";
-  } else {
-    errorBox.style.display = "block";
-    errorBox.textContent = msg;
-  }
+function confirmAge() {
+  localStorage.setItem("gamerly_age_verified", "true");
+  ageGate.style.display = "none";
+  fetchGames();
 }
 
-function buildApiUrl() {
-  const params = new URLSearchParams();
-
-  if (state.platforms.size) {
-    params.set("platforms", [...state.platforms].join(","));
-  }
-
-  params.set("range", state.range);
-  params.set("sort", state.sort);
-
-  return `/api/igdb?${params.toString()}`;
+if (!isAgeVerified()) {
+  ageGate.style.display = "flex";
+  ageConfirmBtn.addEventListener("click", confirmAge);
+} else {
+  ageGate.style.display = "none";
 }
 
-// ---------- rendering ----------
+/* =========================
+   RENDER
+========================= */
 function renderGames(games) {
   gamesList.innerHTML = "";
 
@@ -52,20 +36,22 @@ function renderGames(games) {
     return;
   }
 
-  for (const game of games) {
+  games.forEach(game => {
     const li = document.createElement("li");
     li.textContent = game.name;
     gamesList.appendChild(li);
-  }
+  });
 }
 
-// ---------- API ----------
+/* =========================
+   FETCH
+========================= */
 async function fetchGames() {
-  setError("");
-  setLoading(true);
+  loading.style.display = "block";
+  errorBox.textContent = "";
 
   try {
-    const res = await fetch(buildApiUrl());
+    const res = await fetch("/api/igdb");
     const data = await res.json();
 
     if (!res.ok || !data.ok) {
@@ -74,39 +60,12 @@ async function fetchGames() {
 
     renderGames(data.games);
   } catch (err) {
-    renderGames([]);
-    setError(err.message);
+    errorBox.textContent = err.message;
   } finally {
-    setLoading(false);
+    loading.style.display = "none";
   }
 }
 
-// ---------- events ----------
-platformButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const platform = btn.dataset.platform;
-
-    if (state.platforms.has(platform)) {
-      state.platforms.delete(platform);
-      btn.classList.remove("active");
-    } else {
-      state.platforms.add(platform);
-      btn.classList.add("active");
-    }
-
-    fetchGames();
-  });
-});
-
-rangeSelect.addEventListener("change", () => {
-  state.range = rangeSelect.value;
+if (isAgeVerified()) {
   fetchGames();
-});
-
-sortSelect.addEventListener("change", () => {
-  state.sort = sortSelect.value;
-  fetchGames();
-});
-
-// ---------- init ----------
-fetchGames();
+}

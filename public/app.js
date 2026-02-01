@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — platform filters + 6-month cap + sectioned layout
+// Gamerly frontend — LOCKED baseline before time filters
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -65,7 +65,7 @@ function applyFutureCap(games) {
 }
 
 /* =========================
-   SORT NEWEST → OLDEST
+   SORT (NEWEST → OLDEST)
 ========================= */
 function sortNewestFirst(games) {
   return [...games].sort((a, b) => {
@@ -97,13 +97,14 @@ function splitByRelease(games) {
 }
 
 /* =========================
-   RENDER SECTIONS (FIXED)
+   RENDER SECTIONS
 ========================= */
 function renderSection(title, games) {
   if (!games.length) return;
 
   const wrapper = document.createElement("div");
   wrapper.className = "section-wrapper";
+  wrapper.id = title.toLowerCase().replace(" ", "-");
 
   const header = document.createElement("h2");
   header.className = "section-title";
@@ -184,6 +185,7 @@ async function fetchGames() {
 platformButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     const p = btn.dataset.platform;
+
     if (state.platforms.has(p)) {
       state.platforms.delete(p);
       btn.classList.remove("active");
@@ -191,6 +193,7 @@ platformButtons.forEach(btn => {
       state.platforms.add(p);
       btn.classList.add("active");
     }
+
     fetchGames();
   });
 });

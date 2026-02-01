@@ -1,14 +1,14 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <title>Gamerly</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- AGE GATE -->
+  <!-- AGE VERIFICATION OVERLAY -->
   <div id="ageGate" class="age-gate">
     <div class="age-card">
       <h2>Age Verification</h2>
@@ -17,9 +17,11 @@
     </div>
   </div>
 
+  <!-- HEADER -->
   <header class="header">
     <h1 class="logo">Gamerly</h1>
 
+    <!-- PLATFORM FILTERS ONLY -->
     <div class="controls">
       <div class="platforms">
         <button data-platform="pc">PC</button>
@@ -29,29 +31,19 @@
         <button data-platform="ios">iOS</button>
         <button data-platform="android">Android</button>
       </div>
-
-      <div class="filters">
-        <select id="rangeSelect">
-          <option value="this_week">This Week</option>
-          <option value="past_3_months">Past 3 Months</option>
-          <option value="all_time">All Time</option>
-        </select>
-
-        <select id="sortSelect">
-          <option value="newest">Newest</option>
-          <option value="highest_rated">Highest Rated</option>
-          <option value="az">A–Z</option>
-        </select>
-      </div>
     </div>
   </header>
 
+  <!-- MAIN CONTENT -->
   <main>
     <div id="loading" class="loading">Loading…</div>
     <div id="errorBox" class="error"></div>
+
+    <!-- GAME GRID -->
     <div id="gamesGrid" class="grid"></div>
   </main>
 
+  <!-- APP SCRIPT -->
   <script src="app.js"></script>
 </body>
 </html>

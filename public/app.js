@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — progressive rendering + counts + filters
+// Gamerly frontend — progressive render + lazy-loaded images
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -17,8 +17,8 @@ const LOAD_MORE_STEP = 36;
 
 const state = {
   platforms: new Set(),
-  timeFilter: "all",      // all | today | week | month
-  section: "out-now",    // out-now | coming-soon
+  timeFilter: "all",
+  section: "out-now",
   visibleCount: INITIAL_RENDER,
   lastResults: { outNow: [], comingSoon: [] }
 };
@@ -65,7 +65,9 @@ function formatDate(date) {
 function applyFutureCap(games) {
   const now = Date.now();
   const SIX_MONTHS = 183 * 24 * 60 * 60 * 1000;
-  return games.filter(g => !g.releaseDate || new Date(g.releaseDate).getTime() - now <= SIX_MONTHS);
+  return games.filter(g =>
+    !g.releaseDate || new Date(g.releaseDate).getTime() - now <= SIX_MONTHS
+  );
 }
 
 function applyTimeFilter(games) {
@@ -116,7 +118,7 @@ function updateSectionCounts(outNow, comingSoon) {
 }
 
 /* =========================
-   RENDERING
+   RENDERING (LAZY IMAGES)
 ========================= */
 function renderCards(games) {
   grid.innerHTML = "";
@@ -128,9 +130,13 @@ function renderCards(games) {
     card.className = "card";
 
     const img = document.createElement("img");
+    img.loading = "lazy";               // ✅ native lazy loading
     img.src = g.coverUrl || "";
     img.alt = g.name;
+    img.className = "lazy-img";
+
     img.onerror = () => (img.style.display = "none");
+    img.onload = () => img.classList.add("loaded");
 
     const body = document.createElement("div");
     body.className = "card-body";
@@ -198,7 +204,9 @@ async function fetchGames(reset = false) {
 platformButtons.forEach(btn => {
   btn.onclick = () => {
     btn.classList.toggle("active");
-    btn.classList.contains("active") ? state.platforms.add(btn.dataset.platform) : state.platforms.delete(btn.dataset.platform);
+    btn.classList.contains("active")
+      ? state.platforms.add(btn.dataset.platform)
+      : state.platforms.delete(btn.dataset.platform);
     fetchGames(true);
   };
 });
@@ -208,10 +216,11 @@ timeButtons.forEach(btn => {
     timeButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    state.timeFilter = btn.textContent.toLowerCase().includes("today") ? "today"
-      : btn.textContent.toLowerCase().includes("week") ? "week"
-      : btn.textContent.toLowerCase().includes("month") ? "month"
-      : "all";
+    state.timeFilter =
+      btn.textContent.toLowerCase().includes("today") ? "today" :
+      btn.textContent.toLowerCase().includes("week") ? "week" :
+      btn.textContent.toLowerCase().includes("month") ? "month" :
+      "all";
 
     fetchGames(true);
   };
@@ -222,7 +231,10 @@ sectionButtons.forEach(btn => {
     sectionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    state.section = btn.textContent.toLowerCase().includes("coming") ? "coming-soon" : "out-now";
+    state.section = btn.textContent.toLowerCase().includes("coming")
+      ? "coming-soon"
+      : "out-now";
+
     state.visibleCount = INITIAL_RENDER;
     renderGames();
   };

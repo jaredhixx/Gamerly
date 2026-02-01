@@ -1,5 +1,5 @@
 // api/igdb.js
-// Gamerly IGDB API — normalized, filtered, 6-month future cap (FIXED LOGIC)
+// Gamerly IGDB API — FINAL FIX (handles null release dates correctly)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -10,7 +10,6 @@ let tokenExpiry = 0;
 async function getTwitchToken() {
   const now = Date.now();
 
-  // Reuse token with 60s buffer
   if (cachedToken && now < tokenExpiry - 60_000) {
     return cachedToken;
   }
@@ -43,9 +42,9 @@ async function getTwitchToken() {
 ========================= */
 const PLATFORM_MAP = {
   pc: [6],
-  playstation: [48, 167], // PS4, PS5
-  xbox: [49, 169],        // Xbox One, Series X|S
-  nintendo: [130],        // Switch
+  playstation: [48, 167],
+  xbox: [49, 169],
+  nintendo: [130],
   ios: [39],
   android: [34],
 };
@@ -81,39 +80,27 @@ function normalizeGame(g) {
    QUERY BUILDER
 ========================= */
 function buildQuery({ platforms, range, sort }) {
-  const now = new Date();
-  const nowUnix = unix(now);
+  const nowUnix = unix(new Date());
+  const sixMonthsAheadUnix = nowUnix + 183 * 24 * 60 * 60;
 
-  // 🔒 HARD FUTURE CAP — ~6 months (183 days)
-  const sixMonthsAheadUnix = nowUnix + (183 * 24 * 60 * 60);
+  const whereParts = [
+    "name != null",
+    "category = (0,8,9,10)",
+    // 👇 THIS IS THE CRITICAL FIX
+    `(first_release_date = null | first_release_date <= ${sixMonthsAheadUnix})`,
+  ];
 
-  const dateFilters = [];
-
-  // LOWER bounds
-  // IMPORTANT:
-  // - this_week has NO lower bound (allows upcoming games)
-  // - past_3_months is backward-looking
+  // Past 3 months lower bound only
   if (range === "past_3_months") {
-    dateFilters.push(`first_release_date >= ${nowUnix - 90 * 24 * 60 * 60}`);
+    whereParts.push(`first_release_date >= ${nowUnix - 90 * 24 * 60 * 60}`);
   }
-
-  // UPPER bound (always applied)
-  dateFilters.push(`first_release_date <= ${sixMonthsAheadUnix}`);
 
   // Platform filtering
   let platformIds = [];
   platforms.forEach(p => {
-    if (PLATFORM_MAP[p]) {
-      platformIds.push(...PLATFORM_MAP[p]);
-    }
+    if (PLATFORM_MAP[p]) platformIds.push(...PLATFORM_MAP[p]);
   });
   platformIds = [...new Set(platformIds)];
-
-  const whereParts = [
-    "name != null",
-    "category = (0,8,9,10)", // main games + remakes/ports
-    ...dateFilters,
-  ];
 
   if (platformIds.length) {
     whereParts.push(`platforms = (${platformIds.join(",")})`);
@@ -167,12 +154,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       ok: true,
-      meta: {
-        platforms,
-        range,
-        sort,
-        futureCapMonths: 6,
-      },
+      meta: { platforms, range, sort, futureCapMonths: 6 },
       games: data.map(normalizeGame),
     });
   } catch (err) {

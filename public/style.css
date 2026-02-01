@@ -284,3 +284,10 @@ main {
   color: #fff;
   box-shadow: 0 4px 14px rgba(0,0,0,0.35);
 }
+/* Section count badges */
+
+.section-segment .count {
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}

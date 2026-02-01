@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — platform filters + 6-month cap + Out Now / Coming Soon
+// Gamerly frontend — platform filters + 6-month cap + sectioned layout
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -51,7 +51,7 @@ function formatDate(date) {
 }
 
 /* =========================
-   FUTURE CAP (6 MONTHS)
+   6-MONTH FUTURE CAP
 ========================= */
 function applyFutureCap(games) {
   const now = Date.now();
@@ -65,7 +65,7 @@ function applyFutureCap(games) {
 }
 
 /* =========================
-   SORT (NEWEST → OLDEST)
+   SORT NEWEST → OLDEST
 ========================= */
 function sortNewestFirst(games) {
   return [...games].sort((a, b) => {
@@ -97,18 +97,20 @@ function splitByRelease(games) {
 }
 
 /* =========================
-   RENDER
+   RENDER SECTIONS (FIXED)
 ========================= */
 function renderSection(title, games) {
   if (!games.length) return;
 
+  const wrapper = document.createElement("div");
+  wrapper.className = "section-wrapper";
+
   const header = document.createElement("h2");
   header.className = "section-title";
   header.textContent = title;
-  grid.appendChild(header);
 
-  const section = document.createElement("div");
-  section.className = "grid-section";
+  const sectionGrid = document.createElement("div");
+  sectionGrid.className = "grid-section";
 
   games.forEach(g => {
     const card = document.createElement("div");
@@ -129,10 +131,12 @@ function renderSection(title, games) {
 
     card.appendChild(img);
     card.appendChild(body);
-    section.appendChild(card);
+    sectionGrid.appendChild(card);
   });
 
-  grid.appendChild(section);
+  wrapper.appendChild(header);
+  wrapper.appendChild(sectionGrid);
+  grid.appendChild(wrapper);
 }
 
 function renderGames(games) {
@@ -175,7 +179,7 @@ async function fetchGames() {
 }
 
 /* =========================
-   EVENTS — PLATFORMS ONLY
+   PLATFORM EVENTS
 ========================= */
 platformButtons.forEach(btn => {
   btn.addEventListener("click", () => {

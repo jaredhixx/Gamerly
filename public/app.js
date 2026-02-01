@@ -1,12 +1,10 @@
-// public/app.js
-
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   AGE GATE
+   AGE GATE (LOCKED)
 ========================= */
 const ageGate = document.getElementById("ageGate");
 const ageBtn = document.getElementById("ageConfirmBtn");
@@ -25,31 +23,20 @@ if (ageGate && ageBtn) {
 }
 
 /* =========================
-   STATE
+   STATE (LOCKED)
 ========================= */
 let outNowGames = [];
 let comingSoonGames = [];
+
+let activeSection = "out";      // out | soon
+let activeTime = "all";         // all | today | week | month
+let activePlatform = "all";
+
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 
-let activeSection = "out";     // out | soon
-let activeTime = "all";        // all | today | week | month
-let activePlatform = "all";    // all | pc | xbox | etc
-
 /* =========================
-   PLATFORM MAP
-========================= */
-const PLATFORM_MAP = {
-  pc: [6],
-  playstation: [48, 49, 167],
-  xbox: [49, 169],
-  nintendo: [130, 167],
-  ios: [39],
-  android: [34],
-};
-
-/* =========================
-   FETCH
+   FETCH (LOCKED)
 ========================= */
 async function loadGames() {
   try {
@@ -59,8 +46,16 @@ async function loadGames() {
     const res = await fetch("/api/igdb");
     const data = await res.json();
 
+    if (!data.ok) throw new Error("API failed");
+
     outNowGames = data.outNow || [];
     comingSoonGames = data.comingSoon || [];
+
+    // counts (restore trust)
+    document.querySelector(".section-segment button:nth-child(1)").innerHTML =
+      `Out Now ${outNowGames.length}`;
+    document.querySelector(".section-segment button:nth-child(2)").innerHTML =
+      `Coming Soon ${comingSoonGames.length}`;
 
     applyFilters(true);
   } catch (e) {
@@ -71,73 +66,62 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTERS (FIXED)
+   FILTER PIPELINE (LOCKED)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
 
-  const now = new Date();
-  let source =
+  let list =
     activeSection === "out"
-      ? outNowGames
-      : comingSoonGames;
+      ? [...outNowGames]
+      : [...comingSoonGames];
 
-  let filtered = [...source];
-
-  // TIME FILTER (SECTION-AWARE)
-  filtered = filtered.filter(g => {
-    if (!g.releaseDate) return false;
-    const d = new Date(g.releaseDate);
-
-    if (activeSection === "out") {
-      if (activeTime === "today") {
-        return d.toDateString() === now.toDateString();
-      }
-      if (activeTime === "week") {
-        return now - d >= 0 && now - d <= 7 * 86400000;
-      }
-      if (activeTime === "month") {
-        return now - d >= 0 && now - d <= 30 * 86400000;
-      }
-      return true;
-    }
-
-    if (activeSection === "soon") {
-      if (activeTime === "today") {
-        return d.toDateString() === now.toDateString();
-      }
-      if (activeTime === "week") {
-        return d - now >= 0 && d - now <= 7 * 86400000;
-      }
-      if (activeTime === "month") {
-        return d - now >= 0 && d - now <= 30 * 86400000;
-      }
-      return true;
-    }
-
-    return true;
-  });
-
-  // PLATFORM FILTER
+  // PLATFORM
   if (activePlatform !== "all") {
-    const validIds = PLATFORM_MAP[activePlatform] || [];
-    filtered = filtered.filter(g =>
-      Array.isArray(g.platformIds) &&
-      g.platformIds.some(id => validIds.includes(id))
+    const platformKey = activePlatform.toLowerCase();
+    list = list.filter(game =>
+      Array.isArray(game.platforms) &&
+      game.platforms.some(p =>
+        p.toLowerCase().includes(platformKey)
+      )
     );
   }
 
-  render(filtered);
+  // TIME
+  const now = new Date();
+  list = list.filter(game => {
+    if (!game.releaseDate) return false;
+    const d = new Date(game.releaseDate);
+
+    if (activeTime === "today") {
+      return d.toDateString() === now.toDateString();
+    }
+    if (activeTime === "week") {
+      return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
+    }
+    if (activeTime === "month") {
+      return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
+    }
+    return true;
+  });
+
+  render(list);
 }
 
 /* =========================
-   RENDER
+   RENDER (LOCKED)
 ========================= */
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
   visibleCount = slice.length;
 
   grid.innerHTML = "";
+
+  if (!slice.length) {
+    grid.innerHTML = "<p>No games found.</p>";
+    showMoreBtn.style.display = "none";
+    return;
+  }
 
   slice.forEach(game => {
     const card = document.createElement("div");
@@ -152,7 +136,7 @@ function render(list) {
         </div>
         <div class="card-title">${game.name}</div>
         <div class="card-meta">
-          ${game.releaseDate ? new Date(game.releaseDate).toLocaleDateString() : "TBD"}
+          ${new Date(game.releaseDate).toLocaleDateString()}
         </div>
       </div>
     `;
@@ -160,28 +144,31 @@ function render(list) {
     grid.appendChild(card);
   });
 
-  showMoreBtn.style.display = visibleCount < list.length ? "block" : "none";
+  showMoreBtn.style.display =
+    visibleCount < list.length ? "block" : "none";
 }
 
 /* =========================
-   PLATFORM ICONS
+   PLATFORM ICONS (LOCKED)
 ========================= */
 function renderPlatforms(game) {
-  if (!Array.isArray(game.platformIds)) return "";
+  if (!Array.isArray(game.platforms)) return "";
 
-  const icons = [];
+  const chips = [];
+  const p = game.platforms.join(" ").toLowerCase();
 
-  if (game.platformIds.includes(6)) icons.push(`<span class="platform-chip pc">PC</span>`);
-  if ([48, 49, 169].some(id => game.platformIds.includes(id))) icons.push(`<span class="platform-chip xbox">Xbox</span>`);
-  if ([130, 167].some(id => game.platformIds.includes(id))) icons.push(`<span class="platform-chip">Switch</span>`);
-  if (game.platformIds.includes(39)) icons.push(`<span class="platform-chip">iOS</span>`);
-  if (game.platformIds.includes(34)) icons.push(`<span class="platform-chip">Android</span>`);
+  if (p.includes("pc")) chips.push(`<span class="platform-chip pc">PC</span>`);
+  if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
+  if (p.includes("playstation")) chips.push(`<span class="platform-chip">PS</span>`);
+  if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
+  if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
+  if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
 
-  return icons.join("");
+  return chips.join("");
 }
 
 /* =========================
-   EVENTS
+   EVENTS (LOCKED)
 ========================= */
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {
@@ -210,15 +197,17 @@ document.querySelectorAll(".platforms button").forEach(btn => {
 showMoreBtn.onclick = () => applyFilters();
 
 /* =========================
-   UI HELPERS
+   UI HELPER
 ========================= */
 function setActive(button) {
   const group = button.parentElement;
-  group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  group.querySelectorAll("button").forEach(b =>
+    b.classList.remove("active")
+  );
   button.classList.add("active");
 }
 
 /* =========================
-   INIT
+   INIT (LOCKED)
 ========================= */
 loadGames();

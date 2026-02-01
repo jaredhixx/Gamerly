@@ -73,15 +73,23 @@ function normalizeGame(g) {
 // ===== QUERY BUILDER =====
 function buildQuery({ platforms, range, sort }) {
   const now = new Date();
-  const nowUnix = unix(now);
+const nowUnix = unix(now);
 
-  let dateFilter = "";
+// 6 months into the future (approx 183 days)
+const sixMonthsAheadUnix = nowUnix + (183 * 24 * 60 * 60);
 
-  if (range === "this_week") {
-    dateFilter = `first_release_date >= ${nowUnix - 604800}`;
-  } else if (range === "past_3_months") {
-    dateFilter = `first_release_date >= ${nowUnix - 7776000}`;
-  }
+let dateFilters = [];
+
+// LOWER bounds (range)
+if (range === "this_week") {
+  dateFilters.push(`first_release_date >= ${nowUnix - 604800}`);
+} else if (range === "past_3_months") {
+  dateFilters.push(`first_release_date >= ${nowUnix - 7776000}`);
+}
+
+// UPPER bound (hard cap: 6 months ahead)
+dateFilters.push(`first_release_date <= ${sixMonthsAheadUnix}`);
+
 
   let platformIds = [];
   platforms.forEach(p => {

@@ -1,5 +1,5 @@
 // public/app.js
-// Gamerly frontend — progressive render + lazy-loaded images
+// Gamerly frontend — staged loading (initial + full)
 
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
@@ -20,7 +20,10 @@ const state = {
   timeFilter: "all",
   section: "out-now",
   visibleCount: INITIAL_RENDER,
-  lastResults: { outNow: [], comingSoon: [] }
+
+  // staged data
+  initialGames: [],
+  fullGames: [],
 };
 
 /* =========================
@@ -33,7 +36,7 @@ function isAgeVerified() {
 function confirmAge() {
   localStorage.setItem("gamerly_age_verified", "true");
   ageGate.style.display = "none";
-  fetchGames(true);
+  stagedLoad(true);
 }
 
 if (!isAgeVerified()) {
@@ -46,11 +49,14 @@ if (!isAgeVerified()) {
 /* =========================
    HELPERS
 ========================= */
-function buildApiUrl() {
+function buildApiUrl(mode) {
   const params = new URLSearchParams();
+  params.set("mode", mode);
+
   if (state.platforms.size) {
     params.set("platforms", [...state.platforms].join(","));
   }
+
   return `/api/igdb?${params.toString()}`;
 }
 
@@ -60,17 +66,11 @@ function formatDate(date) {
 }
 
 /* =========================
-   FILTERS & SORT
+   FILTERS / SORT
 ========================= */
-function applyFutureCap(games) {
-  const now = Date.now();
-  const SIX_MONTHS = 183 * 24 * 60 * 60 * 1000;
-  return games.filter(g =>
-    !g.releaseDate || new Date(g.releaseDate).getTime() - now <= SIX_MONTHS
-  );
-}
-
 function applyTimeFilter(games) {
+  if (state.timeFilter === "all") return games;
+
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
@@ -107,7 +107,7 @@ function splitByRelease(games) {
 /* =========================
    COUNTS
 ========================= */
-function updateSectionCounts(outNow, comingSoon) {
+function updateCounts(outNow, comingSoon) {
   sectionButtons.forEach(btn => {
     if (btn.textContent.toLowerCase().includes("out now")) {
       btn.innerHTML = `Out Now <span class="count">${outNow.length}</span>`;
@@ -118,7 +118,7 @@ function updateSectionCounts(outNow, comingSoon) {
 }
 
 /* =========================
-   RENDERING (LAZY IMAGES)
+   RENDER
 ========================= */
 function renderCards(games) {
   grid.innerHTML = "";
@@ -130,13 +130,12 @@ function renderCards(games) {
     card.className = "card";
 
     const img = document.createElement("img");
-    img.loading = "lazy";               // ✅ native lazy loading
+    img.loading = "lazy";
     img.src = g.coverUrl || "";
     img.alt = g.name;
     img.className = "lazy-img";
-
-    img.onerror = () => (img.style.display = "none");
     img.onload = () => img.classList.add("loaded");
+    img.onerror = () => (img.style.display = "none");
 
     const body = document.createElement("div");
     body.className = "card-body";
@@ -163,37 +162,45 @@ function renderCards(games) {
   }
 }
 
-function renderGames() {
-  const { outNow, comingSoon } = state.lastResults;
-  updateSectionCounts(outNow, comingSoon);
+function renderFrom(sourceGames) {
+  const filtered = sortNewestFirst(applyTimeFilter(sourceGames));
+  const { outNow, comingSoon } = splitByRelease(filtered);
+
+  updateCounts(outNow, comingSoon);
 
   const active = state.section === "coming-soon" ? comingSoon : outNow;
   renderCards(active);
 }
 
 /* =========================
-   FETCH
+   STAGED LOAD (KEY)
 ========================= */
-async function fetchGames(reset = false) {
+async function stagedLoad(reset = false) {
   if (reset) state.visibleCount = INITIAL_RENDER;
 
   loading.style.display = "block";
   errorBox.textContent = "";
 
   try {
-    const res = await fetch(buildApiUrl());
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || "Failed to load games");
+    // PHASE 1 — INITIAL
+    const initialRes = await fetch(buildApiUrl("initial"));
+    const initialData = await initialRes.json();
+    if (!initialData.ok) throw new Error(initialData.error);
 
-    let games = applyFutureCap(data.games);
-    games = applyTimeFilter(games);
-    games = sortNewestFirst(games);
+    state.initialGames = initialData.games;
+    renderFrom(state.initialGames);
+    loading.style.display = "none";
 
-    state.lastResults = splitByRelease(games);
-    renderGames();
+    // PHASE 2 — FULL (BACKGROUND)
+    const fullRes = await fetch(buildApiUrl("full"));
+    const fullData = await fullRes.json();
+    if (!fullData.ok) throw new Error(fullData.error);
+
+    state.fullGames = fullData.games;
+    renderFrom(state.fullGames);
+
   } catch (err) {
     errorBox.textContent = err.message;
-  } finally {
     loading.style.display = "none";
   }
 }
@@ -207,7 +214,7 @@ platformButtons.forEach(btn => {
     btn.classList.contains("active")
       ? state.platforms.add(btn.dataset.platform)
       : state.platforms.delete(btn.dataset.platform);
-    fetchGames(true);
+    stagedLoad(true);
   };
 });
 
@@ -222,7 +229,7 @@ timeButtons.forEach(btn => {
       btn.textContent.toLowerCase().includes("month") ? "month" :
       "all";
 
-    fetchGames(true);
+    stagedLoad(true);
   };
 });
 
@@ -236,7 +243,7 @@ sectionButtons.forEach(btn => {
       : "out-now";
 
     state.visibleCount = INITIAL_RENDER;
-    renderGames();
+    renderFrom(state.fullGames.length ? state.fullGames : state.initialGames);
   };
 });
 
@@ -244,5 +251,5 @@ sectionButtons.forEach(btn => {
    INIT
 ========================= */
 if (isAgeVerified()) {
-  fetchGames(true);
+  stagedLoad(true);
 }

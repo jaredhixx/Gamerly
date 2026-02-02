@@ -4,12 +4,6 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   VIEW CONTAINERS (NEW – SAFE)
-========================= */
-const listView = document.querySelector("main");
-const detailView = document.getElementById("detailView");
-
-/* =========================
    AGE GATE (LOCKED)
 ========================= */
 const ageGate = document.getElementById("ageGate");
@@ -154,10 +148,6 @@ function applyFilters(reset = false) {
 
   viewMode = "list";
 
-  detailView.style.display = "none";
-  detailView.innerHTML = "";
-  listView.style.display = "block";
-
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
   setMetaDescription(
     "Track new and upcoming game releases across PC, console, and mobile. Updated daily."
@@ -249,7 +239,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (ROOT-LEVEL)
+   DETAILS PAGE
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -287,10 +277,7 @@ function renderDetails(game, replace = false) {
       `
       : "";
 
-  listView.style.display = "none";
-  detailView.style.display = "block";
-
-  detailView.innerHTML = `
+  grid.innerHTML = `
     <section class="details">
       <div class="details-cover">
         <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover">
@@ -395,12 +382,10 @@ showMoreBtn.onclick = () => {
 
 window.addEventListener("popstate", () => {
   const id = parseDetailsIdFromPath(window.location.pathname);
-
   if (id) {
     const g = allGames.find(x => String(x.id) === String(id));
     if (g) return renderDetails(g, true);
   }
-
   applyFilters(true);
 });
 

@@ -37,7 +37,7 @@ const PAGE_SIZE = 24;
 let isDetailsView = false;
 
 /* =========================
-   SEO TITLE (SAFE / ADDITIVE)
+   SEO TITLE (SAFE)
 ========================= */
 function setTitle(title) {
   document.title = title;
@@ -46,7 +46,7 @@ function setTitle(title) {
 function setRouteTitle(path) {
   const clean = path.replace(/^\/+|\/+$/g, "");
 
-  if (clean === "") {
+  if (!clean) {
     setTitle("Daily Game Releases & Upcoming Games | Gamerly");
     return;
   }
@@ -75,12 +75,11 @@ function setRouteTitle(path) {
     return;
   }
 
-  // fallback
   setTitle("Game Releases & Upcoming Games | Gamerly");
 }
 
 /* =========================
-   ROUTING (LOCKED + SEO)
+   ROUTING
 ========================= */
 function applyRoute(path) {
   setRouteTitle(path);
@@ -94,7 +93,6 @@ function applyRoute(path) {
   }
 
   isDetailsView = false;
-  grid.innerHTML = "";
   showMoreBtn.style.display = "block";
 
   activeSection = "out";
@@ -159,14 +157,11 @@ async function loadGames() {
 }
 
 /* =========================
-   DETAILS PAGE (SEO + MONETIZATION)
+   DETAILS PAGE
 ========================= */
 function renderDetailsPage(id) {
   const game = allGames.find(g => String(g.id) === String(id));
-  if (!game) {
-    grid.innerHTML = "<p>Game not found.</p>";
-    return;
-  }
+  if (!game) return;
 
   isDetailsView = true;
   showMoreBtn.style.display = "none";
@@ -187,38 +182,20 @@ function renderDetailsPage(id) {
   grid.innerHTML = `
     <div class="details">
       <div class="details-cover">
-        <img src="${game.coverUrl}" alt="${game.name} cover" />
+        <img src="${game.coverUrl}" />
       </div>
-
       <div class="details-info">
         <h1>${game.name}</h1>
-
-        ${
-          game.aggregated_rating
-            ? `<div class="details-rating">
-                Critic score: <strong>${Math.round(
-                  game.aggregated_rating
-                )}</strong>
-              </div>`
-            : ""
-        }
-
         <div class="details-meta">
-          <div>Release date: ${new Date(
-            game.releaseDate
-          ).toLocaleDateString()}</div>
-          <div>Platforms: ${game.platforms.join(", ")}</div>
+          <div>${new Date(game.releaseDate).toLocaleDateString()}</div>
+          <div>${game.platforms.join(", ")}</div>
         </div>
-
         ${
           steamUrl
-            ? `<a class="cta-primary" href="${steamUrl}" target="_blank" rel="noopener sponsored">
-                View on Steam
-              </a>`
+            ? `<a class="cta-primary" href="${steamUrl}" target="_blank">View on Steam</a>`
             : ""
         }
-
-        <button class="details-back" onclick="goBack()">← Back to all games</button>
+        <button class="details-back" onclick="goBack()">← Back</button>
       </div>
     </div>
   `;
@@ -236,6 +213,7 @@ function applyFilters(reset = false) {
   if (isDetailsView) return;
 
   if (reset) visibleCount = 0;
+
   const now = new Date();
 
   const outNowGames = allGames.filter(
@@ -272,18 +250,17 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   COUNTS (LOCKED)
+   COUNTS
 ========================= */
 function updateSectionCounts(outCount, soonCount) {
   const buttons = document.querySelectorAll(".section-segment button");
   if (buttons.length < 2) return;
-
   buttons[0].innerHTML = `Out Now <span class="count">${outCount}</span>`;
   buttons[1].innerHTML = `Coming Soon <span class="count">${soonCount}</span>`;
 }
 
 /* =========================
-   GRID RENDER (LOCKED)
+   GRID RENDER
 ========================= */
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -303,12 +280,9 @@ function render(list) {
       <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
         <div class="card-title">${game.name}</div>
-        <div class="card-meta">
-          ${new Date(game.releaseDate).toLocaleDateString()}
-        </div>
+        <div class="card-meta">${new Date(game.releaseDate).toLocaleDateString()}</div>
       </div>
     `;
-
     grid.appendChild(card);
   });
 
@@ -316,26 +290,51 @@ function render(list) {
     visibleCount < list.length ? "block" : "none";
 }
 
-/* =========================
-   HELPERS (LOCKED)
-========================= */
 function renderRating(game) {
-  if (
-    typeof game.aggregated_rating !== "number" ||
-    game.aggregated_rating < 65
-  )
+  if (typeof game.aggregated_rating !== "number" || game.aggregated_rating < 65)
     return "";
-  return `<div class="rating-badge">${Math.round(
-    game.aggregated_rating
-  )}</div>`;
+  return `<div class="rating-badge">${Math.round(game.aggregated_rating)}</div>`;
 }
 
 /* =========================
-   EVENTS (LOCKED)
+   EVENTS (RESTORED)
 ========================= */
-window.addEventListener("popstate", () =>
-  applyRoute(window.location.pathname)
-);
+document.querySelectorAll(".time-segment button").forEach(btn => {
+  btn.onclick = () => {
+    activeTime = btn.textContent.toLowerCase().replace(" ", "");
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".section-segment button").forEach(btn => {
+  btn.onclick = () => {
+    activeSection = btn.textContent.includes("Out") ? "out" : "soon";
+    history.pushState({}, "", activeSection === "out" ? "/out-now" : "/coming-soon");
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".platforms button").forEach(btn => {
+  btn.onclick = () => {
+    activePlatform = btn.dataset.platform || "all";
+    history.pushState({}, "", activePlatform === "all" ? "/" : `/${activePlatform}`);
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+function setActive(button) {
+  button.parentElement
+    .querySelectorAll("button")
+    .forEach(b => b.classList.remove("active"));
+  button.classList.add("active");
+}
+
+window.addEventListener("popstate", () => {
+  applyRoute(window.location.pathname);
+});
 
 /* =========================
    INIT

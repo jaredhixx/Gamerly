@@ -141,7 +141,7 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (LOCKED)
+   FILTER PIPELINE (LOCKED + COUNTS RESTORED)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
@@ -161,6 +161,9 @@ function applyFilters(reset = false) {
   const comingSoon = allGames.filter(
     g => g.releaseDate && new Date(g.releaseDate) > now
   );
+
+  // ✅ Restore section counts (Out Now / Coming Soon)
+  updateSectionCounts(outNow.length, comingSoon.length);
 
   let list = activeSection === "out" ? outNow : comingSoon;
 
@@ -184,6 +187,17 @@ function applyFilters(reset = false) {
   }
 
   renderList(list);
+}
+
+/* =========================
+   SECTION COUNTS (RESTORED)
+========================= */
+function updateSectionCounts(outCount, soonCount) {
+  const buttons = document.querySelectorAll(".section-segment button");
+  if (buttons.length < 2) return;
+
+  buttons[0].innerHTML = `Out Now <span class="count">${outCount}</span>`;
+  buttons[1].innerHTML = `Coming Soon <span class="count">${soonCount}</span>`;
 }
 
 /* =========================
@@ -226,10 +240,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (FIXED)
-   - Uses existing CSS
-   - Adds real hierarchy
-   - Feels like a destination page
+   DETAILS PAGE (UNCHANGED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -291,7 +302,7 @@ function openDetails(game) {
 }
 
 /* =========================
-   RATINGS / PLATFORMS
+   RATINGS / PLATFORMS (UNCHANGED)
 ========================= */
 function renderRating(game) {
   const s = game.aggregated_rating;
@@ -317,7 +328,7 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   FILTER EVENTS
+   FILTER EVENTS (UNCHANGED)
 ========================= */
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {

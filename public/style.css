@@ -20,18 +20,15 @@ body {
 }
 
 /* =========================
-   AGE GATE (HIGH-ROI POLISH)
+   AGE GATE (POLISHED — LOCKED)
 ========================= */
 .age-gate {
   position: fixed;
   inset: 0;
   z-index: 1000;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* Premium blur + dim */
   backdrop-filter: blur(14px);
   background:
     radial-gradient(
@@ -46,24 +43,19 @@ body {
   max-width: 420px;
   padding: 2.4rem 2.2rem 2.6rem;
   text-align: center;
-
   border-radius: 26px;
   background: linear-gradient(
     180deg,
     rgba(255,255,255,0.08),
     rgba(255,255,255,0.03)
   );
-
   border: 1px solid rgba(255,255,255,0.14);
-  box-shadow:
-    0 40px 90px rgba(0,0,0,0.55),
-    0 0 0 1px rgba(59,130,246,0.15);
+  box-shadow: 0 40px 90px rgba(0,0,0,0.55);
 }
 
 .age-card h2 {
   font-size: 1.55rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
   margin-bottom: 0.5rem;
 }
 
@@ -73,36 +65,16 @@ body {
   margin-bottom: 1.8rem;
 }
 
-/* Primary CTA */
 .age-card button {
-  appearance: none;
-  border: none;
-  cursor: pointer;
-
   padding: 0.95rem 2.6rem;
   border-radius: 999px;
-
   font-size: 0.95rem;
   font-weight: 800;
-  color: #ffffff;
-
+  color: #fff;
+  border: none;
+  cursor: pointer;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow:
-    0 10px 30px rgba(59,130,246,0.45),
-    inset 0 1px 0 rgba(255,255,255,0.25);
-
-  transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
-    filter 0.12s ease;
-}
-
-.age-card button:hover {
-  filter: brightness(1.05);
-}
-
-.age-card button:active {
-  transform: scale(0.97);
+  box-shadow: 0 10px 30px rgba(59,130,246,0.45);
 }
 
 /* =========================
@@ -120,7 +92,6 @@ body {
   gap: 0.65rem;
   font-size: 2.25rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
 }
 
 .logo::before {
@@ -137,37 +108,6 @@ body {
   0% { transform: scale(1); opacity: 0.85; }
   50% { transform: scale(1.15); opacity: 1; }
   100% { transform: scale(1); opacity: 0.85; }
-}
-
-/* =========================
-   FILTERS
-========================= */
-.time-segment,
-.section-segment,
-.platforms {
-  display: flex;
-  gap: 0.45rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.time-segment button,
-.section-segment button,
-.platforms button {
-  background: rgba(255,255,255,0.045);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.75);
-  padding: 0.45rem 0.95rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.time-segment button.active,
-.section-segment button.active,
-.platforms button.active {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
 }
 
 /* =========================
@@ -194,27 +134,14 @@ main {
   border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
-
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    border-color 0.15s ease;
-
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
   border: 1px solid rgba(255,255,255,0.06);
 }
 
-@media (hover: hover) {
-  .card:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 14px 36px rgba(0,0,0,0.45),
-      0 0 0 1px rgba(59,130,246,0.35);
-  }
-}
-
-.card:active {
-  transform: scale(0.985);
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.45);
 }
 
 .card img {
@@ -223,22 +150,65 @@ main {
   object-fit: cover;
 }
 
-.card-body {
-  padding: 0.9rem 1rem 1.05rem;
+/* =========================
+   PLATFORM BADGES (RESTORED)
+========================= */
+.platform-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 5;
 }
 
-.card-title {
-  font-size: 0.92rem;
-  font-weight: 600;
+.platform-chip {
+  padding: 3px 7px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.65);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
 }
 
-.card-meta {
-  margin-top: 0.25rem;
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.55);
+.platform-chip.ps {
+  color: #3b82f6;
+  border-color: rgba(59,130,246,0.45);
+}
+
+.platform-chip.xbox {
+  color: #10b981;
+  border-color: rgba(16,185,129,0.45);
 }
 
 /* =========================
-   DETAILS PAGE (UNCHANGED)
+   CATEGORY BADGE (RESTORED)
 ========================= */
-/* (unchanged — omitted for brevity but still present in file) */
+.badge-category {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  padding: 4px 9px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
+}
+
+/* =========================
+   SHOW MORE (RESTORED)
+========================= */
+#showMore {
+  display: block;
+  margin: 2.2rem auto 0;
+  padding: 0.9rem 2.8rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(59,130,246,0.3);
+}

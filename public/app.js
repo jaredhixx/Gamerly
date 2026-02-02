@@ -183,7 +183,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   LIST RENDER (INLINE GA — FINAL)
+   LIST RENDER (INLINE GA – FINAL)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -225,7 +225,9 @@ function renderList(list) {
                        gtag('event','outbound_click',{
                          platform:'${store.platform}',
                          store:'${store.store}',
-                         location:'list_card'
+                         location:'list_card',
+                         debug_mode:true,
+                         transport_type:'beacon'
                        });
                      }
                    ">
@@ -245,7 +247,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (INLINE GA — FINAL)
+   DETAILS PAGE (INLINE GA – FINAL)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -291,7 +293,9 @@ function renderDetails(game, replace = false) {
                      gtag('event','outbound_click',{
                        platform:'${store.platform}',
                        store:'${store.store}',
-                       location:'detail_page'
+                       location:'detail_page',
+                       debug_mode:true,
+                       transport_type:'beacon'
                      });
                    }
                  ">

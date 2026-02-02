@@ -74,6 +74,19 @@ function escapeHtml(str = "") {
 }
 
 /* =========================
+   🔧 RESTORED: ACTIVE BUTTON HANDLER (FIX)
+========================= */
+function setActive(button) {
+  const group = button.parentElement;
+  if (!group) return;
+
+  group.querySelectorAll("button").forEach(b =>
+    b.classList.remove("active")
+  );
+  button.classList.add("active");
+}
+
+/* =========================
    STORE CTA LOGIC (LOCKED)
 ========================= */
 function getPrimaryStore(game) {
@@ -81,24 +94,18 @@ function getPrimaryStore(game) {
   const name = encodeURIComponent(game.name);
   const p = game.platforms.join(" ").toLowerCase();
 
-  if (p.includes("windows") || p.includes("pc")) {
+  if (p.includes("windows") || p.includes("pc"))
     return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${name}` };
-  }
-  if (p.includes("playstation")) {
+  if (p.includes("playstation"))
     return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${name}` };
-  }
-  if (p.includes("xbox")) {
+  if (p.includes("xbox"))
     return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${name}` };
-  }
-  if (p.includes("nintendo")) {
+  if (p.includes("nintendo"))
     return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${name}` };
-  }
-  if (p.includes("ios")) {
+  if (p.includes("ios"))
     return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${name}` };
-  }
-  if (p.includes("android")) {
+  if (p.includes("android"))
     return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${name}&c=apps` };
-  }
 
   return { label: "View on Store →", url: `https://www.google.com/search?q=${name}+game` };
 }
@@ -143,7 +150,9 @@ function applyFilters(reset = false) {
   viewMode = "list";
 
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
-  setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
+  setMetaDescription(
+    "Track new and upcoming game releases across PC, console, and mobile. Updated daily."
+  );
 
   const now = new Date();
   const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
@@ -310,8 +319,35 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   EVENTS + INIT (LOCKED)
+   FILTER EVENTS (LOCKED)
 ========================= */
+document.querySelectorAll(".time-segment button").forEach(btn => {
+  btn.onclick = () => {
+    if (viewMode === "details") history.pushState({}, "", "/");
+    activeTime = btn.textContent.toLowerCase().replace(" ", "");
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".section-segment button").forEach(btn => {
+  btn.onclick = () => {
+    if (viewMode === "details") history.pushState({}, "", "/");
+    activeSection = btn.textContent.includes("Out") ? "out" : "soon";
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".platforms button").forEach(btn => {
+  btn.onclick = () => {
+    if (viewMode === "details") history.pushState({}, "", "/");
+    activePlatform = btn.dataset.platform || "all";
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
 showMoreBtn.onclick = () => {
   visibleCount += PAGE_SIZE;
   applyFilters();
@@ -326,4 +362,7 @@ window.addEventListener("popstate", () => {
   applyFilters(true);
 });
 
+/* =========================
+   INIT
+========================= */
 loadGames();

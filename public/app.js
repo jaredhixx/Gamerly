@@ -77,32 +77,6 @@ function escapeHtml(str = "") {
 }
 
 /* =========================
-   SUMMARY FORMATTER (NEW — TRUST FIX)
-========================= */
-function formatSummary(summary, limit = 360) {
-  if (!summary) return "";
-
-  const clean = escapeHtml(summary.trim());
-
-  if (clean.length <= limit) {
-    return `<p class="details-summary">${clean}</p>`;
-  }
-
-  // Cut at sentence boundary
-  const truncated = clean.slice(0, limit);
-  const lastPeriod = truncated.lastIndexOf(".");
-  const safeCut =
-    lastPeriod > limit * 0.6 ? truncated.slice(0, lastPeriod + 1) : truncated;
-
-  return `
-    <p class="details-summary" data-full="${clean}">
-      ${safeCut}
-      <span class="summary-more" style="opacity:.7; cursor:pointer;"> Read more</span>
-    </p>
-  `;
-}
-
-/* =========================
    STORE LINK (ROI SAFE)
 ========================= */
 function buildStoreLink(game) {
@@ -226,7 +200,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   LIST RENDER (LOCKED)
+   LIST RENDER (CTA ADDED)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -245,6 +219,8 @@ function renderList(list) {
     card.className = "card";
     card.setAttribute("role", "button");
 
+    const storeLink = buildStoreLink(game);
+
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
       ${renderRating(game)}
@@ -253,6 +229,16 @@ function renderList(list) {
         ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
         <div class="card-meta">${new Date(game.releaseDate).toLocaleDateString()}</div>
+
+        <a
+          class="card-cta"
+          href="${storeLink}"
+          target="_blank"
+          rel="nofollow sponsored noopener"
+          onclick="event.stopPropagation();"
+        >
+          View on Store
+        </a>
       </div>
     `;
 
@@ -265,7 +251,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (TRUST PATCH)
+   DETAILS PAGE (UNCHANGED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -273,18 +259,21 @@ function renderDetails(game, replace = false) {
   const slug = slugify(game.name);
   const path = `/game/${game.id}${slug ? "-" + slug : ""}`;
 
-  replace
-    ? history.replaceState({}, "", path)
-    : history.pushState({}, "", path);
+  if (replace) {
+    history.replaceState({}, "", path);
+  } else {
+    history.pushState({}, "", path);
+  }
 
   setMetaTitle(`${game.name} — Gamerly`);
 
-  const summaryHtml = formatSummary(game.summary);
+  const summaryText = game.summary
+    ? escapeHtml(game.summary.slice(0, 240))
+    : "";
 
   setMetaDescription(
-    game.summary
-      ? game.summary.slice(0, 160)
-      : `Release info for ${game.name}.`
+    summaryText ||
+    `Release info for ${game.name}. Platforms, release date, and store links.`
   );
 
   const release = game.releaseDate
@@ -295,9 +284,17 @@ function renderDetails(game, replace = false) {
     Array.isArray(game.screenshots) && game.screenshots.length
       ? `
         <div class="details-gallery">
-          ${game.screenshots.map(url => `
-            <img src="${url}" alt="${escapeHtml(game.name)} screenshot" loading="lazy" />
-          `).join("")}
+          ${game.screenshots
+            .map(
+              url => `
+                <img
+                  src="${url}"
+                  alt="${escapeHtml(game.name)} screenshot"
+                  loading="lazy"
+                />
+              `
+            )
+            .join("")}
         </div>
       `
       : "";
@@ -312,7 +309,7 @@ function renderDetails(game, replace = false) {
         <h1 class="details-title">${escapeHtml(game.name)}</h1>
         <div class="details-sub">${escapeHtml(release)}</div>
 
-        ${summaryHtml}
+        ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
 
         ${screenshotsHtml}
 
@@ -333,14 +330,6 @@ function renderDetails(game, replace = false) {
   `;
 
   showMoreBtn.style.display = "none";
-
-  const more = document.querySelector(".summary-more");
-  if (more) {
-    more.onclick = () => {
-      const p = more.parentElement;
-      p.innerHTML = p.dataset.full;
-    };
-  }
 
   document.getElementById("backBtn").onclick = () => {
     history.pushState({}, "", "/");

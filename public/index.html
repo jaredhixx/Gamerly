@@ -5,11 +5,11 @@
   <title>Gamerly — Daily Game Releases, Curated</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Track new and upcoming game releases across PC, console, and mobile. Updated daily. Curated so you only see what matters." />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="canonical" href="https://gamerly.app/" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
 
-  <!-- AGE VERIFICATION -->
   <div id="ageGate" class="age-gate">
     <div class="age-card">
       <h2>Age Verification</h2>
@@ -18,32 +18,17 @@
     </div>
   </div>
 
-  <!-- HEADER / HERO -->
   <header class="header">
-
-    <!-- LOGO -->
     <h1 class="logo">Gamerly</h1>
 
-    <!-- HERO COPY -->
     <section class="hero">
-      <h2 class="hero-title">
-        Daily Game Releases, Curated
-      </h2>
-
+      <h2 class="hero-title">Daily Game Releases, Curated</h2>
       <p class="hero-subtitle">
         Track new and upcoming games across PC, console, and mobile — without digging through storefronts.
       </p>
-
-      <p class="hero-trust">
-        Trusted by players who just want the releases — not the noise.
-      </p>
-
-      <p class="hero-meta">
-        Powered by IGDB · Updated daily
-      </p>
+      <p class="hero-meta">Powered by IGDB · Updated daily</p>
     </section>
 
-    <!-- TIME FILTER -->
     <div class="time-segment">
       <button class="active">All</button>
       <button>Today</button>
@@ -51,13 +36,11 @@
       <button>This Month</button>
     </div>
 
-    <!-- SECTION FILTER -->
     <div class="section-segment">
       <button class="active">Out Now</button>
       <button>Coming Soon</button>
     </div>
 
-    <!-- PLATFORM FILTERS -->
     <div class="controls">
       <div class="platforms">
         <button data-platform="pc">PC</button>
@@ -68,22 +51,15 @@
         <button data-platform="android">Android</button>
       </div>
     </div>
-
   </header>
 
-  <!-- MAIN CONTENT -->
   <main>
     <div id="loading" class="loading">Loading…</div>
     <div id="errorBox" class="error"></div>
-
     <div id="gamesGrid"></div>
-
-    <!-- SEE MORE -->
-    <button id="showMore" class="show-more" style="display:none;">
-      Show more
-    </button>
+    <button id="showMore" class="show-more" style="display:none;">Show more</button>
   </main>
 
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>

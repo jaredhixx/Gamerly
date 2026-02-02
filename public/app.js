@@ -114,7 +114,7 @@ async function loadGames() {
 }
 
 /* =========================
-   DETAILS PAGE (ISOLATED)
+   DETAILS PAGE (MONETIZED)
 ========================= */
 function renderDetailsPage(id) {
   const game = allGames.find(g => String(g.id) === String(id));
@@ -126,8 +126,15 @@ function renderDetailsPage(id) {
   isDetailsView = true;
   showMoreBtn.style.display = "none";
 
-  const steamUrl = game.platforms.some(p => p.toLowerCase().includes("windows"))
-    ? `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`
+  const isPC = game.platforms.some(p =>
+    p.toLowerCase().includes("windows")
+  );
+
+  const STEAM_AFFILIATE_TAG = "gamerly-20"; // ← replace with your real tag
+  const steamUrl = isPC
+    ? `https://store.steampowered.com/search/?term=${encodeURIComponent(
+        game.name
+      )}&snr=${STEAM_AFFILIATE_TAG}`
     : null;
 
   grid.innerHTML = `
@@ -135,18 +142,49 @@ function renderDetailsPage(id) {
       <div class="details-cover">
         <img src="${game.coverUrl}" alt="${game.name} cover" />
       </div>
+
       <div class="details-info">
         <h1>${game.name}</h1>
-        ${game.aggregated_rating ? `<div class="details-rating">Critic score: <strong>${Math.round(game.aggregated_rating)}</strong></div>` : ""}
+
+        ${
+          game.aggregated_rating
+            ? `<div class="details-rating">
+                Critic score: <strong>${Math.round(
+                  game.aggregated_rating
+                )}</strong>
+              </div>`
+            : ""
+        }
+
         <div class="details-meta">
-          <div>Release date: ${new Date(game.releaseDate).toLocaleDateString()}</div>
+          <div>Release date: ${new Date(
+            game.releaseDate
+          ).toLocaleDateString()}</div>
           <div>Platforms: ${game.platforms.join(", ")}</div>
         </div>
-        ${steamUrl ? `<a class="cta-primary" href="${steamUrl}" target="_blank" rel="noopener">View on Steam</a>` : ""}
+
+        ${
+          steamUrl
+            ? `<a
+                class="cta-primary"
+                href="${steamUrl}"
+                target="_blank"
+                rel="noopener sponsored"
+              >
+                View on Steam
+              </a>`
+            : ""
+        }
+
         <p class="details-context">
-          Track release details, platforms, and critic ratings for ${game.name}. Updated daily using IGDB.
+          View release details, supported platforms, and critic ratings for ${
+            game.name
+          }. Updated daily.
         </p>
-        <button class="details-back" onclick="goBack()">← Back to all games</button>
+
+        <button class="details-back" onclick="goBack()">
+          ← Back to all games
+        </button>
       </div>
     </div>
   `;
@@ -166,19 +204,25 @@ function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
   const now = new Date();
 
-  const outNowGames = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
-  const comingSoonGames = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) > now);
+  const outNowGames = allGames.filter(
+    g => g.releaseDate && new Date(g.releaseDate) <= now
+  );
+  const comingSoonGames = allGames.filter(
+    g => g.releaseDate && new Date(g.releaseDate) > now
+  );
 
   updateSectionCounts(outNowGames.length, comingSoonGames.length);
 
-  let list = activeSection === "out" ? [...outNowGames] : [...comingSoonGames];
+  let list = activeSection === "out" ? outNowGames : comingSoonGames;
 
   if (activeTime !== "all") {
     list = list.filter(game => {
       const d = new Date(game.releaseDate);
       if (activeTime === "today") return d.toDateString() === now.toDateString();
-      if (activeTime === "week") return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
-      if (activeTime === "month") return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
+      if (activeTime === "week")
+        return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
+      if (activeTime === "month")
+        return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
       return true;
     });
   }
@@ -186,7 +230,6 @@ function applyFilters(reset = false) {
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
     list = list.filter(game =>
-      Array.isArray(game.platforms) &&
       game.platforms.some(p => p.toLowerCase().includes(key))
     );
   }
@@ -226,38 +269,46 @@ function render(list) {
       ${renderRating(game)}
       <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
-        <div class="badge-row">
-          ${game.category ? `<span class="badge-category">${game.category}</span>` : ""}
-        </div>
         <div class="card-title">${game.name}</div>
-        <div class="card-meta">${new Date(game.releaseDate).toLocaleDateString()}</div>
+        <div class="card-meta">
+          ${new Date(game.releaseDate).toLocaleDateString()}
+        </div>
       </div>
     `;
 
     grid.appendChild(card);
   });
 
-  showMoreBtn.style.display = visibleCount < list.length ? "block" : "none";
+  showMoreBtn.style.display =
+    visibleCount < list.length ? "block" : "none";
 }
 
 /* =========================
    HELPERS (LOCKED)
 ========================= */
 function renderRating(game) {
-  if (typeof game.aggregated_rating !== "number" || game.aggregated_rating < 65) return "";
-  return `<div class="rating-badge">${Math.round(game.aggregated_rating)}</div>`;
+  if (
+    typeof game.aggregated_rating !== "number" ||
+    game.aggregated_rating < 65
+  )
+    return "";
+  return `<div class="rating-badge">${Math.round(
+    game.aggregated_rating
+  )}</div>`;
 }
 
 function renderPlatforms(game) {
-  if (!Array.isArray(game.platforms)) return "";
   const p = game.platforms.join(" ").toLowerCase();
   const chips = [];
-  if (p.includes("windows")) chips.push(`<span class="platform-chip pc">PC</span>`);
-  if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
-  if (p.includes("playstation")) chips.push(`<span class="platform-chip">PS</span>`);
-  if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
+  if (p.includes("windows")) chips.push(`<span class="platform-chip">PC</span>`);
+  if (p.includes("xbox")) chips.push(`<span class="platform-chip">Xbox</span>`);
+  if (p.includes("playstation"))
+    chips.push(`<span class="platform-chip">PS</span>`);
+  if (p.includes("nintendo"))
+    chips.push(`<span class="platform-chip">Switch</span>`);
   if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
-  if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
+  if (p.includes("android"))
+    chips.push(`<span class="platform-chip">Android</span>`);
   return chips.join("");
 }
 
@@ -290,10 +341,14 @@ document.querySelectorAll(".platforms button").forEach(btn => {
   };
 });
 
-window.addEventListener("popstate", () => applyRoute(window.location.pathname));
+window.addEventListener("popstate", () =>
+  applyRoute(window.location.pathname)
+);
 
 function setActive(button) {
-  button.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  button.parentElement
+    .querySelectorAll("button")
+    .forEach(b => b.classList.remove("active"));
   button.classList.add("active");
 }
 

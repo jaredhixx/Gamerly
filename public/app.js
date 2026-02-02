@@ -27,12 +27,22 @@ if (ageGate && ageBtn) {
 ========================= */
 let allGames = [];
 
-let activeSection = "out"; // out | soon
-let activeTime = "all";    // all | today | week | month
+let activeSection = "out";
+let activeTime = "all";
 let activePlatform = "all";
 
 let visibleCount = 0;
 const PAGE_SIZE = 24;
+
+/* =========================
+   ROUTING (DETAILS)
+========================= */
+function getGameFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("game");
+  if (!id) return null;
+  return allGames.find(g => String(g.id) === id) || null;
+}
 
 /* =========================
    FETCH
@@ -47,7 +57,13 @@ async function loadGames() {
     if (!data.ok) throw new Error("API failed");
 
     allGames = data.games || [];
-    applyFilters(true);
+
+    const detailGame = getGameFromURL();
+    if (detailGame) {
+      renderDetails(detailGame);
+    } else {
+      applyFilters(true);
+    }
   } catch {
     errorBox.textContent = "Failed to load games.";
   } finally {
@@ -63,38 +79,26 @@ function applyFilters(reset = false) {
 
   const now = new Date();
 
-  const outNowGames = allGames.filter(g => {
-    if (!g.releaseDate) return false;
-    return new Date(g.releaseDate) <= now;
-  });
-
-  const comingSoonGames = allGames.filter(g => {
-    if (!g.releaseDate) return false;
-    return new Date(g.releaseDate) > now;
-  });
+  const outNowGames = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
+  const comingSoonGames = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) > now);
 
   updateSectionCounts(outNowGames.length, comingSoonGames.length);
 
-  let list =
-    activeSection === "out"
-      ? [...outNowGames]
-      : [...comingSoonGames];
+  let list = activeSection === "out" ? outNowGames : comingSoonGames;
 
   if (activeTime !== "all") {
     list = list.filter(game => {
       const d = new Date(game.releaseDate);
       if (activeTime === "today") return d.toDateString() === now.toDateString();
-      if (activeTime === "week") return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
-      if (activeTime === "month") return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
+      if (activeTime === "week") return d <= new Date(now.getTime() + 7 * 86400000);
+      if (activeTime === "month") return d <= new Date(now.getTime() + 30 * 86400000);
       return true;
     });
   }
 
   if (activePlatform !== "all") {
-    const key = activePlatform.toLowerCase();
     list = list.filter(game =>
-      Array.isArray(game.platforms) &&
-      game.platforms.some(p => p.toLowerCase().includes(key))
+      game.platforms?.some(p => p.toLowerCase().includes(activePlatform))
     );
   }
 
@@ -102,18 +106,17 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   SECTION COUNTS (LOCKED)
+   COUNTS (LOCKED)
 ========================= */
-function updateSectionCounts(outCount, soonCount) {
-  const buttons = document.querySelectorAll(".section-segment button");
-  if (buttons.length < 2) return;
-
-  buttons[0].innerHTML = `Out Now <span class="count">${outCount}</span>`;
-  buttons[1].innerHTML = `Coming Soon <span class="count">${soonCount}</span>`;
+function updateSectionCounts(out, soon) {
+  const btns = document.querySelectorAll(".section-segment button");
+  if (!btns.length) return;
+  btns[0].innerHTML = `Out Now <span class="count">${out}</span>`;
+  btns[1].innerHTML = `Coming Soon <span class="count">${soon}</span>`;
 }
 
 /* =========================
-   RENDER
+   GRID RENDER
 ========================= */
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -121,20 +124,18 @@ function render(list) {
 
   grid.innerHTML = "";
 
-  if (!slice.length) {
-    grid.innerHTML = "<p>No games found.</p>";
-    showMoreBtn.style.display = "none";
-    return;
-  }
-
   slice.forEach(game => {
     const card = document.createElement("div");
     card.className = "card";
+    card.onclick = () => {
+      history.pushState({}, "", `/?game=${game.id}`);
+      renderDetails(game);
+    };
 
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
       ${renderRating(game)}
-      <img src="${game.coverUrl || ""}" loading="lazy" />
+      <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
         <div class="badge-row">
           ${game.category ? `<span class="badge-category">${game.category}</span>` : ""}
@@ -143,50 +144,61 @@ function render(list) {
         <div class="card-meta">${new Date(game.releaseDate).toLocaleDateString()}</div>
       </div>
     `;
-
     grid.appendChild(card);
   });
 
-  showMoreBtn.style.display =
-    visibleCount < list.length ? "block" : "none";
+  showMoreBtn.style.display = visibleCount < list.length ? "block" : "none";
 }
 
 /* =========================
-   RATINGS
+   DETAILS VIEW
+========================= */
+function renderDetails(game) {
+  grid.innerHTML = `
+    <div class="details">
+      <div class="details-cover">
+        <img src="${game.coverUrl}" />
+      </div>
+      <div class="details-info">
+        <h1>${game.name}</h1>
+        ${renderRating(game)}
+        <div class="details-meta">${new Date(game.releaseDate).toDateString()}</div>
+        <a class="cta-primary" href="#" target="_blank">View on Store</a>
+        <button class="details-back" onclick="history.back()">← Back</button>
+      </div>
+    </div>
+  `;
+  showMoreBtn.style.display = "none";
+}
+
+/* =========================
+   UI PIECES
 ========================= */
 function renderRating(game) {
-  const score = game.aggregated_rating;
-  const count = game.aggregated_rating_count;
-
-  if (typeof score !== "number" || typeof count !== "number" || score < 65 || count < 1) {
-    return "";
-  }
-
-  return `<div class="rating-badge">${Math.round(score)}</div>`;
+  if (!game.aggregated_rating || game.aggregated_rating < 65) return "";
+  return `<div class="rating-badge">${Math.round(game.aggregated_rating)}</div>`;
 }
 
-/* =========================
-   PLATFORM ICONS
-========================= */
 function renderPlatforms(game) {
-  if (!Array.isArray(game.platforms)) return "";
-
-  const p = game.platforms.join(" ").toLowerCase();
+  const p = game.platforms?.join(" ").toLowerCase() || "";
   const chips = [];
-
   if (p.includes("windows")) chips.push(`<span class="platform-chip pc">PC</span>`);
   if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
   if (p.includes("playstation")) chips.push(`<span class="platform-chip ps">PS</span>`);
   if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
   if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
   if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
-
   return chips.join("");
 }
 
 /* =========================
    EVENTS (LOCKED)
 ========================= */
+showMoreBtn.onclick = () => {
+  visibleCount += PAGE_SIZE;
+  applyFilters();
+};
+
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {
     activeTime = btn.textContent.toLowerCase().replace(" ", "");
@@ -211,21 +223,16 @@ document.querySelectorAll(".platforms button").forEach(btn => {
   };
 });
 
-/* ✅ FIX: increment visibleCount before rendering */
-showMoreBtn.onclick = () => {
-  visibleCount += PAGE_SIZE;
-  applyFilters();
-};
-
-/* =========================
-   UI HELPER
-========================= */
 function setActive(button) {
-  button.parentElement
-    .querySelectorAll("button")
-    .forEach(b => b.classList.remove("active"));
+  button.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));
   button.classList.add("active");
 }
+
+window.onpopstate = () => {
+  const game = getGameFromURL();
+  if (game) renderDetails(game);
+  else applyFilters(true);
+};
 
 /* =========================
    INIT

@@ -389,6 +389,12 @@ main {
   gap: 2.3rem;
 }
 
+/* ✅ CRITICAL FIX: details must span the full games grid row */
+#gamesGrid .details {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
 .details-cover img {
   width: 100%;
   border-radius: 22px;
@@ -487,38 +493,37 @@ main {
 }
 
 /* =========================================================
-   ✅ GALLERY ADD-ON (ONLY NEW CODE — UPDATED SAFELY)
-   RULES:
-   - Targets ONLY .details-gallery (confirmed by your DevTools)
-   - Does NOT touch any other UI elements
-   - Makes gallery tiles larger (your ONLY requested change)
+   ✅ GALLERY ADD-ON (ONLY NEW CODE)
+   - Contain gallery inside details column (desktop)
+   - Make mobile usable (swipe strip)
+   - Does NOT change anything else
 ========================================================= */
 
-/* Prevent gallery from forcing overflow in the details column */
+/* Prevent any child content (gallery) from forcing column wider */
 .details {
   grid-template-columns: 300px minmax(0, 1fr);
 }
-
 .details-info {
   min-width: 0;
 }
 
-/* Gallery strip (ONLY the real one you have) */
+/* Confirmed real gallery wrapper */
 .details-gallery {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 10px 2px 16px;
+  padding: 8px 2px 12px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  border-radius: 16px;
 }
 
-/* ✅ Bigger tiles (desktop) */
+/* Images: fixed tile size, never overflow column */
 .details-gallery img {
   flex: 0 0 auto;
-  width: 360px;              /* was too small before */
+  width: 240px;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: 14px;
@@ -527,9 +532,9 @@ main {
   scroll-snap-align: start;
 }
 
-/* ✅ Mobile: still swipeable, but not tiny */
+/* Mobile: smaller tiles, better thumb swipe */
 @media (max-width: 768px) {
   .details-gallery img {
-    width: 260px;            /* was too small before */
+    width: 180px;
   }
 }

@@ -23,7 +23,7 @@ if (ageGate && ageBtn) {
 }
 
 /* =========================
-   STATE
+   STATE (LOCKED)
 ========================= */
 let allGames = [];
 
@@ -39,8 +39,9 @@ const PAGE_SIZE = 24;
 ========================= */
 function applyRoute(path) {
   const clean = path.replace(/^\/+|\/+$/g, "");
-  activePlatform = "all";
+
   activeSection = "out";
+  activePlatform = "all";
 
   if (clean === "coming-soon") activeSection = "soon";
   if (clean === "out-now") activeSection = "out";
@@ -64,6 +65,13 @@ function syncUI() {
       "active",
       (activeSection === "out" && isOut) ||
       (activeSection === "soon" && !isOut)
+    );
+  });
+
+  document.querySelectorAll(".time-segment button").forEach(btn => {
+    btn.classList.toggle(
+      "active",
+      btn.textContent.toLowerCase().replace(" ", "") === activeTime
     );
   });
 }
@@ -144,7 +152,7 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   SECTION COUNTS
+   SECTION COUNTS (LOCKED)
 ========================= */
 function updateSectionCounts(outCount, soonCount) {
   const buttons = document.querySelectorAll(".section-segment button");
@@ -238,12 +246,11 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   EVENTS (URL SYNC)
+   EVENTS (LOCKED + URL SYNC)
 ========================= */
-document.querySelectorAll(".platforms button").forEach(btn => {
+document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {
-    activePlatform = btn.dataset.platform || "all";
-    history.pushState({}, "", activePlatform === "all" ? "/" : `/${activePlatform}`);
+    activeTime = btn.textContent.toLowerCase().replace(" ", "");
     setActive(btn);
     applyFilters(true);
   };
@@ -253,6 +260,15 @@ document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
     activeSection = btn.textContent.includes("Out") ? "out" : "soon";
     history.pushState({}, "", activeSection === "out" ? "/out-now" : "/coming-soon");
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".platforms button").forEach(btn => {
+  btn.onclick = () => {
+    activePlatform = btn.dataset.platform || "all";
+    history.pushState({}, "", activePlatform === "all" ? "/" : `/${activePlatform}`);
     setActive(btn);
     applyFilters(true);
   };

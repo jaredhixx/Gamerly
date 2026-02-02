@@ -20,7 +20,7 @@ body {
 }
 
 /* =========================
-   AGE GATE — FINAL TUNE
+   AGE GATE (FINAL, LIGHTER)
 ========================= */
 .age-gate {
   position: fixed;
@@ -28,7 +28,7 @@ body {
   background: radial-gradient(
     900px 500px at top,
     rgba(59,130,246,0.22),
-    rgba(2,6,23,0.94)
+    rgba(2,6,23,0.92)
   );
   display: flex;
   align-items: center;
@@ -48,9 +48,7 @@ body {
   max-width: 420px;
   text-align: center;
   border: 1px solid rgba(255,255,255,0.12);
-  box-shadow:
-    0 40px 120px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow: 0 40px 120px rgba(0,0,0,0.6);
 }
 
 .age-card h2 {
@@ -76,18 +74,11 @@ body {
   cursor: pointer;
   font-size: 0.95rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
   box-shadow: 0 10px 30px rgba(59,130,246,0.35);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.age-card button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 36px rgba(59,130,246,0.45);
 }
 
 /* =========================
-   HEADER
+   HEADER / BRAND (LOGO FIXED)
 ========================= */
 .header {
   padding: 2.4rem 1.6rem 0;
@@ -101,6 +92,24 @@ body {
   gap: 0.65rem;
   font-size: 2.25rem;
   font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* 🔵 BREATHING BRAND DOT (RESTORED) */
+.logo::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 0 18px rgba(59,130,246,0.65);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.85; }
 }
 
 /* =========================
@@ -181,7 +190,7 @@ main {
 }
 
 /* =========================
-   PLATFORM OVERLAY
+   PLATFORM + CATEGORY BADGES
 ========================= */
 .platform-overlay {
   position: absolute;
@@ -217,9 +226,6 @@ main {
   color: #3b82f6;
 }
 
-/* =========================
-   CATEGORY BADGE
-========================= */
 .badge-category {
   padding: 4px 9px;
   font-size: 0.6rem;
@@ -230,7 +236,7 @@ main {
 }
 
 /* =========================
-   DETAILS PAGE
+   DETAILS PAGE (CONVERSION)
 ========================= */
 .details {
   max-width: 980px;
@@ -299,28 +305,22 @@ main {
 }
 
 /* =========================
-   SHOW MORE — FINAL FIX
+   SHOW MORE (HIGH-CTR)
 ========================= */
 #showMore {
   display: block;
   margin: 2.2rem auto 0;
-  padding: 0.85rem 2.6rem;
+  padding: 0.9rem 2.8rem;
   border-radius: 999px;
   font-size: 0.9rem;
   font-weight: 800;
   color: #fff;
   background: linear-gradient(
     135deg,
-    rgba(59,130,246,0.85),
-    rgba(37,99,235,0.85)
+    rgba(59,130,246,0.9),
+    rgba(37,99,235,0.9)
   );
   border: none;
   cursor: pointer;
   box-shadow: 0 10px 30px rgba(59,130,246,0.3);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-#showMore:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 36px rgba(59,130,246,0.4);
 }

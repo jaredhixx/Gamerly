@@ -4,6 +4,12 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
+   VIEW CONTAINERS (NEW – SAFE)
+========================= */
+const listView = document.querySelector("main");
+const detailView = document.getElementById("detailView");
+
+/* =========================
    AGE GATE (LOCKED)
 ========================= */
 const ageGate = document.getElementById("ageGate");
@@ -148,6 +154,10 @@ function applyFilters(reset = false) {
 
   viewMode = "list";
 
+  detailView.style.display = "none";
+  detailView.innerHTML = "";
+  listView.style.display = "block";
+
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
   setMetaDescription(
     "Track new and upcoming game releases across PC, console, and mobile. Updated daily."
@@ -239,7 +249,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (SCREENSHOT GALLERY ADDED)
+   DETAILS PAGE (ROOT-LEVEL)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -247,11 +257,9 @@ function renderDetails(game, replace = false) {
   const slug = slugify(game.name);
   const path = `/game/${game.id}${slug ? "-" + slug : ""}`;
 
-  if (replace) {
-    history.replaceState({}, "", path);
-  } else {
-    history.pushState({}, "", path);
-  }
+  replace
+    ? history.replaceState({}, "", path)
+    : history.pushState({}, "", path);
 
   setMetaTitle(`${game.name} — Gamerly`);
 
@@ -272,22 +280,17 @@ function renderDetails(game, replace = false) {
     Array.isArray(game.screenshots) && game.screenshots.length
       ? `
         <div class="details-gallery">
-          ${game.screenshots
-            .map(
-              url => `
-                <img
-                  src="${url}"
-                  alt="${escapeHtml(game.name)} screenshot"
-                  loading="lazy"
-                />
-              `
-            )
-            .join("")}
+          ${game.screenshots.map(url => `
+            <img src="${url}" alt="${escapeHtml(game.name)} screenshot" loading="lazy" />
+          `).join("")}
         </div>
       `
       : "";
 
-  grid.innerHTML = `
+  listView.style.display = "none";
+  detailView.style.display = "block";
+
+  detailView.innerHTML = `
     <section class="details">
       <div class="details-cover">
         <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover">
@@ -297,11 +300,7 @@ function renderDetails(game, replace = false) {
         <h1 class="details-title">${escapeHtml(game.name)}</h1>
         <div class="details-sub">${escapeHtml(release)}</div>
 
-        ${
-          summaryText
-            ? `<p class="details-summary">${summaryText}</p>`
-            : ""
-        }
+        ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
 
         ${screenshotsHtml}
 
@@ -396,10 +395,12 @@ showMoreBtn.onclick = () => {
 
 window.addEventListener("popstate", () => {
   const id = parseDetailsIdFromPath(window.location.pathname);
+
   if (id) {
     const g = allGames.find(x => String(x.id) === String(id));
     if (g) return renderDetails(g, true);
   }
+
   applyFilters(true);
 });
 

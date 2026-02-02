@@ -37,7 +37,7 @@ const PAGE_SIZE = 24;
 let isDetailsView = false;
 
 /* =========================
-   SEO TITLE (SAFE)
+   SEO TITLE (LOCKED)
 ========================= */
 function setTitle(title) {
   document.title = title;
@@ -87,8 +87,7 @@ function applyRoute(path) {
   const clean = path.replace(/^\/+|\/+$/g, "");
 
   if (clean.startsWith("game/")) {
-    const id = clean.split("/")[1];
-    renderDetailsPage(id);
+    renderDetailsPage(clean.split("/")[1]);
     return;
   }
 
@@ -157,7 +156,7 @@ async function loadGames() {
 }
 
 /* =========================
-   DETAILS PAGE
+   DETAILS PAGE (UNCHANGED)
 ========================= */
 function renderDetailsPage(id) {
   const game = allGames.find(g => String(g.id) === String(id));
@@ -172,11 +171,10 @@ function renderDetailsPage(id) {
     p.toLowerCase().includes("windows")
   );
 
-  const STEAM_AFFILIATE_TAG = "gamerly-20";
   const steamUrl = isPC
     ? `https://store.steampowered.com/search/?term=${encodeURIComponent(
         game.name
-      )}&snr=${STEAM_AFFILIATE_TAG}`
+      )}`
     : null;
 
   grid.innerHTML = `
@@ -260,7 +258,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   GRID RENDER
+   GRID RENDER (FIXED)
 ========================= */
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -276,13 +274,20 @@ function render(list) {
     };
 
     card.innerHTML = `
+      <div class="platform-overlay">${renderPlatforms(game)}</div>
       ${renderRating(game)}
       <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
+        <div class="badge-row">
+          ${game.category ? `<span class="badge-category">${game.category}</span>` : ""}
+        </div>
         <div class="card-title">${game.name}</div>
-        <div class="card-meta">${new Date(game.releaseDate).toLocaleDateString()}</div>
+        <div class="card-meta">
+          ${new Date(game.releaseDate).toLocaleDateString()}
+        </div>
       </div>
     `;
+
     grid.appendChild(card);
   });
 
@@ -290,14 +295,32 @@ function render(list) {
     visibleCount < list.length ? "block" : "none";
 }
 
+/* =========================
+   HELPERS
+========================= */
 function renderRating(game) {
-  if (typeof game.aggregated_rating !== "number" || game.aggregated_rating < 65)
-    return "";
+  if (
+    typeof game.aggregated_rating !== "number" ||
+    game.aggregated_rating < 65
+  ) return "";
   return `<div class="rating-badge">${Math.round(game.aggregated_rating)}</div>`;
 }
 
+function renderPlatforms(game) {
+  if (!Array.isArray(game.platforms)) return "";
+  const p = game.platforms.join(" ").toLowerCase();
+  const chips = [];
+  if (p.includes("windows")) chips.push(`<span class="platform-chip pc">PC</span>`);
+  if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
+  if (p.includes("playstation")) chips.push(`<span class="platform-chip">PS</span>`);
+  if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
+  if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
+  if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
+  return chips.join("");
+}
+
 /* =========================
-   EVENTS (RESTORED)
+   EVENTS
 ========================= */
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {

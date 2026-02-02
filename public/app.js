@@ -33,7 +33,6 @@ let activePlatform = "all";
 
 let visibleCount = 0;
 const PAGE_SIZE = 24;
-
 let viewMode = "list";
 
 /* =========================
@@ -73,16 +72,10 @@ function escapeHtml(str = "") {
     .replaceAll("'", "&#039;");
 }
 
-/* =========================
-   🔧 RESTORED: ACTIVE BUTTON HANDLER (FIX)
-========================= */
 function setActive(button) {
   const group = button.parentElement;
   if (!group) return;
-
-  group.querySelectorAll("button").forEach(b =>
-    b.classList.remove("active")
-  );
+  group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
   button.classList.add("active");
 }
 
@@ -194,7 +187,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   LIST RENDER (INLINE CTA)
+   LIST RENDER (INLINE CTA — FIXED)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -226,7 +219,8 @@ function renderList(list) {
           <span>${releaseDate}</span>
           ${
             store
-              ? `<a href="${store.url}"
+              ? `<a class="card-cta"
+                   href="${store.url}"
                    target="_blank"
                    rel="nofollow sponsored noopener"
                    onclick="event.stopPropagation()">
@@ -246,7 +240,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (LOCKED)
+   DETAILS PAGE (CTA RESTORED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -269,6 +263,8 @@ function renderDetails(game, replace = false) {
     ? new Date(game.releaseDate).toDateString()
     : "Release date unknown";
 
+  const store = getPrimaryStore(game);
+
   grid.innerHTML = `
     <section class="details">
       <div class="details-cover">
@@ -279,6 +275,16 @@ function renderDetails(game, replace = false) {
         <div class="details-sub">${escapeHtml(release)}</div>
         ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
         <div class="details-platforms">${renderPlatforms(game)}</div>
+        ${
+          store
+            ? `<a class="cta-primary"
+                 href="${store.url}"
+                 target="_blank"
+                 rel="nofollow sponsored noopener">
+                 ${store.label}
+               </a>`
+            : ""
+        }
         <button class="details-back" id="backBtn">← Back to list</button>
       </div>
     </section>

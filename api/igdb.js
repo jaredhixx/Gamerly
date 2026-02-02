@@ -1,6 +1,6 @@
 // api/igdb.js
 // Gamerly — LOCKED backend (frontend handles Out Now / Coming Soon)
-// Stable + ratings + summaries added safely
+// Stable + ratings + summaries + screenshots added safely (ROI-first)
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -44,6 +44,12 @@ function normalizeCover(url) {
   return `https:${url}`.replace("t_thumb", "t_cover_big");
 }
 
+function normalizeScreenshot(url) {
+  if (!url) return null;
+  // Use large but safe size for gallery
+  return `https:${url}`.replace("t_thumb", "t_screenshot_big");
+}
+
 function normalizeGame(g) {
   return {
     id: g.id,
@@ -59,8 +65,16 @@ function normalizeGame(g) {
       : [],
     category: g.genres?.[0]?.name ?? null,
 
-    // ✅ NEW — safe text field for SEO + conversion
+    // ✅ Text for SEO + trust
     summary: g.summary || g.storyline || null,
+
+    // ✅ NEW — screenshots for gallery (max 5, safe)
+    screenshots: Array.isArray(g.screenshots)
+      ? g.screenshots
+          .map(s => normalizeScreenshot(s.url))
+          .filter(Boolean)
+          .slice(0, 5)
+      : [],
   };
 }
 
@@ -96,6 +110,7 @@ function buildRecentQuery({ pastDays = 120, limit = 250 }) {
       aggregated_rating,
       aggregated_rating_count,
       cover.url,
+      screenshots.url,
       platforms.name,
       genres.name;
     where
@@ -119,6 +134,7 @@ function buildUpcomingQuery({ futureDays = 540, limit = 250 }) {
       aggregated_rating,
       aggregated_rating_count,
       cover.url,
+      screenshots.url,
       platforms.name,
       genres.name;
     where
@@ -145,6 +161,7 @@ export default async function handler(req, res) {
       .map(normalizeGame)
       .filter(g => g.releaseDate && g.coverUrl);
 
+    // De-duplicate by ID
     const byId = new Map();
     for (const g of merged) {
       byId.set(g.id, g);

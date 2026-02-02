@@ -1,6 +1,6 @@
 // api/igdb.js
 // Gamerly — LOCKED backend (frontend handles Out Now / Coming Soon)
-// Stable + ratings added safely
+// Stable + ratings + summaries added safely
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -58,6 +58,9 @@ function normalizeGame(g) {
       ? g.platforms.map(p => p.name).filter(Boolean)
       : [],
     category: g.genres?.[0]?.name ?? null,
+
+    // ✅ NEW — safe text field for SEO + conversion
+    summary: g.summary || g.storyline || null,
   };
 }
 
@@ -87,6 +90,8 @@ function buildRecentQuery({ pastDays = 120, limit = 250 }) {
   return `
     fields
       name,
+      summary,
+      storyline,
       first_release_date,
       aggregated_rating,
       aggregated_rating_count,
@@ -108,6 +113,8 @@ function buildUpcomingQuery({ futureDays = 540, limit = 250 }) {
   return `
     fields
       name,
+      summary,
+      storyline,
       first_release_date,
       aggregated_rating,
       aggregated_rating_count,
@@ -129,7 +136,6 @@ export default async function handler(req, res) {
   try {
     const token = await getTwitchToken();
 
-    // Fetch recent + upcoming so frontend always has both
     const [recentRaw, upcomingRaw] = await Promise.all([
       postIGDB(buildRecentQuery({ pastDays: 120, limit: 250 }), token),
       postIGDB(buildUpcomingQuery({ futureDays: 540, limit: 250 }), token),
@@ -139,7 +145,6 @@ export default async function handler(req, res) {
       .map(normalizeGame)
       .filter(g => g.releaseDate && g.coverUrl);
 
-    // De-duplicate by ID
     const byId = new Map();
     for (const g of merged) {
       byId.set(g.id, g);

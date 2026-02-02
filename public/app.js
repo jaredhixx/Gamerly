@@ -78,14 +78,6 @@ function setActive(button) {
 }
 
 /* =========================
-   GA4 OUTBOUND TRACKING (SAFE)
-========================= */
-function trackOutboundClick(data) {
-  if (typeof gtag !== "function") return;
-  gtag("event", "outbound_click", data);
-}
-
-/* =========================
    STORE CTA LOGIC (LOCKED)
 ========================= */
 function getPrimaryStore(game) {
@@ -149,9 +141,7 @@ function applyFilters(reset = false) {
   viewMode = "list";
 
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
-  setMetaDescription(
-    "Track new and upcoming game releases across PC, console, and mobile. Updated daily."
-  );
+  setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
 
   const now = new Date();
   const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
@@ -193,7 +183,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   LIST RENDER (UNCHANGED UI)
+   LIST RENDER (INLINE GA — FINAL)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -209,7 +199,6 @@ function renderList(list) {
   slice.forEach(game => {
     const store = getPrimaryStore(game);
     const releaseDate = new Date(game.releaseDate).toLocaleDateString();
-    const slug = slugify(game.name);
 
     const card = document.createElement("div");
     card.className = "card";
@@ -230,13 +219,16 @@ function renderList(list) {
                    href="${store.url}"
                    target="_blank"
                    rel="nofollow sponsored noopener"
-                   data-platform="${store.platform}"
-                   data-store="${store.store}"
-                   data-location="list_card"
-                   data-game-id="${game.id}"
-                   data-game-slug="${slug}"
-                   data-section="${activeSection}"
-                   onclick="event.stopPropagation()">
+                   onclick="
+                     event.stopPropagation();
+                     if (typeof gtag === 'function') {
+                       gtag('event','outbound_click',{
+                         platform:'${store.platform}',
+                         store:'${store.store}',
+                         location:'list_card'
+                       });
+                     }
+                   ">
                    ${store.label}
                  </a>`
               : ""
@@ -253,7 +245,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (UNCHANGED UI)
+   DETAILS PAGE (INLINE GA — FINAL)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -294,12 +286,15 @@ function renderDetails(game, replace = false) {
                  href="${store.url}"
                  target="_blank"
                  rel="nofollow sponsored noopener"
-                 data-platform="${store.platform}"
-                 data-store="${store.store}"
-                 data-location="detail_page"
-                 data-game-id="${game.id}"
-                 data-game-slug="${slug}"
-                 data-section="${activeSection}">
+                 onclick="
+                   if (typeof gtag === 'function') {
+                     gtag('event','outbound_click',{
+                       platform:'${store.platform}',
+                       store:'${store.store}',
+                       location:'detail_page'
+                     });
+                   }
+                 ">
                  ${store.label}
                </a>`
             : ""
@@ -319,23 +314,6 @@ function renderDetails(game, replace = false) {
 function openDetails(game) {
   renderDetails(game);
 }
-
-/* =========================
-   DELEGATED CTA TRACKING (NEW, SAFE)
-========================= */
-document.addEventListener("click", e => {
-  const cta = e.target.closest('a[target="_blank"][rel*="sponsored"]');
-  if (!cta) return;
-
-  trackOutboundClick({
-    platform: cta.dataset.platform || "unknown",
-    store: cta.dataset.store || "unknown",
-    location: cta.dataset.location || "unknown",
-    game_id: cta.dataset.gameId || "",
-    game_slug: cta.dataset.gameSlug || "",
-    section: cta.dataset.section || ""
-  });
-});
 
 /* =========================
    RATINGS / PLATFORMS (LOCKED)

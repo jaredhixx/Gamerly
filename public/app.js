@@ -239,7 +239,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (SUMMARY ADDED)
+   DETAILS PAGE (SCREENSHOT GALLERY ADDED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -268,6 +268,25 @@ function renderDetails(game, replace = false) {
     ? new Date(game.releaseDate).toDateString()
     : "Release date unknown";
 
+  const screenshotsHtml =
+    Array.isArray(game.screenshots) && game.screenshots.length
+      ? `
+        <div class="details-gallery">
+          ${game.screenshots
+            .map(
+              url => `
+                <img
+                  src="${url}"
+                  alt="${escapeHtml(game.name)} screenshot"
+                  loading="lazy"
+                />
+              `
+            )
+            .join("")}
+        </div>
+      `
+      : "";
+
   grid.innerHTML = `
     <section class="details">
       <div class="details-cover">
@@ -283,6 +302,8 @@ function renderDetails(game, replace = false) {
             ? `<p class="details-summary">${summaryText}</p>`
             : ""
         }
+
+        ${screenshotsHtml}
 
         <div class="details-platforms">
           ${renderPlatforms(game)}

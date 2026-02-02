@@ -479,3 +479,31 @@ main {
     width: 240px;
   }
 }
+
+/* =========================================================
+   ✅ MOBILE DETAILS FULL-WIDTH FIX (FINAL)
+   - Fixes ALL “skinny” perception (summary + description + gallery)
+   - Mobile only
+   - Desktop untouched
+========================================================= */
+@media (max-width: 768px) {
+
+  /* Let the details card span the viewport */
+  .details {
+    max-width: 100%;
+    margin-left: -1.6rem;
+    margin-right: -1.6rem;
+    border-radius: 0;
+  }
+
+  /* Rebalance internal padding after edge-to-edge */
+  .details-info {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  /* Ensure text truly fills available width */
+  .details-summary {
+    max-width: none;
+  }
+}

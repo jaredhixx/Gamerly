@@ -15,7 +15,7 @@ body {
 }
 
 /* =========================
-   AGE GATE (MODERNIZED)
+   AGE GATE (MODERN)
 ========================= */
 .age-gate {
   position: fixed;
@@ -73,7 +73,7 @@ body {
   margin: 0 auto;
 }
 
-/* 🔵 LOGO DOT RESTORED */
+/* 🔵 BREATHING LOGO DOT */
 .logo {
   display: inline-flex;
   align-items: center;
@@ -82,7 +82,6 @@ body {
   font-weight: 800;
   letter-spacing: -0.03em;
   margin-bottom: 1.2rem;
-  position: relative;
 }
 
 .logo::before {
@@ -96,9 +95,9 @@ body {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 0.9; }
+  0% { transform: scale(1); opacity: 0.85; }
   50% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 0.85; }
 }
 
 /* =========================
@@ -173,7 +172,7 @@ main {
 }
 
 /* =========================
-   BADGE SAFE ZONE (HARD LOCK)
+   TOP SAFE ZONE
 ========================= */
 .card::before {
   content: "";
@@ -192,7 +191,7 @@ main {
 }
 
 /* =========================
-   RATING BADGE (RESERVED SPACE)
+   RATING BADGE
 ========================= */
 .rating-badge {
   position: absolute;
@@ -209,20 +208,25 @@ main {
 }
 
 /* =========================
-   PLATFORM OVERLAY (NO OVERLAP GUARANTEE)
+   PLATFORM OVERLAY (FINAL)
 ========================= */
 .platform-overlay {
   position: absolute;
   top: 8px;
   right: 8px;
-  left: 64px; /* 🔒 reserves space for rating */
+  left: 64px;               /* locked rating space */
   z-index: 3;
   display: flex;
   gap: 4px;
   justify-content: flex-end;
-  overflow: hidden;
+  flex-wrap: wrap;          /* allows 2nd row */
+  max-height: 36px;
+  overflow: visible;        /* prevents cutoff */
 }
 
+/* =========================
+   PLATFORM CHIPS
+========================= */
 .platform-chip {
   padding: 3px 7px;
   font-size: 0.6rem;
@@ -232,6 +236,19 @@ main {
   border: 1px solid rgba(255,255,255,0.18);
   color: #fff;
   white-space: nowrap;
+}
+
+/* 🎮 PLATFORM BRAND COLORS */
+.platform-chip.xbox {
+  background: rgba(16,185,129,0.15);
+  border-color: rgba(16,185,129,0.45);
+  color: #10b981;
+}
+
+.platform-chip.ps {
+  background: rgba(59,130,246,0.15);
+  border-color: rgba(59,130,246,0.45);
+  color: #3b82f6;
 }
 
 /* =========================
@@ -247,7 +264,7 @@ main {
   margin-bottom: 6px;
 }
 
-/* CATEGORY BADGE (FINAL) */
+/* CATEGORY BADGE */
 .badge-category {
   padding: 4px 9px;
   font-size: 0.6rem;

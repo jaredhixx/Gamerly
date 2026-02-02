@@ -483,3 +483,21 @@ main {
   color: #fff;
   text-decoration: none;
 }
+
+/* =========================
+   INLINE CARD CTA (LIST VIEW)
+   High-ROI, Low-Noise
+========================= */
+.card-cta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(59,130,246,0.9);
+  text-decoration: none;
+  margin-left: 0.4rem;
+  white-space: nowrap;
+}
+
+.card-cta:hover {
+  text-decoration: underline;
+  color: #3b82f6;
+}

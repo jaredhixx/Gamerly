@@ -88,41 +88,6 @@ body {
 .age-card button:active { transform: scale(0.97); }
 
 /* =========================
-   HEADER / BRAND
-========================= */
-.header {
-  padding: 2.4rem 1.6rem 0;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.65rem;
-  font-size: 2.25rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  margin-bottom: 1.2rem;
-}
-
-.logo::before {
-  content: "";
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 0 18px rgba(59,130,246,0.65);
-  animation: pulse 2.4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 0.85; }
-  50% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.85; }
-}
-
-/* =========================
    GRID
 ========================= */
 main {
@@ -138,7 +103,7 @@ main {
 }
 
 /* =========================
-   DETAILS PAGE (LOCKED BASE)
+   DETAILS PAGE (STABLE)
 ========================= */
 .details {
   max-width: 980px;
@@ -156,20 +121,14 @@ main {
   gap: 2.3rem;
 }
 
-/* ✅ DESKTOP ONLY: details spans full grid row */
-@media (min-width: 769px) {
-  #gamesGrid .details {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-}
-
-.details-info {
-  min-width: 0;
+/* Desktop behavior (unchanged) */
+#gamesGrid .details {
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 /* =========================
-   GALLERY (LOCKED, WORKING)
+   GALLERY (STABLE)
 ========================= */
 .details-gallery {
   display: flex;
@@ -195,15 +154,10 @@ main {
 }
 
 /* =========================
-   MOBILE (FIXES SKINNY ISSUE)
+   ✅ ONLY FIX — MOBILE OVERRIDE
 ========================= */
 @media (max-width: 768px) {
-  .details {
-    grid-template-columns: 1fr;
-    padding: 1.5rem;
-  }
-
-  .details-gallery img {
-    width: 200px;
+  #gamesGrid .details {
+    grid-column: auto;
   }
 }

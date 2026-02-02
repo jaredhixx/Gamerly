@@ -141,7 +141,7 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (LOCKED + COUNTS RESTORED)
+   FILTER PIPELINE (LOCKED)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
@@ -162,7 +162,6 @@ function applyFilters(reset = false) {
     g => g.releaseDate && new Date(g.releaseDate) > now
   );
 
-  // ✅ Restore section counts (Out Now / Coming Soon)
   updateSectionCounts(outNow.length, comingSoon.length);
 
   let list = activeSection === "out" ? outNow : comingSoon;
@@ -190,7 +189,7 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   SECTION COUNTS (RESTORED)
+   SECTION COUNTS (LOCKED)
 ========================= */
 function updateSectionCounts(outCount, soonCount) {
   const buttons = document.querySelectorAll(".section-segment button");
@@ -201,7 +200,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   LIST RENDER (UNCHANGED)
+   LIST RENDER (LOCKED)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -240,7 +239,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (UNCHANGED)
+   DETAILS PAGE (SUMMARY ADDED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -255,7 +254,13 @@ function renderDetails(game, replace = false) {
   }
 
   setMetaTitle(`${game.name} — Gamerly`);
+
+  const summaryText = game.summary
+    ? escapeHtml(game.summary.slice(0, 240))
+    : "";
+
   setMetaDescription(
+    summaryText ||
     `Release info for ${game.name}. Platforms, release date, and store links.`
   );
 
@@ -272,6 +277,12 @@ function renderDetails(game, replace = false) {
       <div class="details-info">
         <h1 class="details-title">${escapeHtml(game.name)}</h1>
         <div class="details-sub">${escapeHtml(release)}</div>
+
+        ${
+          summaryText
+            ? `<p class="details-summary">${summaryText}</p>`
+            : ""
+        }
 
         <div class="details-platforms">
           ${renderPlatforms(game)}
@@ -302,7 +313,7 @@ function openDetails(game) {
 }
 
 /* =========================
-   RATINGS / PLATFORMS (UNCHANGED)
+   RATINGS / PLATFORMS (LOCKED)
 ========================= */
 function renderRating(game) {
   const s = game.aggregated_rating;
@@ -328,7 +339,7 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   FILTER EVENTS (UNCHANGED)
+   FILTER EVENTS (LOCKED)
 ========================= */
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {

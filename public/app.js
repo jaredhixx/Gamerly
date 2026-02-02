@@ -77,6 +77,32 @@ function escapeHtml(str = "") {
 }
 
 /* =========================
+   SUMMARY FORMATTER (NEW — TRUST FIX)
+========================= */
+function formatSummary(summary, limit = 360) {
+  if (!summary) return "";
+
+  const clean = escapeHtml(summary.trim());
+
+  if (clean.length <= limit) {
+    return `<p class="details-summary">${clean}</p>`;
+  }
+
+  // Cut at sentence boundary
+  const truncated = clean.slice(0, limit);
+  const lastPeriod = truncated.lastIndexOf(".");
+  const safeCut =
+    lastPeriod > limit * 0.6 ? truncated.slice(0, lastPeriod + 1) : truncated;
+
+  return `
+    <p class="details-summary" data-full="${clean}">
+      ${safeCut}
+      <span class="summary-more" style="opacity:.7; cursor:pointer;"> Read more</span>
+    </p>
+  `;
+}
+
+/* =========================
    STORE LINK (ROI SAFE)
 ========================= */
 function buildStoreLink(game) {
@@ -239,7 +265,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE
+   DETAILS PAGE (TRUST PATCH)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -253,13 +279,12 @@ function renderDetails(game, replace = false) {
 
   setMetaTitle(`${game.name} — Gamerly`);
 
-  const summaryText = game.summary
-    ? escapeHtml(game.summary.slice(0, 240))
-    : "";
+  const summaryHtml = formatSummary(game.summary);
 
   setMetaDescription(
-    summaryText ||
-    `Release info for ${game.name}. Platforms, release date, and store links.`
+    game.summary
+      ? game.summary.slice(0, 160)
+      : `Release info for ${game.name}.`
   );
 
   const release = game.releaseDate
@@ -287,7 +312,7 @@ function renderDetails(game, replace = false) {
         <h1 class="details-title">${escapeHtml(game.name)}</h1>
         <div class="details-sub">${escapeHtml(release)}</div>
 
-        ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
+        ${summaryHtml}
 
         ${screenshotsHtml}
 
@@ -308,6 +333,14 @@ function renderDetails(game, replace = false) {
   `;
 
   showMoreBtn.style.display = "none";
+
+  const more = document.querySelector(".summary-more");
+  if (more) {
+    more.onclick = () => {
+      const p = more.parentElement;
+      p.innerHTML = p.dataset.full;
+    };
+  }
 
   document.getElementById("backBtn").onclick = () => {
     history.pushState({}, "", "/");

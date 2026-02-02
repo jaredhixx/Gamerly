@@ -37,9 +37,54 @@ const PAGE_SIZE = 24;
 let isDetailsView = false;
 
 /* =========================
-   ROUTING (SAFE)
+   SEO TITLE (SAFE / ADDITIVE)
+========================= */
+function setTitle(title) {
+  document.title = title;
+}
+
+function setRouteTitle(path) {
+  const clean = path.replace(/^\/+|\/+$/g, "");
+
+  if (clean === "") {
+    setTitle("Daily Game Releases & Upcoming Games | Gamerly");
+    return;
+  }
+
+  if (clean === "out-now") {
+    setTitle("Out Now: New Game Releases | Gamerly");
+    return;
+  }
+
+  if (clean === "coming-soon") {
+    setTitle("Coming Soon Games & Release Dates | Gamerly");
+    return;
+  }
+
+  const platforms = {
+    pc: "PC",
+    playstation: "PlayStation",
+    xbox: "Xbox",
+    nintendo: "Nintendo",
+    ios: "iOS",
+    android: "Android",
+  };
+
+  if (platforms[clean]) {
+    setTitle(`New & Upcoming ${platforms[clean]} Games | Gamerly`);
+    return;
+  }
+
+  // fallback
+  setTitle("Game Releases & Upcoming Games | Gamerly");
+}
+
+/* =========================
+   ROUTING (LOCKED + SEO)
 ========================= */
 function applyRoute(path) {
+  setRouteTitle(path);
+
   const clean = path.replace(/^\/+|\/+$/g, "");
 
   if (clean.startsWith("game/")) {
@@ -114,7 +159,7 @@ async function loadGames() {
 }
 
 /* =========================
-   DETAILS PAGE (MONETIZED)
+   DETAILS PAGE (SEO + MONETIZATION)
 ========================= */
 function renderDetailsPage(id) {
   const game = allGames.find(g => String(g.id) === String(id));
@@ -126,11 +171,13 @@ function renderDetailsPage(id) {
   isDetailsView = true;
   showMoreBtn.style.display = "none";
 
+  setTitle(`${game.name} – Release Date, Platforms & Rating | Gamerly`);
+
   const isPC = game.platforms.some(p =>
     p.toLowerCase().includes("windows")
   );
 
-  const STEAM_AFFILIATE_TAG = "gamerly-20"; // ← replace with your real tag
+  const STEAM_AFFILIATE_TAG = "gamerly-20";
   const steamUrl = isPC
     ? `https://store.steampowered.com/search/?term=${encodeURIComponent(
         game.name
@@ -165,26 +212,13 @@ function renderDetailsPage(id) {
 
         ${
           steamUrl
-            ? `<a
-                class="cta-primary"
-                href="${steamUrl}"
-                target="_blank"
-                rel="noopener sponsored"
-              >
+            ? `<a class="cta-primary" href="${steamUrl}" target="_blank" rel="noopener sponsored">
                 View on Steam
               </a>`
             : ""
         }
 
-        <p class="details-context">
-          View release details, supported platforms, and critic ratings for ${
-            game.name
-          }. Updated daily.
-        </p>
-
-        <button class="details-back" onclick="goBack()">
-          ← Back to all games
-        </button>
+        <button class="details-back" onclick="goBack()">← Back to all games</button>
       </div>
     </div>
   `;
@@ -265,7 +299,6 @@ function render(list) {
     };
 
     card.innerHTML = `
-      <div class="platform-overlay">${renderPlatforms(game)}</div>
       ${renderRating(game)}
       <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
@@ -297,60 +330,12 @@ function renderRating(game) {
   )}</div>`;
 }
 
-function renderPlatforms(game) {
-  const p = game.platforms.join(" ").toLowerCase();
-  const chips = [];
-  if (p.includes("windows")) chips.push(`<span class="platform-chip">PC</span>`);
-  if (p.includes("xbox")) chips.push(`<span class="platform-chip">Xbox</span>`);
-  if (p.includes("playstation"))
-    chips.push(`<span class="platform-chip">PS</span>`);
-  if (p.includes("nintendo"))
-    chips.push(`<span class="platform-chip">Switch</span>`);
-  if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
-  if (p.includes("android"))
-    chips.push(`<span class="platform-chip">Android</span>`);
-  return chips.join("");
-}
-
 /* =========================
    EVENTS (LOCKED)
 ========================= */
-document.querySelectorAll(".time-segment button").forEach(btn => {
-  btn.onclick = () => {
-    activeTime = btn.textContent.toLowerCase().replace(" ", "");
-    setActive(btn);
-    applyFilters(true);
-  };
-});
-
-document.querySelectorAll(".section-segment button").forEach(btn => {
-  btn.onclick = () => {
-    activeSection = btn.textContent.includes("Out") ? "out" : "soon";
-    history.pushState({}, "", activeSection === "out" ? "/out-now" : "/coming-soon");
-    setActive(btn);
-    applyFilters(true);
-  };
-});
-
-document.querySelectorAll(".platforms button").forEach(btn => {
-  btn.onclick = () => {
-    activePlatform = btn.dataset.platform || "all";
-    history.pushState({}, "", activePlatform === "all" ? "/" : `/${activePlatform}`);
-    setActive(btn);
-    applyFilters(true);
-  };
-});
-
 window.addEventListener("popstate", () =>
   applyRoute(window.location.pathname)
 );
-
-function setActive(button) {
-  button.parentElement
-    .querySelectorAll("button")
-    .forEach(b => b.classList.remove("active"));
-  button.classList.add("active");
-}
 
 /* =========================
    INIT

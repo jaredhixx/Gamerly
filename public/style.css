@@ -131,7 +131,7 @@ body {
   color: rgba(255,255,255,0.5);
 }
 
-/* ========================= FILTER CONTROLS (RESTORED) ========================= */
+/* ========================= FILTER CONTROLS ========================= */
 .time-segment,
 .section-segment,
 .platforms {
@@ -175,7 +175,7 @@ main {
   gap: 1.25rem;
 }
 
-/* ========================= CARD (CLICKABLE + BADGE SAFE ZONE RESTORED) ========================= */
+/* ========================= CARD ========================= */
 .card {
   position: relative;
   background: #0b0f1a;
@@ -218,92 +218,6 @@ main {
   pointer-events: none;
 }
 
-/* ========================= RATING BADGE (RESTORED) ========================= */
-.rating-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 6;
-  background: rgba(16,185,129,0.95);
-  color: #021a12;
-  font-weight: 800;
-  font-size: 0.7rem;
-  padding: 5px 7px;
-  border-radius: 8px;
-}
-
-/* ========================= PLATFORM OVERLAY (NO OVERLAP) ========================= */
-.platform-overlay {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  left: 64px;
-  z-index: 6;
-  display: flex;
-  gap: 4px;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  pointer-events: none;
-}
-
-.platform-overlay .platform-chip { pointer-events: none; }
-
-/* ========================= PLATFORM CHIPS ========================= */
-.platform-chip {
-  padding: 3px 7px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  border-radius: 999px;
-  background: rgba(0,0,0,0.65);
-  border: 1px solid rgba(255,255,255,0.18);
-  color: #fff;
-  white-space: nowrap;
-}
-
-.platform-chip.xbox {
-  background: rgba(16,185,129,0.15);
-  border-color: rgba(16,185,129,0.45);
-  color: #10b981;
-}
-
-.platform-chip.ps {
-  background: rgba(59,130,246,0.15);
-  border-color: rgba(59,130,246,0.45);
-  color: #3b82f6;
-}
-
-/* ========================= CARD BODY ========================= */
-.card-body { padding: 0.9rem 1rem 1.05rem; }
-
-.badge-category {
-  display: inline-block;
-  padding: 4px 9px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.22);
-  margin-bottom: 0.45rem;
-}
-
-.card-title { font-size: 0.92rem; font-weight: 600; }
-.card-meta { font-size: 0.75rem; opacity: 0.7; margin-top: 0.2rem; }
-
-/* ========================= SHOW MORE (RESTORED MODERN) ========================= */
-#showMore {
-  display: block;
-  margin: 2.2rem auto 0;
-  padding: 0.9rem 2.8rem;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #fff;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 10px 30px rgba(59,130,246,0.3);
-}
-
 /* ========================= DETAILS PAGE ========================= */
 .details {
   max-width: 980px;
@@ -334,113 +248,22 @@ main {
   gap: 0.75rem;
 }
 
-.details-title {
-  font-size: 2rem;
-  font-weight: 850;
-  line-height: 1.15;
-}
-
-.details-sub { font-size: 0.92rem; opacity: 0.75; }
-
 .details-summary {
-  font-size: 0.95rem;
-  color: rgba(255,255,255,0.82);
-  line-height: 1.6;
   max-width: 680px;
 }
 
-.details-platforms {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 0.2rem;
-}
-
-.cta-primary {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  padding: 0.95rem 2.3rem;
-  border-radius: 999px;
-  font-weight: 800;
-  text-decoration: none;
-  width: fit-content;
-  margin-top: 0.6rem;
-  box-shadow: 0 12px 34px rgba(59,130,246,0.28);
-}
-
-.details-back {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.65);
-  cursor: pointer;
-  width: fit-content;
-  margin-top: 0.4rem;
-}
-
-/* ========================= MOBILE FIX (NO RIGHT OVERFLOW) ========================= */
+/* ========================= MOBILE FIX — REAL ROOT CAUSE ========================= */
 @media (max-width: 768px) {
-  .details { grid-template-columns: 1fr; padding: 1.5rem; }
-  .details-cover { max-width: 220px; margin: 0 auto; }
-  .details-title { font-size: 1.6rem; text-align: center; }
-  .details-sub { text-align: center; margin: 0 auto; }
-  .details-platforms { justify-content: center; }
-  .cta-primary { margin: 0.8rem auto 0; }
-  .details-back { margin: 0.5rem auto 0; }
 
-  .details-summary {
-    text-align: left;
-    margin: 0;
-  }
-}
-
-/* =========================================================
-   ✅ GALLERY ADD-ON (ONLY NEW CODE)
-========================================================= */
-.details { grid-template-columns: 300px minmax(0, 1fr); }
-.details-info { min-width: 0; }
-
-.details-gallery {
-  display: flex;
-  gap: 10px;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 8px 2px 12px;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  border-radius: 16px;
-}
-
-.details-gallery img {
-  flex: 0 0 auto;
-  width: 240px;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(0,0,0,0.35);
-  scroll-snap-align: start;
-}
-
-@media (max-width: 768px) {
-  .details-gallery img { width: 180px; }
-}
-
-/* =========================================================
-   ✅ MOBILE DETAIL SUMMARY WIDTH FIX (ONLY CHANGE)
-   - Neutralizes desktop max-width on mobile
-========================================================= */
-@media (max-width: 768px) {
-  .details-summary {
+  /* 🔑 FIX: main was still desktop-centered */
+  main {
     max-width: 100%;
+    margin: 0;
+    padding-left: 0;
+    padding-right: 0;
   }
-}
 
-/* =========================================================
-   ✅ MOBILE DETAILS FULL-WIDTH PAGE (APP-STYLE)
-   Approved redesign — mobile only
-========================================================= */
-@media (max-width: 768px) {
+  /* Make details a true mobile page */
   .details {
     max-width: 100%;
     margin: 0;
@@ -448,6 +271,11 @@ main {
     border-radius: 0;
     border-left: none;
     border-right: none;
+    grid-template-columns: 1fr;
+  }
+
+  .details-summary {
+    max-width: 100%;
   }
 
   .details-gallery {
@@ -455,9 +283,5 @@ main {
     margin-right: -1.25rem;
     padding-left: 1.25rem;
     padding-right: 1.25rem;
-  }
-
-  .details-gallery img {
-    width: 260px;
   }
 }

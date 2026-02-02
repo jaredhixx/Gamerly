@@ -324,16 +324,16 @@ function openDetails(game) {
    DELEGATED CTA TRACKING (NEW, SAFE)
 ========================= */
 document.addEventListener("click", e => {
-  const cta = e.target.closest(".card-cta, .cta-primary");
+  const cta = e.target.closest('a[target="_blank"][rel*="sponsored"]');
   if (!cta) return;
 
   trackOutboundClick({
-    platform: cta.dataset.platform,
-    store: cta.dataset.store,
-    location: cta.dataset.location,
-    game_id: cta.dataset.gameId,
-    game_slug: cta.dataset.gameSlug,
-    section: cta.dataset.section
+    platform: cta.dataset.platform || "unknown",
+    store: cta.dataset.store || "unknown",
+    location: cta.dataset.location || "unknown",
+    game_id: cta.dataset.gameId || "",
+    game_slug: cta.dataset.gameSlug || "",
+    section: cta.dataset.section || ""
   });
 });
 

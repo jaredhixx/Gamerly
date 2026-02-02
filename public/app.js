@@ -80,6 +80,21 @@ function setActive(button) {
 }
 
 /* =========================
+   GA4 OUTBOUND TRACKING (NEW — SAFE)
+========================= */
+function trackOutboundClick({ platform, store, location, gameId, gameSlug, section }) {
+  if (typeof gtag !== "function") return;
+  gtag("event", "outbound_click", {
+    platform,
+    store,
+    location,
+    game_id: gameId,
+    game_slug: gameSlug,
+    section
+  });
+}
+
+/* =========================
    STORE CTA LOGIC (LOCKED)
 ========================= */
 function getPrimaryStore(game) {
@@ -88,19 +103,19 @@ function getPrimaryStore(game) {
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc"))
-    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${name}` };
+    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${name}`, platform: "pc", store: "steam" };
   if (p.includes("playstation"))
-    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${name}` };
+    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${name}`, platform: "playstation", store: "playstation" };
   if (p.includes("xbox"))
-    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${name}` };
+    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${name}`, platform: "xbox", store: "xbox" };
   if (p.includes("nintendo"))
-    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${name}` };
+    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${name}`, platform: "nintendo", store: "nintendo" };
   if (p.includes("ios"))
-    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${name}` };
+    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${name}`, platform: "ios", store: "apple" };
   if (p.includes("android"))
-    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${name}&c=apps` };
+    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${name}&c=apps`, platform: "android", store: "google_play" };
 
-  return { label: "View on Store →", url: `https://www.google.com/search?q=${name}+game` };
+  return { label: "View on Store →", url: `https://www.google.com/search?q=${name}+game`, platform: "unknown", store: "generic" };
 }
 
 /* =========================
@@ -187,7 +202,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   LIST RENDER (INLINE CTA — FIXED)
+   LIST RENDER (INLINE CTA — TRACKED)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -203,6 +218,7 @@ function renderList(list) {
   slice.forEach(game => {
     const store = getPrimaryStore(game);
     const releaseDate = new Date(game.releaseDate).toLocaleDateString();
+    const slug = slugify(game.name);
 
     const card = document.createElement("div");
     card.className = "card";
@@ -223,7 +239,14 @@ function renderList(list) {
                    href="${store.url}"
                    target="_blank"
                    rel="nofollow sponsored noopener"
-                   onclick="event.stopPropagation()">
+                   onclick="event.stopPropagation(); trackOutboundClick({
+                     platform: '${store.platform}',
+                     store: '${store.store}',
+                     location: 'list_card',
+                     gameId: '${game.id}',
+                     gameSlug: '${slug}',
+                     section: '${activeSection}'
+                   })">
                    ${store.label}
                  </a>`
               : ""
@@ -240,7 +263,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (CTA RESTORED)
+   DETAILS PAGE (CTA TRACKED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -280,7 +303,15 @@ function renderDetails(game, replace = false) {
             ? `<a class="cta-primary"
                  href="${store.url}"
                  target="_blank"
-                 rel="nofollow sponsored noopener">
+                 rel="nofollow sponsored noopener"
+                 onclick="trackOutboundClick({
+                   platform: '${store.platform}',
+                   store: '${store.store}',
+                   location: 'detail_page',
+                   gameId: '${game.id}',
+                   gameSlug: '${slug}',
+                   section: '${activeSection}'
+                 })">
                  ${store.label}
                </a>`
             : ""

@@ -15,7 +15,7 @@ body {
 }
 
 /* =========================
-   AGE GATE (LOCKED)
+   AGE GATE (MODERN)
 ========================= */
 .age-gate {
   position: fixed;
@@ -42,14 +42,26 @@ body {
   box-shadow: 0 40px 100px rgba(0,0,0,0.65);
 }
 
+.age-card h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.age-card p {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  margin-bottom: 1.8rem;
+}
+
 .age-card button {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   border: none;
   color: #fff;
   padding: 0.8rem 2.2rem;
   border-radius: 999px;
-  font-weight: 700;
   cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 /* =========================
@@ -61,6 +73,7 @@ body {
   margin: 0 auto;
 }
 
+/* 🔵 BREATHING LOGO DOT */
 .logo {
   display: inline-flex;
   align-items: center;
@@ -88,7 +101,34 @@ body {
 }
 
 /* =========================
-   FILTER CONTROLS (LOCKED)
+   HERO
+========================= */
+.hero {
+  max-width: 780px;
+  margin-bottom: 1.8rem;
+}
+
+.hero-title {
+  font-size: clamp(1.9rem, 3vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.78);
+  max-width: 560px;
+}
+
+.hero-meta {
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+}
+
+/* =========================
+   FILTER CONTROLS
 ========================= */
 .time-segment,
 .section-segment,
@@ -109,6 +149,7 @@ body {
   border-radius: 999px;
   font-size: 0.85rem;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .time-segment button.active,
@@ -120,7 +161,7 @@ body {
 }
 
 /* =========================
-   GRID (LOCKED)
+   GRID
 ========================= */
 main {
   padding: 1.8rem 1.6rem 3rem;
@@ -135,7 +176,7 @@ main {
 }
 
 /* =========================
-   CARD (LOCKED)
+   CARD
 ========================= */
 .card {
   position: relative;
@@ -151,97 +192,73 @@ main {
 }
 
 /* =========================
-   DETAILS PAGE (VISUAL FIX)
+   TOP SAFE ZONE (LOCKED)
 ========================= */
-.details {
-  max-width: 960px;
-  margin: 3rem auto 0;
-  padding: 2.5rem;
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
   background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.04),
-    rgba(255,255,255,0.01)
+    to bottom,
+    rgba(0,0,0,0.55),
+    rgba(0,0,0,0)
   );
-  border-radius: 28px;
-  border: 1px solid rgba(255,255,255,0.08);
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 2.5rem;
-}
-
-.details-cover img {
-  width: 100%;
-  border-radius: 22px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-}
-
-.details-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.details-title {
-  font-size: 2.1rem;
-  font-weight: 800;
-  margin-bottom: 0.6rem;
-  letter-spacing: -0.02em;
-}
-
-.details-sub {
-  font-size: 0.9rem;
-  opacity: 0.75;
-  margin-bottom: 1.2rem;
-}
-
-/* Platforms on details */
-.details-platforms {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 1.8rem;
-}
-
-/* CTA */
-.cta-primary {
-  display: inline-block;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  padding: 0.9rem 2.2rem;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 0.95rem;
-  text-decoration: none;
-  margin-bottom: 1.4rem;
-  align-self: flex-start;
-}
-
-.cta-primary:hover {
-  transform: translateY(-1px);
-}
-
-/* Back */
-.details-back {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.65);
-  cursor: pointer;
-  font-size: 0.85rem;
-  padding: 0;
-  align-self: flex-start;
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* =========================
-   PLATFORM CHIPS (LOCKED)
+   RATING BADGE (LOCKED)
+========================= */
+.rating-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+  background: rgba(16,185,129,0.95);
+  color: #021a12;
+  font-weight: 800;
+  font-size: 0.7rem;
+  padding: 5px 7px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+/* =========================
+   PLATFORM OVERLAY (LOCKED)
+   - prevents overlap with rating
+   - allows wrapping without cutoff
+========================= */
+.platform-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  left: 64px;              /* locked rating space */
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  max-height: 36px;
+  overflow: visible;
+}
+
+/* =========================
+   PLATFORM CHIPS (LOCKED + BRAND COLORS)
 ========================= */
 .platform-chip {
-  padding: 4px 9px;
+  padding: 3px 7px;
   font-size: 0.6rem;
   font-weight: 700;
   border-radius: 999px;
   background: rgba(0,0,0,0.65);
   border: 1px solid rgba(255,255,255,0.18);
   color: #fff;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .platform-chip.xbox {
@@ -257,7 +274,46 @@ main {
 }
 
 /* =========================
-   SHOW MORE (LOCKED)
+   CARD BODY
+========================= */
+.card-body {
+  padding: 0.9rem 1rem 1.05rem;
+}
+
+.badge-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+/* CATEGORY BADGE (LOCKED)
+   - you want pill, not raw text
+*/
+.badge-category {
+  padding: 4px 9px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #fff;
+  white-space: nowrap;
+}
+
+.card-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.card-meta {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* =========================
+   SHOW MORE
 ========================= */
 .show-more {
   margin: 3rem auto 0;
@@ -270,16 +326,102 @@ main {
   cursor: pointer;
 }
 
-/* =========================
-   RESPONSIVE DETAILS
-========================= */
+/* =========================================================
+   DETAILS PAGE (ADDITIVE ONLY — DOES NOT TOUCH GRID/CARDS)
+   Goal:
+   - clearer hierarchy
+   - better “conversion page” feel
+   - safer (scoped only to .details*)
+========================================================= */
+.details {
+  max-width: 980px;
+  margin: 2.6rem auto 0;
+  padding: 2.2rem;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.05),
+    rgba(255,255,255,0.02)
+  );
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2.3rem;
+  align-items: center;
+}
+
+.details-cover img {
+  width: 100%;
+  border-radius: 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.65);
+}
+
+.details-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.details-title {
+  font-size: 2rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.details-sub {
+  font-size: 0.92rem;
+  opacity: 0.75;
+}
+
+.details-platforms {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+/* CTA tuned for clicks (income surface) */
+.cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  padding: 0.95rem 2.3rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-decoration: none;
+  width: fit-content;
+  box-shadow: 0 18px 40px rgba(37,99,235,0.24);
+  transform: translateY(0);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.cta-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 48px rgba(37,99,235,0.30);
+}
+
+.details-back {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  width: fit-content;
+}
+
+/* Details mobile */
 @media (max-width: 760px) {
   .details {
     grid-template-columns: 1fr;
-    padding: 1.8rem;
+    padding: 1.6rem;
   }
-
   .details-title {
-    font-size: 1.6rem;
+    font-size: 1.55rem;
   }
 }

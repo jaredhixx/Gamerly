@@ -20,7 +20,7 @@ body {
 }
 
 /* =========================
-   AGE GATE (FINAL, LIGHTER)
+   AGE GATE (UNCHANGED)
 ========================= */
 .age-gate {
   position: fixed;
@@ -48,37 +48,10 @@ body {
   max-width: 420px;
   text-align: center;
   border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 40px 120px rgba(0,0,0,0.6);
-}
-
-.age-card h2 {
-  font-size: 1.45rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.6rem;
-}
-
-.age-card p {
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: rgba(255,255,255,0.75);
-  margin-bottom: 1.9rem;
-}
-
-.age-card button {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border: none;
-  color: #fff;
-  padding: 0.85rem 2.4rem;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 800;
-  box-shadow: 0 10px 30px rgba(59,130,246,0.35);
 }
 
 /* =========================
-   HEADER / BRAND (LOGO FIXED)
+   HEADER / BRAND
 ========================= */
 .header {
   padding: 2.4rem 1.6rem 0;
@@ -95,7 +68,6 @@ body {
   letter-spacing: -0.03em;
 }
 
-/* 🔵 BREATHING BRAND DOT (RESTORED) */
 .logo::before {
   content: "";
   width: 14px;
@@ -159,13 +131,38 @@ main {
 }
 
 /* =========================
-   CARD
+   CARD (CLICKABILITY FIX)
 ========================= */
 .card {
   position: relative;
   background: #0b0f1a;
   border-radius: 20px;
   overflow: hidden;
+  cursor: pointer;
+
+  /* 🔑 affordance */
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+  box-shadow:
+    0 6px 20px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Desktop hover */
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 14px 36px rgba(0,0,0,0.45),
+      0 0 0 1px rgba(59,130,246,0.35);
+  }
+}
+
+/* Mobile tap feedback */
+.card:active {
+  transform: scale(0.985);
 }
 
 .card img {
@@ -190,7 +187,7 @@ main {
 }
 
 /* =========================
-   PLATFORM + CATEGORY BADGES
+   PLATFORM OVERLAY
 ========================= */
 .platform-overlay {
   position: absolute;
@@ -226,6 +223,9 @@ main {
   color: #3b82f6;
 }
 
+/* =========================
+   CATEGORY BADGE
+========================= */
 .badge-category {
   padding: 4px 9px;
   font-size: 0.6rem;
@@ -236,7 +236,7 @@ main {
 }
 
 /* =========================
-   DETAILS PAGE (CONVERSION)
+   DETAILS PAGE (UNCHANGED)
 ========================= */
 .details {
   max-width: 980px;
@@ -305,7 +305,7 @@ main {
 }
 
 /* =========================
-   SHOW MORE (HIGH-CTR)
+   SHOW MORE (UNCHANGED)
 ========================= */
 #showMore {
   display: block;

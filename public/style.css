@@ -20,7 +20,7 @@ body {
 }
 
 /* =========================
-   AGE GATE (LOCKED PERFECT — DO NOT TOUCH)
+   AGE GATE (LOCKED — DO NOT TOUCH)
 ========================= */
 .age-gate {
   position: fixed;
@@ -30,12 +30,11 @@ body {
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(14px);
-  background:
-    radial-gradient(
-      900px 480px at top,
-      rgba(59,130,246,0.20),
-      rgba(2,6,23,0.88)
-    );
+  background: radial-gradient(
+    900px 480px at top,
+    rgba(59,130,246,0.20),
+    rgba(2,6,23,0.88)
+  );
 }
 
 .age-card {
@@ -74,25 +73,138 @@ body {
   border-radius: 999px;
   font-size: 0.95rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #fff;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow:
+    0 10px 30px rgba(59,130,246,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.25);
 }
 
 /* =========================
-   HEADER / HERO / GRID / CARDS
-   (UNCHANGED — OMITTED FOR BREVITY)
+   HEADER / BRAND
 ========================= */
-/* ⚠️ Everything above this line is identical to your last stable version */
+.header {
+  padding: 2.4rem 1.6rem 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+}
+
+.logo::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 0 18px rgba(59,130,246,0.65);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.85; }
+}
 
 /* =========================
-   DETAILS PAGE (UNCHANGED)
+   HERO
+========================= */
+.hero {
+  max-width: 780px;
+  margin-bottom: 1.8rem;
+}
+
+.hero-title {
+  font-size: clamp(1.9rem, 3vw, 2.35rem);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.78);
+}
+
+/* =========================
+   FILTER CONTROLS
+========================= */
+.time-segment,
+.section-segment,
+.platforms {
+  display: flex;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.time-segment button,
+.section-segment button,
+.platforms button {
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.75);
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.time-segment button.active,
+.section-segment button.active,
+.platforms button.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+}
+
+/* =========================
+   GRID
+========================= */
+main {
+  padding: 1.8rem 1.6rem 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#gamesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 1.25rem;
+}
+
+/* =========================
+   CARD
+========================= */
+.card {
+  position: relative;
+  background: #0b0f1a;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+
+.card img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+/* =========================
+   DETAILS PAGE
 ========================= */
 .details {
   max-width: 980px;
   margin: 2.6rem auto 0;
   padding: 2.2rem;
   border-radius: 28px;
-  border: 1px solid rgba(255,255,255,0.10);
   background: linear-gradient(
     180deg,
     rgba(255,255,255,0.05),
@@ -103,31 +215,46 @@ body {
   gap: 2.3rem;
 }
 
+.details-cover img {
+  width: 100%;
+  border-radius: 22px;
+}
+
 .details-info {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  min-width: 0; /* 🔑 REQUIRED for gallery containment */
+  min-width: 0;
+}
+
+.details-title {
+  font-size: 2rem;
+  font-weight: 850;
+}
+
+.details-summary {
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 /* =========================
-   ✅ DETAILS GALLERY (FINAL, LOCKED)
+   ✅ DETAILS SCREENSHOT GALLERY (FINAL)
 ========================= */
-.details-gallery {
+.details .details-info .details-gallery {
   display: flex;
   gap: 12px;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 10px 2px 14px;
+  padding: 10px 0 14px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
 }
 
-.details-gallery img {
+.details .details-info .details-gallery img {
   flex: 0 0 auto;
   width: 240px;
-  max-width: 100%;
+  max-width: 80vw;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: 14px;
@@ -136,16 +263,13 @@ body {
   scroll-snap-align: start;
 }
 
-/* =========================
-   MOBILE DETAILS FIX
-========================= */
 @media (max-width: 768px) {
   .details {
     grid-template-columns: 1fr;
     padding: 1.5rem;
   }
 
-  .details-gallery img {
+  .details .details-info .details-gallery img {
     width: 180px;
   }
 }

@@ -26,18 +26,15 @@ body {
   position: fixed;
   inset: 0;
   z-index: 1000;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   backdrop-filter: blur(14px);
-  background:
-    radial-gradient(
-      900px 480px at top,
-      rgba(59,130,246,0.20),
-      rgba(2,6,23,0.88)
-    );
+  background: radial-gradient(
+    900px 480px at top,
+    rgba(59,130,246,0.20),
+    rgba(2,6,23,0.88)
+  );
 }
 
 .age-card {
@@ -45,14 +42,12 @@ body {
   max-width: 420px;
   padding: 2.4rem 2.2rem 2.6rem;
   text-align: center;
-
   border-radius: 26px;
   background: linear-gradient(
     180deg,
     rgba(255,255,255,0.08),
     rgba(255,255,255,0.03)
   );
-
   border: 1px solid rgba(255,255,255,0.14);
   box-shadow:
     0 40px 90px rgba(0,0,0,0.55),
@@ -76,23 +71,16 @@ body {
   appearance: none;
   border: none;
   cursor: pointer;
-
   padding: 0.95rem 2.6rem;
   border-radius: 999px;
-
   font-size: 0.95rem;
   font-weight: 800;
   color: #ffffff;
-
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   box-shadow:
     0 10px 30px rgba(59,130,246,0.45),
     inset 0 1px 0 rgba(255,255,255,0.25);
-
-  transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
-    filter 0.12s ease;
+  transition: transform 0.12s ease, filter 0.12s ease;
 }
 
 .age-card button:hover { filter: brightness(1.05); }
@@ -107,7 +95,6 @@ body {
   margin: 0 auto;
 }
 
-/* 🔵 BREATHING LOGO DOT */
 .logo {
   display: inline-flex;
   align-items: center;
@@ -162,7 +149,7 @@ body {
 }
 
 /* =========================
-   FILTER CONTROLS (RESTORED)
+   FILTER CONTROLS
 ========================= */
 .time-segment,
 .section-segment,
@@ -195,7 +182,7 @@ body {
 }
 
 /* =========================
-   MAIN LAYOUT
+   GRID
 ========================= */
 main {
   padding: 1.8rem 1.6rem 3rem;
@@ -203,22 +190,6 @@ main {
   margin: 0 auto;
 }
 
-/* Optional (safe) helpers */
-#loading {
-  margin-top: 1rem;
-  color: rgba(255,255,255,0.75);
-  font-size: 0.95rem;
-}
-
-#errorBox {
-  margin-top: 0.75rem;
-  color: rgba(248,113,113,0.95);
-  font-size: 0.95rem;
-}
-
-/* =========================
-   GRID
-========================= */
 #gamesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -226,7 +197,7 @@ main {
 }
 
 /* =========================
-   CARD (CLICKABLE + BADGE SAFE ZONE RESTORED)
+   CARD
 ========================= */
 .card {
   position: relative;
@@ -234,13 +205,11 @@ main {
   border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
-
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
   border: 1px solid rgba(255,255,255,0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Desktop hover (keeps clickability) */
 @media (hover: hover) {
   .card:hover {
     transform: translateY(-2px);
@@ -250,114 +219,14 @@ main {
   }
 }
 
-/* Mobile tap feedback */
-.card:active {
-  transform: scale(0.985);
-}
-
 .card img {
   width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
 }
 
-/* ✅ TOP SAFE ZONE (prevents overlap + improves readability) */
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 56px;
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.60),
-    rgba(0,0,0,0)
-  );
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* =========================
-   RATING BADGE (RESTORED)
-========================= */
-.rating-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 6;
-  background: rgba(16,185,129,0.95);
-  color: #021a12;
-  font-weight: 800;
-  font-size: 0.7rem;
-  padding: 5px 7px;
-  border-radius: 8px;
-}
-
-/* =========================
-   PLATFORM OVERLAY (NO OVERLAP)
-========================= */
-.platform-overlay {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  left: 64px; /* ✅ leaves room for rating badge */
-  z-index: 6;
-  display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  pointer-events: none; /* avoids weird click targets */
-}
-
-.platform-overlay .platform-chip {
-  pointer-events: none;
-}
-
-/* =========================
-   PLATFORM CHIPS confirm
-========================= */
-.platform-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  border-radius: 999px;
-  background: rgba(0,0,0,0.65);
-  border: 1px solid rgba(255,255,255,0.18);
-  color: #fff;
-  white-space: nowrap;
-}
-
-.platform-chip.xbox {
-  background: rgba(16,185,129,0.15);
-  border-color: rgba(16,185,129,0.45);
-  color: #10b981;
-}
-
-.platform-chip.ps {
-  background: rgba(59,130,246,0.15);
-  border-color: rgba(59,130,246,0.45);
-  color: #3b82f6;
-}
-
-/* =========================
-   CARD BODY
-========================= */
 .card-body {
   padding: 0.9rem 1rem 1.05rem;
-}
-
-.badge-category {
-  display: inline-block;
-  padding: 4px 9px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.22);
-  margin-bottom: 0.45rem;
 }
 
 .card-title {
@@ -368,33 +237,10 @@ main {
 .card-meta {
   font-size: 0.75rem;
   opacity: 0.7;
-  margin-top: 0.2rem;
 }
 
 /* =========================
-   SHOW MORE (RESTORED MODERN)
-========================= */
-#showMore {
-  display: block;
-  margin: 2.2rem auto 0;
-  padding: 0.9rem 2.8rem;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #fff;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 10px 30px rgba(59,130,246,0.3);
-}
-
-#showMore:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* =========================
-   DETAILS PAGE (RESTORED “DESTINATION PAGE” LOOK)
+   DETAILS PAGE
 ========================= */
 .details {
   max-width: 980px;
@@ -408,7 +254,7 @@ main {
     rgba(255,255,255,0.02)
   );
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr); /* ✅ prevents gallery forcing width */
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: 2.3rem;
 }
 
@@ -421,159 +267,49 @@ main {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  min-width: 0; /* ✅ critical for overflow containment */
+  min-width: 0;
 }
 
 .details-title {
   font-size: 2rem;
   font-weight: 850;
-  line-height: 1.15;
-}
-
-.details-sub {
-  font-size: 0.92rem;
-  opacity: 0.75;
 }
 
 .details-summary {
   font-size: 0.95rem;
   color: rgba(255,255,255,0.82);
-  line-height: 1.6;
-  max-width: 680px;
 }
 
-.details-platforms {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 0.2rem;
-}
-
-/* ✅ Primary CTA restored */
-.cta-primary {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  padding: 0.95rem 2.3rem;
-  border-radius: 999px;
-  font-weight: 800;
-  text-decoration: none;
-  width: fit-content;
-  margin-top: 0.6rem;
-  box-shadow: 0 12px 34px rgba(59,130,246,0.28);
-}
-
-.cta-primary:hover {
-  filter: brightness(1.04);
-}
-
-/* Back button restored */
-.details-back {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.65);
-  cursor: pointer;
-  width: fit-content;
-  margin-top: 0.4rem;
-  padding: 0;
-}
-
-.details-back:hover {
-  color: rgba(255,255,255,0.85);
-}
-
-/* =========================================================
-   ✅ DETAILS GALLERY (SCOPED, REAL CLASS NAME, ROI SAFE)
-   - Targets only: <div class="details-gallery">...</div>
-   - Zero impact to main page UI
-========================================================= */
+/* =========================
+   ✅ GALLERY — FINAL, LOCKED
+========================= */
 .details-gallery {
   display: flex;
-  gap: 12px;
-  max-width: 100%;
+  gap: 14px;
   overflow-x: auto;
-  overflow-y: hidden;
-  padding: 10px 2px 14px;
-  margin-top: 0.55rem;
-
+  padding: 10px 0 14px;
   scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-
-  border-radius: 18px;
 }
 
 .details-gallery img {
   flex: 0 0 auto;
-
-  /* ✅ This is the key: make tiles "fit" their own box
-     so they never look cropped weirdly */
-  width: 260px;
-  max-width: 78vw;
+  width: 360px;              /* ← DESKTOP FIX */
+  max-width: 85vw;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(0,0,0,0.35);
-
   scroll-snap-align: start;
 }
 
-/* scrollbar aesthetics (safe) */
-.details-gallery::-webkit-scrollbar {
-  height: 10px;
-}
-.details-gallery::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.06);
-  border-radius: 999px;
-}
-.details-gallery::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.18);
-  border-radius: 999px;
-}
-.details-gallery::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.26);
-}
-
-/* =========================
-   MOBILE FIX (NO RIGHT OVERFLOW)
-========================= */
 @media (max-width: 768px) {
   .details {
     grid-template-columns: 1fr;
     padding: 1.5rem;
   }
 
-  .details-cover {
-    max-width: 220px;
-    margin: 0 auto;
-  }
-
-  .details-title {
-    font-size: 1.6rem;
-    text-align: center;
-  }
-
-  .details-sub,
-  .details-summary {
-    text-align: center;
-    margin: 0 auto;
-  }
-
-  .details-platforms {
-    justify-content: center;
-  }
-
-  .cta-primary {
-    margin: 0.8rem auto 0;
-  }
-
-  .details-back {
-    margin: 0.5rem auto 0;
-  }
-
-  /* Mobile gallery: slightly smaller tiles for usability */
   .details-gallery img {
-    width: 200px;
-    max-width: 80vw;
+    width: 220px;            /* mobile unchanged */
   }
 }

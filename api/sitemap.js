@@ -1,10 +1,12 @@
 export default async function handler(req, res) {
   try {
-    // Fetch games from the existing IGDB endpoint (read-only)
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "https://gamerly.net";
+    // Build absolute base URL safely from the request
+    const protocol =
+      req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+    const host = req.headers.host;
+    const baseUrl = `${protocol}://${host}`;
 
+    // Fetch games from existing IGDB endpoint (read-only)
     const apiRes = await fetch(`${baseUrl}/api/igdb`);
     const data = await apiRes.json();
 
@@ -14,7 +16,7 @@ export default async function handler(req, res) {
 
     const games = data.games;
 
-    // Helper to slugify game names (must match frontend routing)
+    // Must match frontend routing exactly
     const slugify = (str = "") =>
       str
         .toLowerCase()
@@ -26,7 +28,6 @@ export default async function handler(req, res) {
 
     const today = new Date().toISOString();
 
-    // Start sitemap XML
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
@@ -38,12 +39,14 @@ export default async function handler(req, res) {
     xml += `    <priority>1.0</priority>\n`;
     xml += `  </url>\n`;
 
-    // Game detail pages
+    // Game pages
     for (const game of games) {
       if (!game || !game.id || !game.name) continue;
 
       const slug = slugify(game.name);
-      const url = `https://gamerly.net/game/${game.id}${slug ? "-" + slug : ""}`;
+      const url = `https://gamerly.net/game/${game.id}${
+        slug ? "-" + slug : ""
+      }`;
 
       xml += `  <url>\n`;
       xml += `    <loc>${url}</loc>\n`;
@@ -58,6 +61,7 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "application/xml");
     res.status(200).send(xml);
   } catch (err) {
+    console.error("Sitemap error:", err);
     res.status(500).send("Sitemap generation failed");
   }
 }

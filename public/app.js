@@ -77,35 +77,59 @@ function escapeHtml(str = "") {
 }
 
 /* =========================
-   STORE LINK (ROI SAFE)
+   STORE CTA LOGIC (NEW, ROI)
 ========================= */
-function buildStoreLink(game) {
-  const name = (game?.name || "").trim();
-  const q = encodeURIComponent(name);
-  const p = Array.isArray(game?.platforms)
-    ? game.platforms.join(" ").toLowerCase()
-    : "";
+function getPrimaryStore(game) {
+  if (!Array.isArray(game.platforms)) return null;
+
+  const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc")) {
-    return `https://store.steampowered.com/search/?term=${q}`;
-  }
-  if (p.includes("playstation")) {
-    return `https://store.playstation.com/search/${q}`;
-  }
-  if (p.includes("xbox")) {
-    return `https://www.xbox.com/en-US/Search?q=${q}`;
-  }
-  if (p.includes("nintendo")) {
-    return `https://www.nintendo.com/us/search/#q=${q}`;
-  }
-  if (p.includes("ios")) {
-    return `https://apps.apple.com/us/search?term=${q}`;
-  }
-  if (p.includes("android")) {
-    return `https://play.google.com/store/search?q=${q}&c=apps`;
+    return {
+      label: "View on Steam",
+      url: `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`
+    };
   }
 
-  return `https://www.google.com/search?q=${encodeURIComponent(name + " game")}`;
+  if (p.includes("playstation")) {
+    return {
+      label: "View on PlayStation Store",
+      url: `https://store.playstation.com/search/${encodeURIComponent(game.name)}`
+    };
+  }
+
+  if (p.includes("xbox")) {
+    return {
+      label: "View on Xbox Store",
+      url: `https://www.xbox.com/en-US/Search?q=${encodeURIComponent(game.name)}`
+    };
+  }
+
+  if (p.includes("nintendo")) {
+    return {
+      label: "View on Nintendo eShop",
+      url: `https://www.nintendo.com/us/search/#q=${encodeURIComponent(game.name)}`
+    };
+  }
+
+  if (p.includes("ios")) {
+    return {
+      label: "View on App Store",
+      url: `https://apps.apple.com/us/search?term=${encodeURIComponent(game.name)}`
+    };
+  }
+
+  if (p.includes("android")) {
+    return {
+      label: "View on Google Play",
+      url: `https://play.google.com/store/search?q=${encodeURIComponent(game.name)}&c=apps`
+    };
+  }
+
+  return {
+    label: "View on Store",
+    url: `https://www.google.com/search?q=${encodeURIComponent(game.name + " game")}`
+  };
 }
 
 /* =========================
@@ -200,7 +224,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   LIST RENDER (CTA ADDED)
+   LIST RENDER (WITH CTA)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -215,11 +239,11 @@ function renderList(list) {
   }
 
   slice.forEach(game => {
+    const store = getPrimaryStore(game);
+
     const card = document.createElement("div");
     card.className = "card";
     card.setAttribute("role", "button");
-
-    const storeLink = buildStoreLink(game);
 
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
@@ -229,16 +253,17 @@ function renderList(list) {
         ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
         <div class="card-meta">${new Date(game.releaseDate).toLocaleDateString()}</div>
-
-        <a
-          class="card-cta"
-          href="${storeLink}"
-          target="_blank"
-          rel="nofollow sponsored noopener"
-          onclick="event.stopPropagation();"
-        >
-          View on Store
-        </a>
+        ${
+          store
+            ? `<a class="cta-primary"
+                 href="${store.url}"
+                 target="_blank"
+                 rel="nofollow sponsored noopener"
+                 onclick="event.stopPropagation()">
+                 ${store.label}
+               </a>`
+            : ""
+        }
       </div>
     `;
 
@@ -251,7 +276,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE (UNCHANGED)
+   DETAILS PAGE (LOCKED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -280,50 +305,16 @@ function renderDetails(game, replace = false) {
     ? new Date(game.releaseDate).toDateString()
     : "Release date unknown";
 
-  const screenshotsHtml =
-    Array.isArray(game.screenshots) && game.screenshots.length
-      ? `
-        <div class="details-gallery">
-          ${game.screenshots
-            .map(
-              url => `
-                <img
-                  src="${url}"
-                  alt="${escapeHtml(game.name)} screenshot"
-                  loading="lazy"
-                />
-              `
-            )
-            .join("")}
-        </div>
-      `
-      : "";
-
   grid.innerHTML = `
     <section class="details">
       <div class="details-cover">
         <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover">
       </div>
-
       <div class="details-info">
         <h1 class="details-title">${escapeHtml(game.name)}</h1>
         <div class="details-sub">${escapeHtml(release)}</div>
-
         ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
-
-        ${screenshotsHtml}
-
-        <div class="details-platforms">
-          ${renderPlatforms(game)}
-        </div>
-
-        <a class="cta-primary"
-           href="${buildStoreLink(game)}"
-           target="_blank"
-           rel="nofollow sponsored noopener">
-          View on Store
-        </a>
-
+        <div class="details-platforms">${renderPlatforms(game)}</div>
         <button class="details-back" id="backBtn">← Back to list</button>
       </div>
     </section>

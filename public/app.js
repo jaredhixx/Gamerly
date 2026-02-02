@@ -27,18 +27,24 @@ if (ageGate && ageBtn) {
 ========================= */
 let allGames = [];
 
-let activeSection = "out"; // out | soon
-let activeTime = "all";    // all | today | week | month
+let activeSection = "out";
+let activeTime = "all";
 let activePlatform = "all";
 
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 
 /* =========================
-   SEO ROUTING (ADDITIVE)
+   ROUTING (SEO + DETAILS)
 ========================= */
 function applyRoute(path) {
   const clean = path.replace(/^\/+|\/+$/g, "");
+
+  if (clean.startsWith("game/")) {
+    const id = clean.split("/")[1];
+    renderDetailsPage(id);
+    return;
+  }
 
   activeSection = "out";
   activePlatform = "all";
@@ -52,6 +58,7 @@ function applyRoute(path) {
   }
 
   syncUI();
+  applyFilters(true);
 }
 
 function syncUI() {
@@ -91,12 +98,68 @@ async function loadGames() {
     allGames = data.games || [];
 
     applyRoute(window.location.pathname);
-    applyFilters(true);
   } catch {
     errorBox.textContent = "Failed to load games.";
   } finally {
     loading.style.display = "none";
   }
+}
+
+/* =========================
+   DETAILS PAGE (v1)
+========================= */
+function renderDetailsPage(id) {
+  const game = allGames.find(g => String(g.id) === String(id));
+  if (!game) {
+    grid.innerHTML = "<p>Game not found.</p>";
+    return;
+  }
+
+  history.replaceState({}, "", `/game/${game.id}`);
+  showMoreBtn.style.display = "none";
+
+  const steamSearch =
+    game.platforms.some(p => p.toLowerCase().includes("windows"))
+      ? `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`
+      : null;
+
+  grid.innerHTML = `
+    <div class="details">
+      <div class="details-cover">
+        <img src="${game.coverUrl}" alt="${game.name} cover" />
+      </div>
+
+      <div class="details-info">
+        <h1>${game.name}</h1>
+
+        ${game.aggregated_rating ? `
+          <div class="details-rating">
+            Critic score: <strong>${Math.round(game.aggregated_rating)}</strong>
+          </div>` : ""}
+
+        <div class="details-meta">
+          <div>Release date: ${new Date(game.releaseDate).toLocaleDateString()}</div>
+          <div>Platforms: ${game.platforms.join(", ")}</div>
+        </div>
+
+        ${steamSearch ? `
+          <a class="cta-primary" href="${steamSearch}" target="_blank" rel="noopener">
+            View on Steam
+          </a>` : ""}
+
+        <p class="details-context">
+          Track release details, platforms, and critic ratings for ${game.name}. Updated daily using IGDB.
+        </p>
+
+        <button class="details-back" onclick="goBack()">← Back to all games</button>
+      </div>
+    </div>
+  `;
+}
+
+function goBack() {
+  history.pushState({}, "", "/");
+  applyFilters(true);
 }
 
 /* =========================
@@ -127,15 +190,9 @@ function applyFilters(reset = false) {
   if (activeTime !== "all") {
     list = list.filter(game => {
       const d = new Date(game.releaseDate);
-      if (activeTime === "today") {
-        return d.toDateString() === now.toDateString();
-      }
-      if (activeTime === "week") {
-        return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
-      }
-      if (activeTime === "month") {
-        return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
-      }
+      if (activeTime === "today") return d.toDateString() === now.toDateString();
+      if (activeTime === "week") return d >= now && d <= new Date(now.getTime() + 7 * 86400000);
+      if (activeTime === "month") return d >= now && d <= new Date(now.getTime() + 30 * 86400000);
       return true;
     });
   }
@@ -152,7 +209,7 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   SECTION COUNTS (LOCKED)
+   COUNTS (LOCKED)
 ========================= */
 function updateSectionCounts(outCount, soonCount) {
   const buttons = document.querySelectorAll(".section-segment button");
@@ -163,7 +220,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   RENDER
+   RENDER GRID
 ========================= */
 function render(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -171,20 +228,18 @@ function render(list) {
 
   grid.innerHTML = "";
 
-  if (!slice.length) {
-    grid.innerHTML = "<p>No games found.</p>";
-    showMoreBtn.style.display = "none";
-    return;
-  }
-
   slice.forEach(game => {
     const card = document.createElement("div");
     card.className = "card";
+    card.onclick = () => {
+      history.pushState({}, "", `/game/${game.id}`);
+      renderDetailsPage(game.id);
+    };
 
     card.innerHTML = `
       <div class="platform-overlay">${renderPlatforms(game)}</div>
       ${renderRating(game)}
-      <img src="${game.coverUrl || ""}" loading="lazy" />
+      <img src="${game.coverUrl}" loading="lazy" />
       <div class="card-body">
         <div class="badge-row">
           ${game.category ? `<span class="badge-category">${game.category}</span>` : ""}
@@ -210,24 +265,15 @@ function renderRating(game) {
   const score = game.aggregated_rating;
   const count = game.aggregated_rating_count;
 
-  if (
-    typeof score !== "number" ||
-    typeof count !== "number" ||
-    score < 65 ||
-    count < 1
-  ) {
+  if (typeof score !== "number" || typeof count !== "number" || score < 65) {
     return "";
   }
 
-  return `
-    <div class="rating-badge" title="Critic score">
-      ${Math.round(score)}
-    </div>
-  `;
+  return `<div class="rating-badge">${Math.round(score)}</div>`;
 }
 
 /* =========================
-   PLATFORM ICONS
+   PLATFORMS
 ========================= */
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";
@@ -246,7 +292,7 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   EVENTS (LOCKED + URL SYNC)
+   EVENTS (LOCKED)
 ========================= */
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {
@@ -274,16 +320,10 @@ document.querySelectorAll(".platforms button").forEach(btn => {
   };
 });
 
-showMoreBtn.onclick = () => applyFilters();
-
 window.addEventListener("popstate", () => {
   applyRoute(window.location.pathname);
-  applyFilters(true);
 });
 
-/* =========================
-   UI HELPER
-========================= */
 function setActive(button) {
   button.parentElement
     .querySelectorAll("button")

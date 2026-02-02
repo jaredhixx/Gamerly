@@ -446,3 +446,36 @@ main {
     width: 220px;
   }
 }
+
+/* =========================================================
+   ✅ MOBILE DETAIL WIDTH — FINAL FIX (APPEND ONLY)
+   Fixes perceived “skinny” layout without changing structure
+========================================================= */
+@media (max-width: 768px) {
+
+  /* Let content visually reach card edges */
+  .details-info {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Make description feel full-width */
+  .details-summary {
+    max-width: none;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Give gallery edge reference (kills skinny illusion) */
+  .details-gallery {
+    width: calc(100% + 2rem);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .details-gallery img {
+    width: 240px;
+  }
+}

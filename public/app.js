@@ -35,6 +35,40 @@ let visibleCount = 0;
 const PAGE_SIZE = 24;
 
 /* =========================
+   SEO ROUTING (ADDITIVE)
+========================= */
+function applyRoute(path) {
+  const clean = path.replace(/^\/+|\/+$/g, "");
+  activePlatform = "all";
+  activeSection = "out";
+
+  if (clean === "coming-soon") activeSection = "soon";
+  if (clean === "out-now") activeSection = "out";
+
+  const platforms = ["pc", "playstation", "xbox", "nintendo", "ios", "android"];
+  if (platforms.includes(clean)) {
+    activePlatform = clean;
+  }
+
+  syncUI();
+}
+
+function syncUI() {
+  document.querySelectorAll(".platforms button").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.platform === activePlatform);
+  });
+
+  document.querySelectorAll(".section-segment button").forEach(btn => {
+    const isOut = btn.textContent.includes("Out");
+    btn.classList.toggle(
+      "active",
+      (activeSection === "out" && isOut) ||
+      (activeSection === "soon" && !isOut)
+    );
+  });
+}
+
+/* =========================
    FETCH
 ========================= */
 async function loadGames() {
@@ -48,6 +82,7 @@ async function loadGames() {
 
     allGames = data.games || [];
 
+    applyRoute(window.location.pathname);
     applyFilters(true);
   } catch {
     errorBox.textContent = "Failed to load games.";
@@ -57,7 +92,7 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE
+   FILTER PIPELINE (LOCKED)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
@@ -74,7 +109,6 @@ function applyFilters(reset = false) {
     return new Date(g.releaseDate) > now;
   });
 
-  // 🔒 COUNTERS (RESTORED)
   updateSectionCounts(outNowGames.length, comingSoonGames.length);
 
   let list =
@@ -82,7 +116,6 @@ function applyFilters(reset = false) {
       ? [...outNowGames]
       : [...comingSoonGames];
 
-  // TIME FILTER
   if (activeTime !== "all") {
     list = list.filter(game => {
       const d = new Date(game.releaseDate);
@@ -99,7 +132,6 @@ function applyFilters(reset = false) {
     });
   }
 
-  // PLATFORM FILTER
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
     list = list.filter(game =>
@@ -112,11 +144,10 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   SECTION COUNTS (NEW)
+   SECTION COUNTS
 ========================= */
 function updateSectionCounts(outCount, soonCount) {
   const buttons = document.querySelectorAll(".section-segment button");
-
   if (buttons.length < 2) return;
 
   buttons[0].innerHTML = `Out Now <span class="count">${outCount}</span>`;
@@ -207,11 +238,12 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   EVENTS
+   EVENTS (URL SYNC)
 ========================= */
-document.querySelectorAll(".time-segment button").forEach(btn => {
+document.querySelectorAll(".platforms button").forEach(btn => {
   btn.onclick = () => {
-    activeTime = btn.textContent.toLowerCase().replace(" ", "");
+    activePlatform = btn.dataset.platform || "all";
+    history.pushState({}, "", activePlatform === "all" ? "/" : `/${activePlatform}`);
     setActive(btn);
     applyFilters(true);
   };
@@ -220,20 +252,18 @@ document.querySelectorAll(".time-segment button").forEach(btn => {
 document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
     activeSection = btn.textContent.includes("Out") ? "out" : "soon";
-    setActive(btn);
-    applyFilters(true);
-  };
-});
-
-document.querySelectorAll(".platforms button").forEach(btn => {
-  btn.onclick = () => {
-    activePlatform = btn.dataset.platform || "all";
+    history.pushState({}, "", activeSection === "out" ? "/out-now" : "/coming-soon");
     setActive(btn);
     applyFilters(true);
   };
 });
 
 showMoreBtn.onclick = () => applyFilters();
+
+window.addEventListener("popstate", () => {
+  applyRoute(window.location.pathname);
+  applyFilters(true);
+});
 
 /* =========================
    UI HELPER

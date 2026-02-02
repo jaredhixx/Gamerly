@@ -312,7 +312,7 @@ function renderPlatforms(game) {
   const chips = [];
   if (p.includes("windows")) chips.push(`<span class="platform-chip pc">PC</span>`);
   if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
-  if (p.includes("playstation")) chips.push(`<span class="platform-chip">PS</span>`);
+  if (p.includes("playstation")) chips.push(`<span class="platform-chip ps">PS</span>`);
   if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
   if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
   if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);

@@ -27,16 +27,13 @@ if (ageGate && ageBtn) {
 ========================= */
 let allGames = [];
 
-let activeSection = "out"; // out | soon
-let activeTime = "all";    // all | today | week | month
+let activeSection = "out";
+let activeTime = "all";
 let activePlatform = "all";
 
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 
-/* =========================
-   VIEW STATE
-========================= */
 let viewMode = "list";
 
 /* =========================
@@ -77,59 +74,33 @@ function escapeHtml(str = "") {
 }
 
 /* =========================
-   STORE CTA LOGIC (NEW, ROI)
+   STORE CTA LOGIC (LOCKED)
 ========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
-
+  const name = encodeURIComponent(game.name);
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc")) {
-    return {
-      label: "View on Steam",
-      url: `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`
-    };
+    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${name}` };
   }
-
   if (p.includes("playstation")) {
-    return {
-      label: "View on PlayStation Store",
-      url: `https://store.playstation.com/search/${encodeURIComponent(game.name)}`
-    };
+    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${name}` };
   }
-
   if (p.includes("xbox")) {
-    return {
-      label: "View on Xbox Store",
-      url: `https://www.xbox.com/en-US/Search?q=${encodeURIComponent(game.name)}`
-    };
+    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${name}` };
   }
-
   if (p.includes("nintendo")) {
-    return {
-      label: "View on Nintendo eShop",
-      url: `https://www.nintendo.com/us/search/#q=${encodeURIComponent(game.name)}`
-    };
+    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${name}` };
   }
-
   if (p.includes("ios")) {
-    return {
-      label: "View on App Store",
-      url: `https://apps.apple.com/us/search?term=${encodeURIComponent(game.name)}`
-    };
+    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${name}` };
   }
-
   if (p.includes("android")) {
-    return {
-      label: "View on Google Play",
-      url: `https://play.google.com/store/search?q=${encodeURIComponent(game.name)}&c=apps`
-    };
+    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${name}&c=apps` };
   }
 
-  return {
-    label: "View on Store",
-    url: `https://www.google.com/search?q=${encodeURIComponent(game.name + " game")}`
-  };
+  return { label: "View on Store →", url: `https://www.google.com/search?q=${name}+game` };
 }
 
 /* =========================
@@ -169,22 +140,14 @@ async function loadGames() {
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
-
   viewMode = "list";
 
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
-  setMetaDescription(
-    "Track new and upcoming game releases across PC, console, and mobile. Updated daily."
-  );
+  setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
 
   const now = new Date();
-
-  const outNow = allGames.filter(
-    g => g.releaseDate && new Date(g.releaseDate) <= now
-  );
-  const comingSoon = allGames.filter(
-    g => g.releaseDate && new Date(g.releaseDate) > now
-  );
+  const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
+  const comingSoon = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) > now);
 
   updateSectionCounts(outNow.length, comingSoon.length);
 
@@ -202,10 +165,9 @@ function applyFilters(reset = false) {
 
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
-    list = list.filter(
-      g =>
-        Array.isArray(g.platforms) &&
-        g.platforms.some(p => p.toLowerCase().includes(key))
+    list = list.filter(g =>
+      Array.isArray(g.platforms) &&
+      g.platforms.some(p => p.toLowerCase().includes(key))
     );
   }
 
@@ -218,18 +180,16 @@ function applyFilters(reset = false) {
 function updateSectionCounts(outCount, soonCount) {
   const buttons = document.querySelectorAll(".section-segment button");
   if (buttons.length < 2) return;
-
   buttons[0].innerHTML = `Out Now <span class="count">${outCount}</span>`;
   buttons[1].innerHTML = `Coming Soon <span class="count">${soonCount}</span>`;
 }
 
 /* =========================
-   LIST RENDER (WITH CTA)
+   LIST RENDER (INLINE CTA)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
   visibleCount = slice.length;
-
   grid.innerHTML = "";
 
   if (!slice.length) {
@@ -240,6 +200,7 @@ function renderList(list) {
 
   slice.forEach(game => {
     const store = getPrimaryStore(game);
+    const releaseDate = new Date(game.releaseDate).toLocaleDateString();
 
     const card = document.createElement("div");
     card.className = "card";
@@ -252,18 +213,19 @@ function renderList(list) {
       <div class="card-body">
         ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
-        <div class="card-meta">${new Date(game.releaseDate).toLocaleDateString()}</div>
-        ${
-          store
-            ? `<a class="cta-primary"
-                 href="${store.url}"
-                 target="_blank"
-                 rel="nofollow sponsored noopener"
-                 onclick="event.stopPropagation()">
-                 ${store.label}
-               </a>`
-            : ""
-        }
+        <div class="card-meta" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>${releaseDate}</span>
+          ${
+            store
+              ? `<a href="${store.url}"
+                   target="_blank"
+                   rel="nofollow sponsored noopener"
+                   onclick="event.stopPropagation()">
+                   ${store.label}
+                 </a>`
+              : ""
+          }
+        </div>
       </div>
     `;
 
@@ -271,8 +233,7 @@ function renderList(list) {
     grid.appendChild(card);
   });
 
-  showMoreBtn.style.display =
-    visibleCount < list.length ? "block" : "none";
+  showMoreBtn.style.display = visibleCount < list.length ? "block" : "none";
 }
 
 /* =========================
@@ -284,11 +245,8 @@ function renderDetails(game, replace = false) {
   const slug = slugify(game.name);
   const path = `/game/${game.id}${slug ? "-" + slug : ""}`;
 
-  if (replace) {
-    history.replaceState({}, "", path);
-  } else {
-    history.pushState({}, "", path);
-  }
+  if (replace) history.replaceState({}, "", path);
+  else history.pushState({}, "", path);
 
   setMetaTitle(`${game.name} — Gamerly`);
 
@@ -296,10 +254,7 @@ function renderDetails(game, replace = false) {
     ? escapeHtml(game.summary.slice(0, 240))
     : "";
 
-  setMetaDescription(
-    summaryText ||
-    `Release info for ${game.name}. Platforms, release date, and store links.`
-  );
+  setMetaDescription(summaryText || `Release info for ${game.name}.`);
 
   const release = game.releaseDate
     ? new Date(game.releaseDate).toDateString()
@@ -321,7 +276,6 @@ function renderDetails(game, replace = false) {
   `;
 
   showMoreBtn.style.display = "none";
-
   document.getElementById("backBtn").onclick = () => {
     history.pushState({}, "", "/");
     applyFilters(true);
@@ -344,50 +298,20 @@ function renderRating(game) {
 
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";
-
   const p = game.platforms.join(" ").toLowerCase();
   const chips = [];
-
   if (p.includes("windows")) chips.push(`<span class="platform-chip">PC</span>`);
   if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
   if (p.includes("playstation")) chips.push(`<span class="platform-chip ps">PS</span>`);
   if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
   if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
   if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
-
   return chips.join("");
 }
 
 /* =========================
-   FILTER EVENTS (LOCKED)
+   EVENTS + INIT (LOCKED)
 ========================= */
-document.querySelectorAll(".time-segment button").forEach(btn => {
-  btn.onclick = () => {
-    if (viewMode === "details") history.pushState({}, "", "/");
-    activeTime = btn.textContent.toLowerCase().replace(" ", "");
-    setActive(btn);
-    applyFilters(true);
-  };
-});
-
-document.querySelectorAll(".section-segment button").forEach(btn => {
-  btn.onclick = () => {
-    if (viewMode === "details") history.pushState({}, "", "/");
-    activeSection = btn.textContent.includes("Out") ? "out" : "soon";
-    setActive(btn);
-    applyFilters(true);
-  };
-});
-
-document.querySelectorAll(".platforms button").forEach(btn => {
-  btn.onclick = () => {
-    if (viewMode === "details") history.pushState({}, "", "/");
-    activePlatform = btn.dataset.platform || "all";
-    setActive(btn);
-    applyFilters(true);
-  };
-});
-
 showMoreBtn.onclick = () => {
   visibleCount += PAGE_SIZE;
   applyFilters();
@@ -402,14 +326,4 @@ window.addEventListener("popstate", () => {
   applyFilters(true);
 });
 
-function setActive(button) {
-  button.parentElement
-    .querySelectorAll("button")
-    .forEach(b => b.classList.remove("active"));
-  button.classList.add("active");
-}
-
-/* =========================
-   INIT
-========================= */
 loadGames();

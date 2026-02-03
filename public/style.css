@@ -581,3 +581,26 @@ main {
   text-decoration: underline;
   color: #3b82f6;
 }
+
+/* =========================================================
+   ✅ DETAILS PAGE FLOW FIX
+   - Removes accidental "boxed" look below game details
+   - Purely visual, zero logic risk
+========================================================= */
+
+/* When SEO links follow a details page, flatten them */
+.details + .seo-links {
+  margin-top: 2.5rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Ensure details card visually ends cleanly */
+.details {
+  margin-bottom: 0;
+}
+
+/* Optional: soften transition on dark backgrounds */
+.details + .seo-links h2 {
+  margin-top: 0;
+}

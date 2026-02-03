@@ -45,9 +45,6 @@ if (ageGate && ageBtn) {
    STATE (LOCKED)
 ========================= */
 let allGames = [];
-let activeSection = "out";
-let activeTime = "all";
-let activePlatform = "all";
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 let viewMode = "list";
@@ -63,13 +60,6 @@ function slugify(str = "") {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/-+/g, "-")
     .replace(/(^-|-$)/g, "");
-}
-
-function appleSearchTerm(str = "") {
-  return str
-    .replace(/[^\w\s]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 function parseDetailsIdFromPath(pathname) {
@@ -119,8 +109,6 @@ async function loadGames() {
       }
       history.replaceState({}, "", "/");
     }
-
-    applyFilters(true);
   } catch {
     errorBox.textContent = "Failed to load games.";
   } finally {
@@ -129,7 +117,7 @@ async function loadGames() {
 }
 
 /* =========================
-   DETAILS PAGE (SCREENSHOTS ADDED)
+   DETAILS PAGE (SCREENSHOTS FIXED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -152,33 +140,27 @@ function renderDetails(game, replace = false) {
     ? new Date(game.releaseDate).toDateString()
     : "Release date unknown";
 
-  const store = getPrimaryStore(game);
-
   const screenshotsHtml =
     Array.isArray(game.screenshots) && game.screenshots.length
       ? `
-        <div class="details-screenshots" style="margin-top:16px;">
+        <section class="details-screenshots" style="margin-top:20px;">
           <h3 style="margin-bottom:8px;">Screenshots</h3>
           <div style="
             display:flex;
-            gap:10px;
+            gap:12px;
             overflow-x:auto;
-            padding-bottom:6px;
+            padding-bottom:8px;
           ">
             ${game.screenshots.map(url => `
               <img
                 src="${url}"
                 alt="${escapeHtml(game.name)} screenshot"
                 loading="lazy"
-                style="
-                  height:160px;
-                  border-radius:8px;
-                  flex-shrink:0;
-                "
+                style="height:160px;border-radius:8px;flex-shrink:0;"
               />
             `).join("")}
           </div>
-        </div>
+        </section>
       `
       : "";
 
@@ -191,26 +173,15 @@ function renderDetails(game, replace = false) {
         <h1 class="details-title">${escapeHtml(game.name)}</h1>
         <div class="details-sub">${escapeHtml(release)}</div>
         ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
-        ${screenshotsHtml}
-        ${
-          store
-            ? `<a class="cta-primary"
-                 href="${store.url}"
-                 target="_blank"
-                 rel="nofollow sponsored noopener">
-                 ${store.label}
-               </a>`
-            : ""
-        }
         <button class="details-back" id="backBtn">← Back to list</button>
       </div>
+      ${screenshotsHtml}
     </section>
   `;
 
-  showMoreBtn.style.display = "none";
   document.getElementById("backBtn").onclick = () => {
     history.pushState({}, "", lastListPath || "/");
-    applyFilters(true);
+    applyFilters?.(true);
   };
 }
 

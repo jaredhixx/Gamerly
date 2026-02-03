@@ -20,10 +20,10 @@ const ROUTE = {
 const IS_STEAM_MONEY_PAGE =
   ROUTE.STEAM_ALL || ROUTE.STEAM_TODAY || ROUTE.STEAM_WEEK || ROUTE.STEAM_UPCOMING;
 
-let lastListPath = ROUTE.HOME ? "/" : (IS_STEAM_MONEY_PAGE ? PATH : "/");
+let lastListPath = "/";
 
 /* =========================
-   AGE GATE (RESTORED — LOCKED)
+   AGE GATE (LOCKED)
 ========================= */
 const ageGate = document.getElementById("ageGate");
 const ageBtn = document.getElementById("ageConfirmBtn");
@@ -42,9 +42,10 @@ if (ageGate && ageBtn) {
 }
 
 /* =========================
-   STATE (LOCKED)
+   STATE
 ========================= */
 let allGames = [];
+let activePlatform = "all";
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 
@@ -60,56 +61,55 @@ function escapeHtml(str = "") {
     .replaceAll("'", "&#039;");
 }
 
+function setActive(button) {
+  const group = button.parentElement;
+  if (!group) return;
+  group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  button.classList.add("active");
+}
+
 function isPCSteamCandidate(game) {
-  if (!game || !Array.isArray(game.platforms)) return false;
+  if (!Array.isArray(game.platforms)) return false;
   const p = game.platforms.join(" ").toLowerCase();
   return p.includes("windows") || p.includes("pc");
 }
 
-/* =========================
-   STORE CTA (LOCKED)
-========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
-
-  const encoded = encodeURIComponent(game.name);
+  const encodedName = encodeURIComponent(game.name);
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc"))
-    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${encoded}` };
+    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${encodedName}` };
   if (p.includes("playstation"))
-    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${encoded}` };
+    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${encodedName}` };
   if (p.includes("xbox"))
-    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${encoded}` };
+    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${encodedName}` };
   if (p.includes("nintendo"))
-    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encoded}` };
+    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encodedName}` };
   if (p.includes("ios"))
-    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${encoded}` };
+    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${encodedName}` };
   if (p.includes("android"))
-    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${encoded}&c=apps` };
+    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${encodedName}&c=apps` };
 
   return null;
 }
 
 /* =========================
-   FETCH (STABLE)
+   FETCH
 ========================= */
 async function loadGames() {
   try {
     loading.style.display = "block";
     errorBox.textContent = "";
 
-    const res = await fetch("/api/igdb", { cache: "no-store" });
+    const res = await fetch("/api/igdb");
     const data = await res.json();
+    if (!data.ok) throw new Error("API failed");
 
-    if (!data || !data.ok || !Array.isArray(data.games)) {
-      throw new Error("Invalid API response");
-    }
-
-    allGames = data.games;
-    renderList(allGames);
-  } catch (err) {
-    console.error(err);
+    allGames = data.games || [];
+    applyFilters(true);
+  } catch {
     errorBox.textContent = "Failed to load games.";
   } finally {
     loading.style.display = "none";
@@ -117,7 +117,27 @@ async function loadGames() {
 }
 
 /* =========================
-   LIST RENDER (STABLE)
+   FILTER (PLATFORM ONLY — ROI)
+========================= */
+function applyFilters(reset = false) {
+  if (reset) visibleCount = 0;
+
+  let list = [...allGames];
+
+  if (activePlatform !== "all") {
+    list = list.filter(g =>
+      Array.isArray(g.platforms) &&
+      g.platforms.some(p =>
+        p.toLowerCase().includes(activePlatform)
+      )
+    );
+  }
+
+  renderList(list);
+}
+
+/* =========================
+   LIST RENDER
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -132,23 +152,31 @@ function renderList(list) {
 
   slice.forEach(game => {
     const store = getPrimaryStore(game);
-    const releaseDate = game.releaseDate
-      ? new Date(game.releaseDate).toLocaleDateString()
-      : "TBA";
+    const releaseDate = new Date(game.releaseDate).toLocaleDateString();
 
     const card = document.createElement("div");
     card.className = "card";
+    card.setAttribute("role", "button");
 
     card.innerHTML = `
       <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover" />
       <div class="platform-overlay">${renderPlatforms(game)}</div>
-      ${renderRating(game)}
       <div class="card-body">
         ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
-        <div class="card-meta">
+        <div class="card-meta" style="display:flex; justify-content:space-between;">
           <span>${releaseDate}</span>
-          ${store ? `<a class="card-cta" href="${store.url}" target="_blank" rel="nofollow noopener">${store.label}</a>` : ""}
+          ${
+            store
+              ? `<a class="card-cta"
+                   href="${store.url}"
+                   target="_blank"
+                   rel="nofollow sponsored noopener"
+                   onclick="event.stopPropagation()">
+                   ${store.label}
+                 </a>`
+              : ""
+          }
         </div>
       </div>
     `;
@@ -160,15 +188,8 @@ function renderList(list) {
 }
 
 /* =========================
-   BADGES (LOCKED)
+   PLATFORM CHIPS (VISUAL)
 ========================= */
-function renderRating(game) {
-  const s = game.aggregated_rating;
-  const c = game.aggregated_rating_count;
-  if (typeof s !== "number" || typeof c !== "number" || s < 65) return "";
-  return `<div class="rating-badge">${Math.round(s)}</div>`;
-}
-
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";
   const p = game.platforms.join(" ").toLowerCase();
@@ -183,11 +204,19 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   SHOW MORE
+   PLATFORM FILTER EVENTS (FIXED)
 ========================= */
+document.querySelectorAll(".platforms button").forEach(btn => {
+  btn.onclick = () => {
+    activePlatform = btn.dataset.platform || "all";
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
 showMoreBtn.onclick = () => {
   visibleCount += PAGE_SIZE;
-  renderList(allGames);
+  applyFilters();
 };
 
 /* =========================

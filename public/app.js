@@ -46,7 +46,7 @@ function slugify(str = "") {
     .replace(/(^-|-$)/g, "");
 }
 
-function googleSafeQuery(str = "") {
+function appleSearchTerm(str = "") {
   return str
     .replace(/[^\w\s]/g, "")
     .replace(/\s+/g, " ")
@@ -85,12 +85,13 @@ function setActive(button) {
 }
 
 /* =========================
-   STORE CTA LOGIC (LOCKED + SAFE)
+   STORE CTA LOGIC (LOCKED)
 ========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
 
   const encodedName = encodeURIComponent(game.name);
+  const appleTerm = appleSearchTerm(game.name);
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc"))
@@ -105,14 +106,12 @@ function getPrimaryStore(game) {
   if (p.includes("nintendo"))
     return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encodedName}` };
 
-  // ✅ iOS SAFE FALLBACK (no Apple search, no encoding issues)
-  if (p.includes("ios")) {
-    const q = googleSafeQuery(game.name);
+  // ✅ iOS: best possible behavior without App IDs
+  if (p.includes("ios"))
     return {
       label: "View on App Store →",
-      url: `https://www.google.com/search?q="${q}"+site:apps.apple.com`
+      url: `https://apps.apple.com/us/search?term=${encodeURIComponent(appleTerm)}`
     };
-  }
 
   if (p.includes("android"))
     return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${encodedName}&c=apps` };

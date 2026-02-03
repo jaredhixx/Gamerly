@@ -39,32 +39,31 @@ if (ageGate && ageBtn) {
    STATE (LOCKED)
 ========================= */
 let allGames = [];
-let activeSection = "out";        // out | soon
-let activeTime = "all";           // all | today | thisweek | thismonth
-let activePlatform = "all";       // all | pc | playstation | xbox | nintendo | ios | android
+let activeSection = "out";
+let activeTime = "all";
+let activePlatform = "all";
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 let viewMode = "list";
 
 /* =========================
-   HELPERS
+   DATE HELPERS (SURGICAL)
 ========================= */
 function startOfLocalDay(d = new Date()) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-// ✅ "Coming Soon" starts tomorrow
+// ✅ canonical boundary
 function startOfTomorrow() {
   const t = startOfLocalDay(new Date());
   t.setDate(t.getDate() + 1);
   return t;
 }
 
-// 🔧 HOTFIX: normalize release date to local day
+// 🔧 HOTFIX: normalize IGDB UTC dates to local day
 function normalizeReleaseDate(dateStr) {
   if (!dateStr) return null;
-  const d = new Date(dateStr);
-  return startOfLocalDay(d);
+  return startOfLocalDay(new Date(dateStr));
 }
 
 function platformMatches(game, key) {
@@ -158,7 +157,11 @@ function renderList(list) {
           <span>${releaseDate}</span>
           ${
             store
-              ? `<a class="card-cta" href="${store.url}" target="_blank" rel="nofollow sponsored noopener" onclick="event.stopPropagation()">
+              ? `<a class="card-cta"
+                   href="${store.url}"
+                   target="_blank"
+                   rel="nofollow sponsored noopener"
+                   onclick="event.stopPropagation()">
                    ${store.label}
                  </a>`
               : ""

@@ -11,6 +11,7 @@ const PATH = (window.location.pathname || "").split("?")[0].split("#")[0];
 const ROUTE = {
   HOME: PATH === "/" || PATH === "",
   DETAILS: /^\/game\/\d+/.test(PATH),
+  STEAM: /^\/steam-games(?:-|$)/.test(PATH) || PATH === "/steam-games",
 };
 
 let lastListPath = "/";
@@ -39,7 +40,7 @@ if (ageGate && ageBtn) {
 ========================= */
 let allGames = [];
 let activeSection = "out";        // out | soon
-let activeTime = "all";           // all | today | thisweek | thismonth (UI only; optional)
+let activeTime = "all";           // all | today | thisweek | thismonth
 let activePlatform = "all";       // all | pc | playstation | xbox | nintendo | ios | android
 let visibleCount = 0;
 const PAGE_SIZE = 24;
@@ -93,11 +94,64 @@ function startOfLocalDay(d = new Date()) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-// ✅ This is the key: "Coming Soon" starts tomorrow (2/4 when today is 2/3)
+// ✅ "Coming Soon" starts tomorrow (2/4 when today is 2/3)
 function startOfTomorrow() {
   const t = startOfLocalDay(new Date());
   t.setDate(t.getDate() + 1);
   return t;
+}
+
+/* =========================
+   TIME WINDOW (SAFE, ADDITIVE)
+   Keeps v7 canonical behavior and fixes Steam Today/Week/Month freshness
+   - For Out Now pages:
+       today: [startToday, startTomorrow)
+       thisweek: [startToday-6d, startTomorrow)
+       thismonth: [startToday-29d, startTomorrow)
+   - For Coming Soon pages:
+       today: [startTomorrow, startTomorrow+1d)
+       thisweek: [startTomorrow, startTomorrow+7d)
+       thismonth: [startTomorrow, startTomorrow+30d)
+========================= */
+function addDays(dateObj, days) {
+  const d = new Date(dateObj);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function getTimeWindow(section, timeKey) {
+  if (!timeKey || timeKey === "all") return null;
+
+  const todayStart = startOfLocalDay(new Date());
+  const tomorrowStart = startOfTomorrow();
+
+  if (section === "out") {
+    if (timeKey === "today") return { start: todayStart, end: tomorrowStart };
+    if (timeKey === "thisweek") return { start: addDays(todayStart, -6), end: tomorrowStart };
+    if (timeKey === "thismonth") return { start: addDays(todayStart, -29), end: tomorrowStart };
+    return null;
+  }
+
+  // section === "soon"
+  if (timeKey === "today") return { start: tomorrowStart, end: addDays(tomorrowStart, 1) };
+  if (timeKey === "thisweek") return { start: tomorrowStart, end: addDays(tomorrowStart, 7) };
+  if (timeKey === "thismonth") return { start: tomorrowStart, end: addDays(tomorrowStart, 30) };
+  return null;
+}
+
+function applyTimeWindow(list, section, timeKey) {
+  const win = getTimeWindow(section, timeKey);
+  if (!win) return list;
+
+  const startMs = win.start.getTime();
+  const endMs = win.end.getTime();
+
+  return list.filter(g => {
+    if (!g || !g.releaseDate) return false;
+    const t = new Date(g.releaseDate).getTime();
+    if (!Number.isFinite(t)) return false;
+    return t >= startMs && t < endMs;
+  });
 }
 
 function platformMatches(game, key) {
@@ -108,6 +162,63 @@ function platformMatches(game, key) {
   if (key === "pc") return p.includes("windows") || p.includes("pc");
 
   return p.includes(key);
+}
+
+/* =========================
+   ROUTE DEFAULTS (SAFE, ADDITIVE)
+   Ensures /steam-games* pages actually behave as advertised
+========================= */
+function initRouteDefaults() {
+  if (!ROUTE.STEAM) return;
+
+  // Steam pages should focus on PC releases
+  activePlatform = "pc";
+
+  // Map Steam routes to canonical section/time
+  if (PATH === "/steam-games-upcoming") {
+    activeSection = "soon";
+    activeTime = "all";
+  } else if (PATH === "/steam-games-today") {
+    activeSection = "out";
+    activeTime = "today";
+  } else if (PATH === "/steam-games-this-week") {
+    activeSection = "out";
+    activeTime = "thisweek";
+  } else {
+    // /steam-games (or any future steam route)
+    activeSection = "out";
+    activeTime = "all";
+  }
+}
+
+function syncActiveButtons() {
+  // Section buttons
+  const sectionBtns = Array.from(document.querySelectorAll(".section-segment button"));
+  if (sectionBtns.length) {
+    const target = sectionBtns.find(b =>
+      activeSection === "out" ? b.textContent.includes("Out") : b.textContent.includes("Coming")
+    );
+    if (target) setActive(target);
+  }
+
+  // Time buttons
+  const timeBtns = Array.from(document.querySelectorAll(".time-segment button"));
+  if (timeBtns.length) {
+    let label = "All";
+    if (activeTime === "today") label = "Today";
+    if (activeTime === "thisweek") label = "This Week";
+    if (activeTime === "thismonth") label = "This Month";
+
+    const target = timeBtns.find(b => (b.textContent || "").trim() === label);
+    if (target) setActive(target);
+  }
+
+  // Platform buttons
+  const platBtns = Array.from(document.querySelectorAll(".platforms button"));
+  if (platBtns.length) {
+    const target = platBtns.find(b => (b.dataset.platform || "all") === activePlatform);
+    if (target) setActive(target);
+  }
 }
 
 /* =========================
@@ -179,9 +290,12 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (LOCKED)
+   FILTER PIPELINE (LOCKED + TIME WINDOW ADDITIVE)
    - Out Now: before tomorrow start
    - Coming Soon: tomorrow start and beyond
+   - Time filters:
+       out: today/week/month => recent releases including today
+       soon: today/week/month => upcoming windows from tomorrow
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
@@ -194,14 +308,17 @@ function applyFilters(reset = false) {
 
   let list = activeSection === "out" ? outNow : comingSoon;
 
+  // ✅ Time window filter (SAFE, ADDITIVE)
+  list = applyTimeWindow(list, activeSection, activeTime);
+
   // ✅ Platform filter
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
     list = list.filter(g => platformMatches(g, key));
   }
 
-  // Keep list path for back button behavior
-  lastListPath = "/";
+  // Keep list path for back button behavior (important for /steam-games* routes)
+  lastListPath = window.location.pathname || "/";
 
   renderList(list);
 }
@@ -379,8 +496,25 @@ function renderPlatforms(game) {
 ========================= */
 document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
-    if (viewMode === "details") history.pushState({}, "", "/");
+    if (viewMode === "details") history.pushState({}, "", lastListPath || "/");
     activeSection = btn.textContent.includes("Out") ? "out" : "soon";
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+// ✅ Time segment buttons now actually work (SAFE, ADDITIVE)
+document.querySelectorAll(".time-segment button").forEach(btn => {
+  btn.onclick = () => {
+    if (viewMode === "details") history.pushState({}, "", lastListPath || "/");
+
+    const label = (btn.textContent || "").trim().toLowerCase();
+    if (label === "all") activeTime = "all";
+    else if (label === "today") activeTime = "today";
+    else if (label === "this week") activeTime = "thisweek";
+    else if (label === "this month") activeTime = "thismonth";
+    else activeTime = "all";
+
     setActive(btn);
     applyFilters(true);
   };
@@ -388,7 +522,7 @@ document.querySelectorAll(".section-segment button").forEach(btn => {
 
 document.querySelectorAll(".platforms button").forEach(btn => {
   btn.onclick = () => {
-    if (viewMode === "details") history.pushState({}, "", "/");
+    if (viewMode === "details") history.pushState({}, "", lastListPath || "/");
     activePlatform = btn.dataset.platform || "all";
     setActive(btn);
     applyFilters(true);
@@ -415,4 +549,6 @@ window.addEventListener("popstate", () => {
 /* =========================
    INIT
 ========================= */
+initRouteDefaults();
+syncActiveButtons();
 loadGames();

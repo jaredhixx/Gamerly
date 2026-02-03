@@ -71,9 +71,13 @@ function normalizeGame(g) {
   return {
     id: g.id,
     name: g.name,
-    releaseDate: earliest
-      ? new Date(earliest * 1000).toISOString()
-      : null,
+    releaseDate: g.first_release_date
+  ? new Date(g.first_release_date * 1000).toISOString()
+  : Array.isArray(g.release_dates) && g.release_dates.length
+    ? new Date(
+        Math.min(...g.release_dates.map(r => r.date)) * 1000
+      ).toISOString()
+    : null,
     aggregated_rating: g.aggregated_rating ?? null,
     aggregated_rating_count: g.aggregated_rating_count ?? null,
     coverUrl: normalizeCover(g.cover?.url),
@@ -119,17 +123,18 @@ function buildRecentQuery({ pastDays = 120, limit = 250 }) {
 
   return `
     fields
-      name,
-      summary,
-      storyline,
-      first_release_date,
-      release_dates.date,
-      aggregated_rating,
-      aggregated_rating_count,
-      cover.url,
-      screenshots.url,
-      platforms.name,
-      genres.name;
+  name,
+  summary,
+  storyline,
+  first_release_date,
+  release_dates.date,
+  release_dates.platform,
+  aggregated_rating,
+  aggregated_rating_count,
+  cover.url,
+  screenshots.url,
+  platforms.name,
+  genres.name;
     where
   (
     first_release_date >= ${unixSeconds(past)} &
@@ -150,17 +155,18 @@ function buildUpcomingQuery({ futureDays = 540, limit = 250 }) {
 
   return `
     fields
-      name,
-      summary,
-      storyline,
-      first_release_date,
-      release_dates.date,
-      aggregated_rating,
-      aggregated_rating_count,
-      cover.url,
-      screenshots.url,
-      platforms.name,
-      genres.name;
+  name,
+  summary,
+  storyline,
+  first_release_date,
+  release_dates.date,
+  release_dates.platform,
+  aggregated_rating,
+  aggregated_rating_count,
+  cover.url,
+  screenshots.url,
+  platforms.name,
+  genres.name;
     where
   (
     first_release_date > ${unixSeconds(now)} &

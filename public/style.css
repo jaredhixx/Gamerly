@@ -604,3 +604,60 @@ main {
 .details + .seo-links h2 {
   margin-top: 0;
 }
+
+/* =========================================================
+   ✅ SEO LINKS VISUAL UPGRADE
+   - Keeps full crawl value
+   - Makes links feel intentional, not default
+========================================================= */
+
+.seo-links {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.seo-links h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+
+.seo-links p {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 0.75rem;
+}
+
+.seo-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.seo-links li {
+  margin: 0;
+}
+
+.seo-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.8);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.seo-links a:hover {
+  background: rgba(59,130,246,0.15);
+  border-color: rgba(59,130,246,0.45);
+  color: #3b82f6;
+}

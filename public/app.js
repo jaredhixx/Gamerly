@@ -74,6 +74,17 @@ function setMetaDescription(desc) {
   if (tag) tag.setAttribute("content", desc);
 }
 
+/* ✅ CANONICAL HELPER (SEO, SAFE, ADDITIVE ONLY) */
+function setCanonical(url) {
+  let link = document.querySelector('link[rel="canonical"]');
+  if (!link) {
+    link = document.createElement("link");
+    link.setAttribute("rel", "canonical");
+    document.head.appendChild(link);
+  }
+  link.setAttribute("href", url);
+}
+
 /* =========================
    SEO ROUTE META (HIGH ROI, SAFE)
 ========================= */
@@ -85,6 +96,7 @@ function applyRouteMeta() {
     setMetaDescription(
       "Browse new and recent Steam game releases. Updated daily with curated PC games available now on Steam."
     );
+    setCanonical("https://gamerly.net/steam-games");
     return;
   }
 
@@ -93,6 +105,7 @@ function applyRouteMeta() {
     setMetaDescription(
       "See all Steam games released today. Discover new PC games available now on Steam, updated daily."
     );
+    setCanonical("https://gamerly.net/steam-games-today");
     return;
   }
 
@@ -101,6 +114,7 @@ function applyRouteMeta() {
     setMetaDescription(
       "Browse Steam games released this week. Stay up to date with the latest PC game launches on Steam."
     );
+    setCanonical("https://gamerly.net/steam-games-this-week");
     return;
   }
 
@@ -109,6 +123,7 @@ function applyRouteMeta() {
     setMetaDescription(
       "Explore upcoming Steam games and PC releases coming soon. Track new games before they launch on Steam."
     );
+    setCanonical("https://gamerly.net/steam-games-upcoming");
     return;
   }
 
@@ -119,7 +134,7 @@ function applyRouteMeta() {
   );
 }
 
-/* =========================
+ /* =========================
    SEO ROUTE H1 (HIGH ROI, SAFE)
 ========================= */
 function applyRouteH1() {

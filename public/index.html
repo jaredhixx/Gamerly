@@ -11,7 +11,6 @@
   <meta name="description" content="Track new and upcoming game releases across PC, console, and mobile. Updated daily. Curated so you only see what matters." />
   <link rel="canonical" href="https://gamerly.net/" />
 
-  <!-- ✅ CORRECT for /public structure -->
   <link rel="stylesheet" href="style.css" />
 
   <!-- Google Analytics (GA4) -->
@@ -20,10 +19,7 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
-    gtag('config', 'G-F8D6RPNYV1', {
-      send_page_view: true
-    });
+    gtag('config', 'G-F8D6RPNYV1', { send_page_view: true });
   </script>
 </head>
 
@@ -70,28 +66,25 @@
         <button data-platform="android">Android</button>
       </div>
     </div>
+
+    <!-- 🔥 STEAM SHORTCUTS (HIGH-INTENT, SECONDARY NAV) -->
+    <nav class="internal-links" aria-label="Browse Steam releases">
+      <ul>
+        <li><a href="/steam-games">Steam</a></li>
+        <li><a href="/steam-games-today">Today</a></li>
+        <li><a href="/steam-games-this-week">This Week</a></li>
+        <li><a href="/steam-games-upcoming">Upcoming</a></li>
+      </ul>
+    </nav>
   </header>
 
   <main>
-
-    <!-- 🔥 INTERNAL STEAM MONEY LINKS (SEO + ROI) -->
-    <section class="internal-links" aria-label="Steam game releases">
-      <h2>Steam Game Releases</h2>
-      <ul>
-        <li><a href="/steam-games">Steam Games</a></li>
-        <li><a href="/steam-games-today">Steam Games Today</a></li>
-        <li><a href="/steam-games-this-week">Steam Games This Week</a></li>
-        <li><a href="/steam-games-upcoming">Upcoming Steam Games</a></li>
-      </ul>
-    </section>
-
     <div id="loading" class="loading">Loading…</div>
     <div id="errorBox" class="error"></div>
     <div id="gamesGrid"></div>
     <button id="showMore" class="show-more" style="display:none;">Show more</button>
   </main>
 
-  <!-- ✅ CORRECT for /public structure -->
   <script src="app.js"></script>
 </body>
 </html>

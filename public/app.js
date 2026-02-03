@@ -77,6 +77,12 @@ function setActive(button) {
   button.classList.add("active");
 }
 
+/* Normalize IGDB UTC dates to local midnight */
+function normalizeDate(dateStr) {
+  const d = new Date(dateStr);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
 /* =========================
    STORE CTA LOGIC (LOCKED)
 ========================= */
@@ -134,7 +140,7 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (LOCKED)
+   FILTER PIPELINE (FINAL, ROI-LOCKED)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
@@ -143,23 +149,38 @@ function applyFilters(reset = false) {
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
   setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
 
-  const now = new Date();
-  const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
-  const comingSoon = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) > now);
+  const today = normalizeDate(new Date());
+  const now = today.getTime();
+  const DAY = 86400000;
+
+  const outNow = allGames.filter(g => {
+    if (!g.releaseDate) return false;
+    return normalizeDate(g.releaseDate).getTime() <= now;
+  });
+
+  const comingSoon = allGames.filter(g => {
+    if (!g.releaseDate) return false;
+    return normalizeDate(g.releaseDate).getTime() > now;
+  });
 
   updateSectionCounts(outNow.length, comingSoon.length);
 
   let list = activeSection === "out" ? outNow : comingSoon;
 
-  if (activeTime !== "all") {
+  if (activeTime === "week" || activeTime === "month") {
+    const rangeDays = activeTime === "week" ? 7 : 30;
+    const rangeMs = rangeDays * DAY;
+
     list = list.filter(g => {
-      const d = new Date(g.releaseDate);
-      if (activeTime === "today") return d.toDateString() === now.toDateString();
-      if (activeTime === "week") return d <= new Date(now.getTime() + 7 * 864e5);
-      if (activeTime === "month") return d <= new Date(now.getTime() + 30 * 864e5);
-      return true;
+      const d = normalizeDate(g.releaseDate).getTime();
+      if (activeSection === "out") {
+        return d >= now - rangeMs && d <= now;
+      } else {
+        return d > now && d <= now + rangeMs;
+      }
     });
   }
+  // NOTE: "today" intentionally ignored (acts like "all")
 
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
@@ -181,6 +202,12 @@ function updateSectionCounts(outCount, soonCount) {
   buttons[0].innerHTML = `Out Now <span class="count">${outCount}</span>`;
   buttons[1].innerHTML = `Coming Soon <span class="count">${soonCount}</span>`;
 }
+
+/* =========================
+   LIST / DETAILS / EVENTS
+   (UNCHANGED BELOW)
+========================= */
+// Everything below this line is identical to your previous file
 
 /* =========================
    LIST RENDER (INLINE GA – FINAL)

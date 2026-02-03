@@ -131,7 +131,7 @@ body {
   color: rgba(255,255,255,0.5);
 }
 
-/* ========================= FILTER CONTROLS ========================= */
+/* ========================= FILTER CONTROLS (RESTORED) ========================= */
 .time-segment,
 .section-segment,
 .platforms {
@@ -175,7 +175,7 @@ main {
   gap: 1.25rem;
 }
 
-/* ========================= CARD ========================= */
+/* ========================= CARD (CLICKABLE + BADGE SAFE ZONE RESTORED) ========================= */
 .card {
   position: relative;
   background: #0b0f1a;
@@ -218,7 +218,7 @@ main {
   pointer-events: none;
 }
 
-/* ========================= RATING BADGE ========================= */
+/* ========================= RATING BADGE (RESTORED) ========================= */
 .rating-badge {
   position: absolute;
   top: 8px;
@@ -232,7 +232,7 @@ main {
   border-radius: 8px;
 }
 
-/* ========================= PLATFORM OVERLAY ========================= */
+/* ========================= PLATFORM OVERLAY (NO OVERLAP) ========================= */
 .platform-overlay {
   position: absolute;
   top: 8px;
@@ -245,6 +245,8 @@ main {
   flex-wrap: wrap;
   pointer-events: none;
 }
+
+.platform-overlay .platform-chip { pointer-events: none; }
 
 /* ========================= PLATFORM CHIPS ========================= */
 .platform-chip {
@@ -273,41 +275,21 @@ main {
 /* ========================= CARD BODY ========================= */
 .card-body { padding: 0.9rem 1rem 1.05rem; }
 
+.badge-category {
+  display: inline-block;
+  padding: 4px 9px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
+  margin-bottom: 0.45rem;
+}
+
 .card-title { font-size: 0.92rem; font-weight: 600; }
+.card-meta { font-size: 0.75rem; opacity: 0.7; margin-top: 0.2rem; }
 
-/* 🔧 MICRO-CTR TWEAK (DATE VS CTA) */
-.card-meta {
-  font-size: 0.75rem;
-  margin-top: 0.2rem;
-}
-
-.card-meta span {
-  opacity: 0.55;
-}
-
-/* CTA emphasis on hover-capable devices only */
-@media (hover: hover) {
-  .card:hover .card-cta {
-    font-weight: 700;
-    color: #3b82f6;
-  }
-}
-
-/* ========================= INLINE CARD CTA ========================= */
-.card-cta {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(59,130,246,0.9);
-  text-decoration: none;
-  margin-left: 0.4rem;
-  white-space: nowrap;
-}
-
-.card-cta:hover {
-  text-decoration: underline;
-}
-
-/* ========================= SHOW MORE ========================= */
+/* ========================= SHOW MORE (RESTORED MODERN) ========================= */
 #showMore {
   display: block;
   margin: 2.2rem auto 0;
@@ -323,9 +305,195 @@ main {
 }
 
 /* ========================= DETAILS PAGE ========================= */
-/* (unchanged — omitted here for brevity in explanation, but fully present in your file) */
+.details {
+  max-width: 980px;
+  margin: 2.6rem auto 0;
+  padding: 2.2rem;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.05),
+    rgba(255,255,255,0.02)
+  );
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2.3rem;
+}
 
-/* ========================= INTERNAL LINKS ========================= */
+#gamesGrid .details {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.details-cover img { width: 100%; border-radius: 22px; }
+
+.details-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.details-title {
+  font-size: 2rem;
+  font-weight: 850;
+  line-height: 1.15;
+}
+
+.details-sub { font-size: 0.92rem; opacity: 0.75; }
+
+.details-summary {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.82);
+  line-height: 1.6;
+  max-width: 680px;
+}
+
+.details-platforms {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.cta-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  padding: 0.95rem 2.3rem;
+  border-radius: 999px;
+  font-weight: 800;
+  text-decoration: none;
+  width: fit-content;
+  margin-top: 0.6rem;
+  box-shadow: 0 12px 34px rgba(59,130,246,0.28);
+}
+
+.details-back {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  width: fit-content;
+  margin-top: 0.4rem;
+}
+
+/* ========================= MOBILE FIX (NO RIGHT OVERFLOW) ========================= */
+@media (max-width: 768px) {
+  .details { grid-template-columns: 1fr; padding: 1.5rem; }
+  .details-cover { max-width: 220px; margin: 0 auto; }
+  .details-title { font-size: 1.6rem; text-align: center; }
+  .details-sub { text-align: center; margin: 0 auto; }
+  .details-platforms { justify-content: center; }
+  .cta-primary { margin: 0.8rem auto 0; }
+  .details-back { margin: 0.5rem auto 0; }
+
+  .details-summary {
+    text-align: left;
+    margin: 0;
+  }
+}
+
+/* =========================================================
+   ✅ GALLERY ADD-ON (ONLY NEW CODE)
+========================================================= */
+.details { grid-template-columns: 300px minmax(0, 1fr); }
+.details-info { min-width: 0; }
+
+.details-gallery {
+  display: flex;
+  gap: 10px;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 2px 12px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 16px;
+}
+
+.details-gallery img {
+  flex: 0 0 auto;
+  width: 240px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.35);
+  scroll-snap-align: start;
+}
+
+@media (max-width: 768px) {
+  .details-gallery img { width: 180px; }
+}
+
+/* =========================================================
+   ✅ MOBILE DETAIL SUMMARY WIDTH FIX (ONLY CHANGE)
+   - Neutralizes desktop max-width on mobile
+========================================================= */
+@media (max-width: 768px) {
+  .details-summary {
+    max-width: 100%;
+  }
+}
+
+/* =========================================================
+   ✅ MOBILE DETAILS FULL-WIDTH PAGE (APP-STYLE)
+   Approved redesign — mobile only
+   (ONLY CHANGES INSIDE THIS BLOCK)
+========================================================= */
+@media (max-width: 768px) {
+  .details {
+    max-width: 100%;
+    margin: 0;
+    padding: 1.25rem;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+
+    /* ✅ NEW: break out of main's 1.6rem side padding */
+    width: calc(100% + 3.2rem);
+    margin-left: -1.6rem;
+    margin-right: -1.6rem;
+
+    /* ✅ Safety: prevent any horizontal weirdness */
+    overflow-x: hidden;
+  }
+
+  .details-gallery {
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .details-gallery img {
+    width: 260px;
+  }
+}
+
+/* =========================
+   INLINE CARD CTA (LIST VIEW)
+   High-ROI, Low-Noise
+========================= */
+.card-cta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(59,130,246,0.9);
+  text-decoration: none;
+  margin-left: 0.4rem;
+  white-space: nowrap;
+}
+
+.card-cta:hover {
+  text-decoration: underline;
+  color: #3b82f6;
+}
+
+/* =========================================================
+   🔥 STEAM INTERNAL LINKS (HIGH-ROI, FULLY SCOPED)
+   Secondary navigation — zero cascade risk
+========================================================= */
+
 .internal-links {
   margin-top: 0.75rem;
   margin-bottom: 0.25rem;
@@ -340,6 +508,10 @@ main {
   margin: 0;
 }
 
+.internal-links li {
+  margin: 0;
+}
+
 .internal-links a {
   display: inline-flex;
   align-items: center;
@@ -351,4 +523,11 @@ main {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.75);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.internal-links a:hover {
+  background: rgba(59,130,246,0.15);
+  border-color: rgba(59,130,246,0.45);
+  color: #3b82f6;
 }

@@ -47,8 +47,49 @@ const PAGE_SIZE = 24;
 let viewMode = "list";
 
 /* =========================
-   DATE HELPERS (LOCKED)
+   HELPERS (LOCKED)
 ========================= */
+function slugify(str = "") {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function parseDetailsIdFromPath(pathname) {
+  const clean = (pathname || "").split("?")[0].split("#")[0];
+  const m = clean.match(/^\/game\/(\d+)(?:-.*)?$/);
+  return m ? m[1] : null;
+}
+
+function setMetaTitle(title) {
+  document.title = title;
+}
+
+function setMetaDescription(desc) {
+  const tag = document.querySelector('meta[name="description"]');
+  if (tag) tag.setAttribute("content", desc);
+}
+
+function escapeHtml(str = "") {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function setActive(button) {
+  const group = button.parentElement;
+  if (!group) return;
+  group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  button.classList.add("active");
+}
+
 function startOfLocalDay(d = new Date()) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
@@ -67,7 +108,7 @@ function platformMatches(game, key) {
 }
 
 /* =========================
-   COUNTERS (NEW, SURGICAL)
+   COUNTERS (NEW, SAFE)
 ========================= */
 function updateSectionCounters(outCount, soonCount) {
   const buttons = document.querySelectorAll(".section-segment button");
@@ -75,17 +116,48 @@ function updateSectionCounters(outCount, soonCount) {
 
   buttons.forEach(btn => {
     const base = btn.textContent.replace(/\s*\(\d+\)$/, "");
-    if (base.includes("Out")) {
-      btn.textContent = `${base} (${outCount})`;
-    }
-    if (base.includes("Coming")) {
-      btn.textContent = `${base} (${soonCount})`;
-    }
+    if (base.includes("Out")) btn.textContent = `${base} (${outCount})`;
+    if (base.includes("Coming")) btn.textContent = `${base} (${soonCount})`;
   });
 }
 
 /* =========================
-   FETCH
+   STORE CTA LOGIC (LOCKED)
+========================= */
+function appleSearchTerm(str = "") {
+  return str.replace(/[^\w\s]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function getPrimaryStore(game) {
+  if (!Array.isArray(game.platforms)) return null;
+
+  const encodedName = encodeURIComponent(game.name);
+  const appleTerm = appleSearchTerm(game.name);
+  const p = game.platforms.join(" ").toLowerCase();
+
+  if (p.includes("windows") || p.includes("pc"))
+    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${encodedName}` };
+
+  if (p.includes("playstation"))
+    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${encodedName}` };
+
+  if (p.includes("xbox"))
+    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${encodedName}` };
+
+  if (p.includes("nintendo"))
+    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encodedName}` };
+
+  if (p.includes("ios"))
+    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${encodeURIComponent(appleTerm)}` };
+
+  if (p.includes("android"))
+    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${encodedName}&c=apps` };
+
+  return { label: "View on Store →", url: `https://www.google.com/search?q=${encodedName}+game` };
+}
+
+/* =========================
+   FETCH (LOCKED)
 ========================= */
 async function loadGames() {
   try {
@@ -117,7 +189,6 @@ function applyFilters(reset = false) {
   const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) < tomorrow);
   const comingSoon = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) >= tomorrow);
 
-  // 🔥 update counters BEFORE any filtering
   updateSectionCounters(outNow.length, comingSoon.length);
 
   let list = activeSection === "out" ? outNow : comingSoon;

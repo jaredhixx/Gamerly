@@ -239,20 +239,6 @@ function getTimeWindow(section, timeKey) {
   return null;
 }
 
-  // coming soon
-  if (timeKey === "today") {
-    return { start: today + 1, end: today + 2 };
-  }
-  if (timeKey === "thisweek") {
-    return { start: today + 1, end: today + 8 };
-  }
-  if (timeKey === "thismonth") {
-    return { start: today + 1, end: today + 31 };
-  }
-
-  return null;
-}
-
 function applyTimeWindow(list, section, timeKey) {
   const win = getTimeWindow(section, timeKey);
   if (!win) return list;

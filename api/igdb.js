@@ -51,11 +51,28 @@ function normalizeScreenshot(url) {
 }
 
 function normalizeGame(g) {
+  // Collect all possible release timestamps
+  const dates = [];
+
+  if (g.first_release_date) {
+    dates.push(g.first_release_date);
+  }
+
+  if (Array.isArray(g.release_dates)) {
+    g.release_dates.forEach(rd => {
+      if (rd?.date) dates.push(rd.date);
+    });
+  }
+
+  // Pick earliest valid date
+  const earliest =
+    dates.length > 0 ? Math.min(...dates) : null;
+
   return {
     id: g.id,
     name: g.name,
-    releaseDate: g.first_release_date
-      ? new Date(g.first_release_date * 1000).toISOString()
+    releaseDate: earliest
+      ? new Date(earliest * 1000).toISOString()
       : null,
     aggregated_rating: g.aggregated_rating ?? null,
     aggregated_rating_count: g.aggregated_rating_count ?? null,
@@ -65,10 +82,9 @@ function normalizeGame(g) {
       : [],
     category: g.genres?.[0]?.name ?? null,
 
-    // ✅ Text for SEO + trust
+    // SEO + trust
     summary: g.summary || g.storyline || null,
 
-    // ✅ NEW — screenshots for gallery (max 5, safe)
     screenshots: Array.isArray(g.screenshots)
       ? g.screenshots
           .map(s => normalizeScreenshot(s.url))
@@ -107,6 +123,7 @@ function buildRecentQuery({ pastDays = 120, limit = 250 }) {
       summary,
       storyline,
       first_release_date,
+      release_dates.date,
       aggregated_rating,
       aggregated_rating_count,
       cover.url,
@@ -131,6 +148,7 @@ function buildUpcomingQuery({ futureDays = 540, limit = 250 }) {
       summary,
       storyline,
       first_release_date,
+      release_dates.date,
       aggregated_rating,
       aggregated_rating_count,
       cover.url,

@@ -82,48 +82,64 @@ function setActive(button) {
 ========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
-  const name = encodeURIComponent(game.name);
+
+  const rawName = game.name; // IMPORTANT: unencoded for Apple
+  const encodedName = encodeURIComponent(game.name); // for everyone else
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc"))
     return {
       label: "View on Steam →",
-      url: `https://store.steampowered.com/search/?term=${name}&category1=998`
+      url: `https://store.steampowered.com/search/?term=${encodedName}`,
+      platform: "pc",
+      store: "steam"
     };
 
   if (p.includes("playstation"))
     return {
       label: "View on PlayStation →",
-      url: `https://store.playstation.com/search/${name}`
+      url: `https://store.playstation.com/search/${encodedName}`,
+      platform: "playstation",
+      store: "playstation"
     };
 
   if (p.includes("xbox"))
     return {
       label: "View on Xbox →",
-      url: `https://www.xbox.com/en-US/Search?q=${name}`
+      url: `https://www.xbox.com/en-US/Search?q=${encodedName}`,
+      platform: "xbox",
+      store: "xbox"
     };
 
   if (p.includes("nintendo"))
     return {
       label: "View on Nintendo →",
-      url: `https://www.nintendo.com/us/search/#q=${name}`
+      url: `https://www.nintendo.com/us/search/#q=${encodedName}`,
+      platform: "nintendo",
+      store: "nintendo"
     };
 
   if (p.includes("ios"))
-  return {
-    label: "View on App Store →",
-    url: `https://apps.apple.com/us/search?term=${name}`
-  };
+    return {
+      label: "View on App Store →",
+      url: `https://apps.apple.com/us/search?term=${rawName}`,
+      platform: "ios",
+      store: "apple"
+    };
 
   if (p.includes("android"))
     return {
       label: "View on Google Play →",
-      url: `https://play.google.com/store/search?q=${name}&c=apps`
+      url: `https://play.google.com/store/search?q=${encodedName}&c=apps`,
+      platform: "android",
+      store: "google_play"
     };
 
   return {
     label: "View on Store →",
-    url: `https://www.google.com/search?q=${name}+game`
+    url: `https://www.google.com/search?q=${encodedName}+game`,
+    platform: "unknown",
+    store: "generic"
   };
 }
 

@@ -118,7 +118,7 @@ async function loadGames() {
 
     const res = await fetch("/api/igdb");
     const data = await res.json();
-    if (!data.ok) throw new Error("API failed");
+    if (!res.ok) throw new Error("API failed");
 
     allGames = data.games || [];
 

@@ -1,3 +1,5 @@
+// DEPLOY_SCREENSHOTS_AFTER_DOMAIN_FIX
+
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");

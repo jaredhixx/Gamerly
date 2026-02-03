@@ -117,10 +117,10 @@ async function loadGames() {
     errorBox.textContent = "";
 
     const res = await fetch("/api/igdb");
-    const data = await res.json();
-    if (!res.ok) throw new Error("API failed");
+if (!res.ok) throw new Error("API failed");
 
-    allGames = data.games || [];
+const data = await res.json();
+allGames = data.games || data || [];
 
     const id = parseDetailsIdFromPath(window.location.pathname);
     if (id) {

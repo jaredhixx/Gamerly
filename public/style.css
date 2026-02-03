@@ -661,3 +661,24 @@ main {
   border-color: rgba(59,130,246,0.45);
   color: #3b82f6;
 }
+
+/* =========================================================
+   ✅ STEAM CONTEXT LINE (ABOVE GRID)
+   - Crawlable SEO text
+   - Only one line visible at a time
+========================================================= */
+
+.steam-context {
+  display: none;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 0.75rem;
+}
+
+/* Default Steam page */
+body[data-path="/steam-games"] .steam-context[data-route="/steam-games"],
+body[data-path="/steam-games-today"] .steam-context[data-route="/steam-games-today"],
+body[data-path="/steam-games-this-week"] .steam-context[data-route="/steam-games-this-week"],
+body[data-path="/steam-games-upcoming"] .steam-context[data-route="/steam-games-upcoming"] {
+  display: block;
+}

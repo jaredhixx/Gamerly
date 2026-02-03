@@ -89,6 +89,39 @@ function applyRouteMeta() {
     return;
   }
 
+   /* =========================
+   SEO ROUTE H1 (HIGH ROI, SAFE)
+========================= */
+function applyRouteH1() {
+  const h1 = document.querySelector(".hero-title");
+  if (!h1) return;
+
+  const path = window.location.pathname;
+
+  if (path === "/steam-games-today") {
+    h1.textContent = "Steam Games Released Today";
+    return;
+  }
+
+  if (path === "/steam-games-this-week") {
+    h1.textContent = "Steam Game Releases This Week";
+    return;
+  }
+
+  if (path === "/steam-games-upcoming") {
+    h1.textContent = "Upcoming Steam Games";
+    return;
+  }
+
+  if (path === "/steam-games") {
+    h1.textContent = "Steam Game Releases";
+    return;
+  }
+
+  // Default / homepage
+  h1.textContent = "Daily Game Releases, Curated";
+}
+
   if (path === "/steam-games-today") {
     setMetaTitle("Steam Games Released Today | Gamerly");
     setMetaDescription(
@@ -582,4 +615,6 @@ window.addEventListener("popstate", () => {
 initRouteDefaults();
 syncActiveButtons();
 applyRouteMeta();
+applyRouteH1();
 loadGames();
+

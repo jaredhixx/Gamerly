@@ -4,7 +4,7 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   ROUTE MODE (SAFE)
+   ROUTE MODE (SAFE, ADDITIVE)
 ========================= */
 const PATH = (window.location.pathname || "").split("?")[0].split("#")[0];
 
@@ -20,7 +20,7 @@ const ROUTE = {
 const IS_STEAM_MONEY_PAGE =
   ROUTE.STEAM_ALL || ROUTE.STEAM_TODAY || ROUTE.STEAM_WEEK || ROUTE.STEAM_UPCOMING;
 
-let lastListPath = "/";
+let lastListPath = ROUTE.HOME ? "/" : (IS_STEAM_MONEY_PAGE ? PATH : "/");
 
 /* =========================
    AGE GATE (LOCKED)
@@ -42,16 +42,46 @@ if (ageGate && ageBtn) {
 }
 
 /* =========================
-   STATE
+   STATE (LOCKED)
 ========================= */
 let allGames = [];
-let activePlatform = "all";
+let activeSection = "out"; // ✅ RESTORED
 let visibleCount = 0;
 const PAGE_SIZE = 24;
+let viewMode = "list";
 
 /* =========================
    HELPERS
 ========================= */
+function slugify(str = "") {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function appleSearchTerm(str = "") {
+  return str.replace(/[^\w\s]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function parseDetailsIdFromPath(pathname) {
+  const clean = (pathname || "").split("?")[0].split("#")[0];
+  const m = clean.match(/^\/game\/(\d+)(?:-.*)?$/);
+  return m ? m[1] : null;
+}
+
+function setMetaTitle(title) {
+  document.title = title;
+}
+
+function setMetaDescription(desc) {
+  const tag = document.querySelector('meta[name="description"]');
+  if (tag) tag.setAttribute("content", desc);
+}
+
 function escapeHtml(str = "") {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -68,31 +98,39 @@ function setActive(button) {
   button.classList.add("active");
 }
 
-function isPCSteamCandidate(game) {
-  if (!Array.isArray(game.platforms)) return false;
-  const p = game.platforms.join(" ").toLowerCase();
-  return p.includes("windows") || p.includes("pc");
+function startOfLocalDay(d = new Date()) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+/* =========================
+   STORE CTA LOGIC (LOCKED)
+========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
+
   const encodedName = encodeURIComponent(game.name);
+  const appleTerm = appleSearchTerm(game.name);
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc"))
     return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${encodedName}` };
+
   if (p.includes("playstation"))
     return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${encodedName}` };
+
   if (p.includes("xbox"))
     return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${encodedName}` };
+
   if (p.includes("nintendo"))
     return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encodedName}` };
+
   if (p.includes("ios"))
-    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${encodedName}` };
+    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${encodeURIComponent(appleTerm)}` };
+
   if (p.includes("android"))
     return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${encodedName}&c=apps` };
 
-  return null;
+  return { label: "View on Store →", url: `https://www.google.com/search?q=${encodedName}+game` };
 }
 
 /* =========================
@@ -108,6 +146,14 @@ async function loadGames() {
     if (!data.ok) throw new Error("API failed");
 
     allGames = data.games || [];
+
+    const id = parseDetailsIdFromPath(window.location.pathname);
+    if (id) {
+      const g = allGames.find(x => String(x.id) === String(id));
+      if (g) return renderDetails(g, true);
+      history.replaceState({}, "", "/");
+    }
+
     applyFilters(true);
   } catch {
     errorBox.textContent = "Failed to load games.";
@@ -117,27 +163,27 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER (PLATFORM ONLY — ROI)
+   FILTER PIPELINE (HOME ONLY)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
+  viewMode = "list";
 
-  let list = [...allGames];
+  const now = new Date();
+  const todayStart = startOfLocalDay(now);
 
-  if (activePlatform !== "all") {
-    list = list.filter(g =>
-      Array.isArray(g.platforms) &&
-      g.platforms.some(p =>
-        p.toLowerCase().includes(activePlatform)
-      )
-    );
-  }
+  setMetaTitle("Gamerly — Daily Game Releases, Curated");
+  setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
 
+  const outNow = allGames.filter(g => new Date(g.releaseDate) < todayStart);
+  const comingSoon = allGames.filter(g => new Date(g.releaseDate) >= todayStart);
+
+  let list = activeSection === "out" ? outNow : comingSoon;
   renderList(list);
 }
 
 /* =========================
-   LIST RENDER
+   LIST RENDER (LOCKED)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -156,7 +202,6 @@ function renderList(list) {
 
     const card = document.createElement("div");
     card.className = "card";
-    card.setAttribute("role", "button");
 
     card.innerHTML = `
       <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover" />
@@ -164,23 +209,14 @@ function renderList(list) {
       <div class="card-body">
         ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
-        <div class="card-meta" style="display:flex; justify-content:space-between;">
+        <div class="card-meta">
           <span>${releaseDate}</span>
-          ${
-            store
-              ? `<a class="card-cta"
-                   href="${store.url}"
-                   target="_blank"
-                   rel="nofollow sponsored noopener"
-                   onclick="event.stopPropagation()">
-                   ${store.label}
-                 </a>`
-              : ""
-          }
+          ${store ? `<a class="card-cta" href="${store.url}" target="_blank" rel="nofollow sponsored noopener">View</a>` : ""}
         </div>
       </div>
     `;
 
+    card.onclick = () => renderDetails(game);
     grid.appendChild(card);
   });
 
@@ -188,7 +224,15 @@ function renderList(list) {
 }
 
 /* =========================
-   PLATFORM CHIPS (VISUAL)
+   DETAILS PAGE (UNCHANGED — NEXT STEP)
+========================= */
+function renderDetails(game) {
+  viewMode = "details";
+  history.pushState({}, "", `/game/${game.id}-${slugify(game.name)}`);
+}
+
+/* =========================
+   PLATFORMS
 ========================= */
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";
@@ -204,11 +248,11 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   PLATFORM FILTER EVENTS (FIXED)
+   SECTION BUTTON EVENTS
 ========================= */
-document.querySelectorAll(".platforms button").forEach(btn => {
+document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
-    activePlatform = btn.dataset.platform || "all";
+    activeSection = btn.textContent.includes("Out") ? "out" : "soon";
     setActive(btn);
     applyFilters(true);
   };

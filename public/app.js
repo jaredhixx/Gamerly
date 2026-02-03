@@ -74,6 +74,54 @@ function setMetaDescription(desc) {
   if (tag) tag.setAttribute("content", desc);
 }
 
+/* =========================
+   SEO ROUTE META (HIGH ROI, SAFE)
+========================= */
+function applyRouteMeta() {
+  const path = window.location.pathname;
+
+  // Steam routes
+  if (path === "/steam-games") {
+    setMetaTitle("Steam Games — New & Recent Releases | Gamerly");
+    setMetaDescription(
+      "Browse new and recent Steam game releases. Updated daily with curated PC games available now on Steam."
+    );
+    return;
+  }
+
+  if (path === "/steam-games-today") {
+    setMetaTitle("Steam Games Released Today | Gamerly");
+    setMetaDescription(
+      "See all Steam games released today. Discover new PC games available now on Steam, updated daily."
+    );
+    return;
+  }
+
+  if (path === "/steam-games-this-week") {
+    setMetaTitle("Steam Games This Week | New PC Releases");
+    setMetaDescription(
+      "Browse Steam games released this week. Stay up to date with the latest PC game launches on Steam."
+    );
+    return;
+  }
+
+  if (path === "/steam-games-upcoming") {
+    setMetaTitle("Upcoming Steam Games | PC Releases Coming Soon");
+    setMetaDescription(
+      "Explore upcoming Steam games and PC releases coming soon. Track new games before they launch on Steam."
+    );
+    return;
+  }
+
+  // Default homepage fallback
+  if (path === "/" || path === "") {
+    setMetaTitle("Gamerly — Daily Game Releases, Curated");
+    setMetaDescription(
+      "Track new and upcoming game releases across PC, console, and mobile. Updated daily and curated so you only see what matters."
+    );
+  }
+}
+
 function escapeHtml(str = "") {
   return String(str)
     .replaceAll("&", "&amp;")

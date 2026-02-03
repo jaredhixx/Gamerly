@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   try {
-    // Build absolute base URL safely from the request
     const protocol =
       req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
     const host = req.headers.host;
@@ -39,7 +38,24 @@ export default async function handler(req, res) {
     xml += `    <priority>1.0</priority>\n`;
     xml += `  </url>\n`;
 
-    // Game pages
+    // 🔥 STEAM MONEY PAGES (HIGHEST ROI)
+    const steamPages = [
+      "/steam-games",
+      "/steam-games-today",
+      "/steam-games-this-week",
+      "/steam-games-upcoming"
+    ];
+
+    for (const path of steamPages) {
+      xml += `  <url>\n`;
+      xml += `    <loc>https://gamerly.net${path}</loc>\n`;
+      xml += `    <lastmod>${today}</lastmod>\n`;
+      xml += `    <changefreq>daily</changefreq>\n`;
+      xml += `    <priority>0.9</priority>\n`;
+      xml += `  </url>\n`;
+    }
+
+    // Game detail pages
     for (const game of games) {
       if (!game || !game.id || !game.name) continue;
 

@@ -64,28 +64,26 @@ function normalizeGame(g) {
     });
   }
 
-  // ✅ EARLIEST real release (PC / console / mobile)
+  // Pick earliest valid date
   const earliest =
     dates.length > 0 ? Math.min(...dates) : null;
 
   return {
     id: g.id,
     name: g.name,
-
-    // ✅ FIX: use earliest actual release, not first_release_date only
-    releaseDate: earliest
-      ? new Date(earliest * 1000).toISOString()
-      : null,
-
+    releaseDate: g.first_release_date
+  ? new Date(g.first_release_date * 1000).toISOString()
+  : Array.isArray(g.release_dates) && g.release_dates.length
+    ? new Date(
+        Math.min(...g.release_dates.map(r => r.date)) * 1000
+      ).toISOString()
+    : null,
     aggregated_rating: g.aggregated_rating ?? null,
     aggregated_rating_count: g.aggregated_rating_count ?? null,
-
     coverUrl: normalizeCover(g.cover?.url),
-
     platforms: Array.isArray(g.platforms)
       ? g.platforms.map(p => p.name).filter(Boolean)
       : [],
-
     category: g.genres?.[0]?.name ?? null,
 
     // SEO + trust
@@ -119,70 +117,69 @@ async function postIGDB(query, token) {
 /* =========================
    QUERIES
 ========================= */
-function buildRecentQuery({ pastDays = 180, limit = 300 }) {
+function buildRecentQuery({ pastDays = 120, limit = 250 }) {
   const now = new Date();
   const past = new Date(now.getTime() - pastDays * 86400000);
 
   return `
     fields
-      name,
-      summary,
-      storyline,
-      first_release_date,
-      release_dates.date,
-      aggregated_rating,
-      aggregated_rating_count,
-      cover.url,
-      screenshots.url,
-      platforms.name,
-      genres.name;
+  name,
+  summary,
+  storyline,
+  first_release_date,
+  release_dates.date,
+  release_dates.platform,
+  aggregated_rating,
+  aggregated_rating_count,
+  cover.url,
+  screenshots.url,
+  platforms.name,
+  genres.name;
     where
-      (
-        first_release_date >= ${unixSeconds(past)} &
-        first_release_date <= ${unixSeconds(now)}
-      )
-      |
-      (
-        release_dates.date >= ${unixSeconds(past)} &
-        release_dates.date <= ${unixSeconds(now)}
-      );
+  (
+    first_release_date >= ${unixSeconds(past)} &
+    first_release_date <= ${unixSeconds(now)}
+  ) |
+  (
+    release_dates.date >= ${unixSeconds(past)} &
+    release_dates.date <= ${unixSeconds(now)}
+  );
     sort first_release_date desc;
     limit ${limit};
   `;
 }
 
-function buildUpcomingQuery({ futureDays = 365, limit = 300 }) {
+function buildUpcomingQuery({ futureDays = 540, limit = 250 }) {
   const now = new Date();
   const future = new Date(now.getTime() + futureDays * 86400000);
 
   return `
     fields
-      name,
-      summary,
-      storyline,
-      first_release_date,
-      release_dates.date,
-      aggregated_rating,
-      aggregated_rating_count,
-      cover.url,
-      screenshots.url,
-      platforms.name,
-      genres.name;
+  name,
+  summary,
+  storyline,
+  first_release_date,
+  release_dates.date,
+  release_dates.platform,
+  aggregated_rating,
+  aggregated_rating_count,
+  cover.url,
+  screenshots.url,
+  platforms.name,
+  genres.name;
     where
-      (
-        first_release_date > ${unixSeconds(now)} &
-        first_release_date <= ${unixSeconds(future)}
-      )
-      |
-      (
-        release_dates.date > ${unixSeconds(now)} &
-        release_dates.date <= ${unixSeconds(future)}
-      );
+  (
+    first_release_date > ${unixSeconds(now)} &
+    first_release_date <= ${unixSeconds(future)}
+  ) |
+  (
+    release_dates.date > ${unixSeconds(now)} &
+    release_dates.date <= ${unixSeconds(future)}
+  );
     sort first_release_date asc;
     limit ${limit};
   `;
 }
-
 
 /* =========================
    HANDLER

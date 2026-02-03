@@ -551,3 +551,33 @@ main {
 .route-copy p:first-of-type {
   display: block;
 }
+
+/* =========================================================
+   🔥 MORE STEAM RELEASES (DETAILS PAGE)
+   - High ROI internal links
+   - Visually subtle, conversion-friendly
+========================================================= */
+
+.more-steam {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.more-steam ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.more-steam a {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(59,130,246,0.9);
+  text-decoration: none;
+}
+
+.more-steam a:hover {
+  text-decoration: underline;
+  color: #3b82f6;
+}

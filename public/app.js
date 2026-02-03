@@ -4,6 +4,11 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
+   ROUTE MODE
+========================= */
+const isSteamPage = window.location.pathname === "/steam-games";
+
+/* =========================
    AGE GATE (LOCKED)
 ========================= */
 const ageGate = document.getElementById("ageGate");
@@ -47,10 +52,7 @@ function slugify(str = "") {
 }
 
 function appleSearchTerm(str = "") {
-  return str
-    .replace(/[^\w\s]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return str.replace(/[^\w\s]/g, "").replace(/\s+/g, " ").trim();
 }
 
 function parseDetailsIdFromPath(pathname) {
@@ -106,7 +108,6 @@ function getPrimaryStore(game) {
   if (p.includes("nintendo"))
     return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encodedName}` };
 
-  // ✅ iOS: best possible behavior without App IDs
   if (p.includes("ios"))
     return {
       label: "View on App Store →",
@@ -158,33 +159,42 @@ function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
   viewMode = "list";
 
-  setMetaTitle("Gamerly — Daily Game Releases, Curated");
-  setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
-
-  const now = new Date();
-  const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
-  const comingSoon = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) > now);
-
-  updateSectionCounts(outNow.length, comingSoon.length);
-
-  let list = activeSection === "out" ? outNow : comingSoon;
-
-  if (activeTime !== "all") {
-    list = list.filter(g => {
-      const d = new Date(g.releaseDate);
-      if (activeTime === "today") return d.toDateString() === now.toDateString();
-      if (activeTime === "week") return d <= new Date(now.getTime() + 7 * 864e5);
-      if (activeTime === "month") return d <= new Date(now.getTime() + 30 * 864e5);
-      return true;
-    });
+  if (isSteamPage) {
+    setMetaTitle("New & Upcoming Steam Games (Updated Daily) | Gamerly");
+    setMetaDescription(
+      "Browse new and upcoming Steam games. Updated daily with curated PC releases and direct links to Steam."
+    );
+  } else {
+    setMetaTitle("Gamerly — Daily Game Releases, Curated");
+    setMetaDescription(
+      "Track new and upcoming game releases across PC, console, and mobile. Updated daily."
+    );
   }
 
-  if (activePlatform !== "all") {
-    const key = activePlatform.toLowerCase();
-    list = list.filter(g =>
-      Array.isArray(g.platforms) &&
-      g.platforms.some(p => p.toLowerCase().includes(key))
+  const now = new Date();
+
+  let list = allGames.filter(g => g.releaseDate);
+
+  if (isSteamPage) {
+    list = list.filter(
+      g =>
+        Array.isArray(g.platforms) &&
+        g.platforms.some(p => p.toLowerCase().includes("windows"))
     );
+  }
+
+  const outNow = list.filter(g => new Date(g.releaseDate) <= now);
+  const comingSoon = list.filter(g => new Date(g.releaseDate) > now);
+
+  if (!isSteamPage) {
+    updateSectionCounts(outNow.length, comingSoon.length);
+    list = activeSection === "out" ? outNow : comingSoon;
+  } else {
+    // Steam page: Out Now first, then Coming Soon
+    list = [
+      ...outNow.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)),
+      ...comingSoon.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate)),
+    ];
   }
 
   renderList(list);
@@ -343,6 +353,7 @@ function renderPlatforms(game) {
 ========================= */
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {
+    if (isSteamPage) return;
     if (viewMode === "details") history.pushState({}, "", "/");
     activeTime = btn.textContent.toLowerCase().replace(" ", "");
     setActive(btn);
@@ -352,6 +363,7 @@ document.querySelectorAll(".time-segment button").forEach(btn => {
 
 document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
+    if (isSteamPage) return;
     if (viewMode === "details") history.pushState({}, "", "/");
     activeSection = btn.textContent.includes("Out") ? "out" : "soon";
     setActive(btn);
@@ -361,6 +373,7 @@ document.querySelectorAll(".section-segment button").forEach(btn => {
 
 document.querySelectorAll(".platforms button").forEach(btn => {
   btn.onclick = () => {
+    if (isSteamPage) return;
     if (viewMode === "details") history.pushState({}, "", "/");
     activePlatform = btn.dataset.platform || "all";
     setActive(btn);

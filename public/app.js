@@ -4,10 +4,23 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   ROUTE DETECTION (SAFE)
+   ROUTE MODE (SAFE, ADDITIVE)
 ========================= */
-const PATH = window.location.pathname;
-const IS_STEAM_TODAY = PATH === "/steam-games-today";
+const PATH = (window.location.pathname || "").split("?")[0].split("#")[0];
+
+const ROUTE = {
+  HOME: PATH === "/" || PATH === "",
+  DETAILS: /^\/game\/\d+/.test(PATH),
+  STEAM_ALL: PATH === "/steam-games",
+  STEAM_TODAY: PATH === "/steam-games-today",
+  STEAM_WEEK: PATH === "/steam-games-this-week",
+  STEAM_UPCOMING: PATH === "/steam-games-upcoming",
+};
+
+const IS_STEAM_MONEY_PAGE =
+  ROUTE.STEAM_ALL || ROUTE.STEAM_TODAY || ROUTE.STEAM_WEEK || ROUTE.STEAM_UPCOMING;
+
+let lastListPath = ROUTE.HOME ? "/" : (IS_STEAM_MONEY_PAGE ? PATH : "/");
 
 /* =========================
    AGE GATE (LOCKED)
@@ -52,6 +65,13 @@ function slugify(str = "") {
     .replace(/(^-|-$)/g, "");
 }
 
+function appleSearchTerm(str = "") {
+  return str
+    .replace(/[^\w\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function parseDetailsIdFromPath(pathname) {
   const clean = (pathname || "").split("?")[0].split("#")[0];
   const m = clean.match(/^\/game\/(\d+)(?:-.*)?$/);
@@ -76,10 +96,22 @@ function escapeHtml(str = "") {
     .replaceAll("'", "&#039;");
 }
 
-function isToday(dateStr) {
-  const d = new Date(dateStr);
-  const now = new Date();
-  return d.toDateString() === now.toDateString();
+function setActive(button) {
+  const group = button.parentElement;
+  if (!group) return;
+  group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  button.classList.add("active");
+}
+
+function isPCSteamCandidate(game) {
+  if (!game || !Array.isArray(game.platforms)) return false;
+  const p = game.platforms.join(" ").toLowerCase();
+  // your data uses "PC (Microsoft Windows)" — this catches it safely
+  return p.includes("windows") || p.includes("pc");
+}
+
+function startOfLocalDay(d = new Date()) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 /* =========================
@@ -87,28 +119,34 @@ function isToday(dateStr) {
 ========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
-  const name = encodeURIComponent(game.name);
+
+  const encodedName = encodeURIComponent(game.name);
+  const appleTerm = appleSearchTerm(game.name);
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc"))
-    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${name}` };
+    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${encodedName}` };
 
   if (p.includes("playstation"))
-    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${name}` };
+    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${encodedName}` };
 
   if (p.includes("xbox"))
-    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${name}` };
+    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${encodedName}` };
 
   if (p.includes("nintendo"))
-    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${name}` };
+    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encodedName}` };
 
+  // ✅ iOS: best possible behavior without App IDs
   if (p.includes("ios"))
-    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${name}` };
+    return {
+      label: "View on App Store →",
+      url: `https://apps.apple.com/us/search?term=${encodeURIComponent(appleTerm)}`
+    };
 
   if (p.includes("android"))
-    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${name}&c=apps` };
+    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${encodedName}&c=apps` };
 
-  return { label: "View on Store →", url: `https://www.google.com/search?q=${name}+game` };
+  return { label: "View on Store →", url: `https://www.google.com/search?q=${encodedName}+game` };
 }
 
 /* =========================
@@ -126,12 +164,13 @@ async function loadGames() {
     allGames = data.games || [];
 
     const id = parseDetailsIdFromPath(window.location.pathname);
-    if (id && !IS_STEAM_TODAY) {
+    if (id) {
       const g = allGames.find(x => String(x.id) === String(id));
       if (g) {
         renderDetails(g, true);
         return;
       }
+      // If someone hits an unknown /game/* route, go home safely
       history.replaceState({}, "", "/");
     }
 
@@ -144,37 +183,84 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (LOCKED + STEAM TODAY)
+   FILTER PIPELINE (LOCKED + STEAM MONEY PAGES)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
   viewMode = "list";
 
-  if (IS_STEAM_TODAY) {
-    setMetaTitle("New Steam Games Today | Gamerly");
-    setMetaDescription(
-      "See all new Steam game releases today. Updated daily with direct links to Steam."
-    );
+  const now = new Date();
 
-    const todaySteam = allGames.filter(g =>
-      g.releaseDate &&
-      isToday(g.releaseDate) &&
-      Array.isArray(g.platforms) &&
-      g.platforms.some(p => p.toLowerCase().includes("windows") || p.toLowerCase().includes("pc"))
-    );
+  // ===== STEAM MONEY PAGES (additive, isolated) =====
+  if (IS_STEAM_MONEY_PAGE) {
+    // SEO per route
+    if (ROUTE.STEAM_ALL) {
+      setMetaTitle("New & Upcoming Steam Games (Updated Daily) | Gamerly");
+      setMetaDescription(
+        "Browse new and upcoming Steam games. Updated daily with curated PC releases and direct links to Steam."
+      );
+    } else if (ROUTE.STEAM_TODAY) {
+      setMetaTitle("New Steam Games Today | Gamerly");
+      setMetaDescription(
+        "See all new Steam game releases today. Updated daily with direct links to Steam."
+      );
+    } else if (ROUTE.STEAM_WEEK) {
+      setMetaTitle("New Steam Games This Week | Gamerly");
+      setMetaDescription(
+        "Browse new Steam games released this week and upcoming PC titles with direct Steam links."
+      );
+    } else if (ROUTE.STEAM_UPCOMING) {
+      setMetaTitle("Upcoming Steam Games | Gamerly");
+      setMetaDescription(
+        "Discover upcoming Steam games and PC releases. Updated daily with direct links to Steam."
+      );
+    }
 
-    renderList(todaySteam);
-    showMoreBtn.style.display = "none";
+    // Always PC-only on Steam money pages
+    let list = allGames.filter(g => g.releaseDate && isPCSteamCandidate(g));
+
+    if (ROUTE.STEAM_TODAY) {
+      const start = startOfLocalDay(now);
+      const end = new Date(start.getTime() + 86400000);
+      list = list.filter(g => {
+        const d = new Date(g.releaseDate);
+        return d >= start && d < end;
+      });
+      // newest first within the day
+      list.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+    } else if (ROUTE.STEAM_WEEK) {
+      const start = startOfLocalDay(now);
+      const end = new Date(start.getTime() + 7 * 86400000);
+      list = list.filter(g => {
+        const d = new Date(g.releaseDate);
+        return d >= start && d < end;
+      });
+      // closest release first (conversion-focused)
+      list.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+    } else if (ROUTE.STEAM_UPCOMING) {
+      const start = now;
+      // keep it reasonably “upcoming” (matches backend’s 540-day horizon anyway)
+      list = list.filter(g => new Date(g.releaseDate) > start);
+      list.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+    } else if (ROUTE.STEAM_ALL) {
+      const outNow = list.filter(g => new Date(g.releaseDate) <= now);
+      const comingSoon = list.filter(g => new Date(g.releaseDate) > now);
+
+      outNow.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)); // newest out now
+      comingSoon.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate)); // soonest upcoming
+
+      list = [...outNow, ...comingSoon];
+    }
+
+    lastListPath = PATH; // back button from details returns to this money page
+    renderList(list);
     return;
   }
 
-  // ===== Default homepage behavior (UNCHANGED) =====
+  // ===== HOME / DEFAULT (UNCHANGED v5 behavior) =====
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
-  setMetaDescription(
-    "Track new and upcoming game releases across PC, console, and mobile. Updated daily."
-  );
+  setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
 
-  const now = new Date();
   const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
   const comingSoon = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) > now);
 
@@ -200,6 +286,7 @@ function applyFilters(reset = false) {
     );
   }
 
+  lastListPath = "/";
   renderList(list);
 }
 
@@ -223,6 +310,7 @@ function renderList(list) {
 
   if (!slice.length) {
     grid.innerHTML = "<p>No games found.</p>";
+    showMoreBtn.style.display = "none";
     return;
   }
 
@@ -258,9 +346,11 @@ function renderList(list) {
       </div>
     `;
 
-    card.onclick = () => renderDetails(game);
+    card.onclick = () => openDetails(game);
     grid.appendChild(card);
   });
+
+  showMoreBtn.style.display = visibleCount < list.length ? "block" : "none";
 }
 
 /* =========================
@@ -316,9 +406,13 @@ function renderDetails(game, replace = false) {
 
   showMoreBtn.style.display = "none";
   document.getElementById("backBtn").onclick = () => {
-    history.pushState({}, "", "/");
+    history.pushState({}, "", lastListPath || "/");
     applyFilters(true);
   };
+}
+
+function openDetails(game) {
+  renderDetails(game);
 }
 
 /* =========================
@@ -343,6 +437,60 @@ function renderPlatforms(game) {
   if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
   return chips.join("");
 }
+
+/* =========================
+   FILTER EVENTS (LOCKED)
+========================= */
+document.querySelectorAll(".time-segment button").forEach(btn => {
+  btn.onclick = () => {
+    if (IS_STEAM_MONEY_PAGE) return;
+    if (viewMode === "details") history.pushState({}, "", "/");
+    activeTime = btn.textContent.toLowerCase().replace(" ", "");
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".section-segment button").forEach(btn => {
+  btn.onclick = () => {
+    if (IS_STEAM_MONEY_PAGE) return;
+    if (viewMode === "details") history.pushState({}, "", "/");
+    activeSection = btn.textContent.includes("Out") ? "out" : "soon";
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".platforms button").forEach(btn => {
+  btn.onclick = () => {
+    if (IS_STEAM_MONEY_PAGE) return;
+    if (viewMode === "details") history.pushState({}, "", "/");
+    activePlatform = btn.dataset.platform || "all";
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+showMoreBtn.onclick = () => {
+  visibleCount += PAGE_SIZE;
+  applyFilters();
+};
+
+window.addEventListener("popstate", () => {
+  const id = parseDetailsIdFromPath(window.location.pathname);
+  if (id) {
+    const g = allGames.find(x => String(x.id) === String(id));
+    if (g) return renderDetails(g, true);
+  }
+  // update list path when navigating directly between list pages
+  const p = (window.location.pathname || "").split("?")[0].split("#")[0];
+  if (p === "/steam-games" || p === "/steam-games-today" || p === "/steam-games-this-week" || p === "/steam-games-upcoming") {
+    lastListPath = p;
+  } else {
+    lastListPath = "/";
+  }
+  applyFilters(true);
+});
 
 /* =========================
    INIT

@@ -151,41 +151,6 @@ function applyRouteH1() {
   h1.textContent = "Daily Game Releases, Curated";
 }
 
-
-
-  if (path === "/steam-games-today") {
-    setMetaTitle("Steam Games Released Today | Gamerly");
-    setMetaDescription(
-      "See all Steam games released today. Discover new PC games available now on Steam, updated daily."
-    );
-    return;
-  }
-
-  if (path === "/steam-games-this-week") {
-    setMetaTitle("Steam Games This Week | New PC Releases");
-    setMetaDescription(
-      "Browse Steam games released this week. Stay up to date with the latest PC game launches on Steam."
-    );
-    return;
-  }
-
-  if (path === "/steam-games-upcoming") {
-    setMetaTitle("Upcoming Steam Games | PC Releases Coming Soon");
-    setMetaDescription(
-      "Explore upcoming Steam games and PC releases coming soon. Track new games before they launch on Steam."
-    );
-    return;
-  }
-
-  // Default homepage fallback
-  if (path === "/" || path === "") {
-    setMetaTitle("Gamerly — Daily Game Releases, Curated");
-    setMetaDescription(
-      "Track new and upcoming game releases across PC, console, and mobile. Updated daily and curated so you only see what matters."
-    );
-  }
-}
-
 function escapeHtml(str = "") {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -206,7 +171,7 @@ function startOfLocalDay(d = new Date()) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-// ✅ "Coming Soon" starts tomorrow (2/4 when today is 2/3)
+// ✅ "Coming Soon" starts tomorrow
 function startOfTomorrow() {
   const t = startOfLocalDay(new Date());
   t.setDate(t.getDate() + 1);
@@ -261,9 +226,7 @@ function platformMatches(game, key) {
   if (!game || !Array.isArray(game.platforms)) return false;
   const p = game.platforms.join(" ").toLowerCase();
 
-  // ✅ data uses "PC (Microsoft Windows)" — treat "pc" as windows OR pc
   if (key === "pc") return p.includes("windows") || p.includes("pc");
-
   return p.includes(key);
 }
 
@@ -273,10 +236,8 @@ function platformMatches(game, key) {
 function initRouteDefaults() {
   if (!ROUTE.STEAM) return;
 
-  // Steam pages should focus on PC releases
   activePlatform = "pc";
 
-  // Map Steam routes to canonical section/time
   if (PATH === "/steam-games-upcoming") {
     activeSection = "soon";
     activeTime = "all";
@@ -287,14 +248,12 @@ function initRouteDefaults() {
     activeSection = "out";
     activeTime = "thisweek";
   } else {
-    // /steam-games (or any future steam route)
     activeSection = "out";
     activeTime = "all";
   }
 }
 
 function syncActiveButtons() {
-  // Section buttons
   const sectionBtns = Array.from(document.querySelectorAll(".section-segment button"));
   if (sectionBtns.length) {
     const target = sectionBtns.find(b =>
@@ -303,7 +262,6 @@ function syncActiveButtons() {
     if (target) setActive(target);
   }
 
-  // Time buttons
   const timeBtns = Array.from(document.querySelectorAll(".time-segment button"));
   if (timeBtns.length) {
     let label = "All";
@@ -315,7 +273,6 @@ function syncActiveButtons() {
     if (target) setActive(target);
   }
 
-  // Platform buttons
   const platBtns = Array.from(document.querySelectorAll(".platforms button"));
   if (platBtns.length) {
     const target = platBtns.find(b => (b.dataset.platform || "all") === activePlatform);
@@ -372,7 +329,6 @@ async function loadGames() {
 
     allGames = data.games || [];
 
-    // ✅ If user lands directly on /game/:id, render after data is loaded
     const id = parseDetailsIdFromPath(window.location.pathname);
     if (id) {
       const g = allGames.find(x => String(x.id) === String(id));
@@ -405,10 +361,8 @@ function applyFilters(reset = false) {
 
   let list = activeSection === "out" ? outNow : comingSoon;
 
-  // ✅ Time window filter
   list = applyTimeWindow(list, activeSection, activeTime);
 
-  // ✅ Platform filter
   if (activePlatform !== "all") {
     const key = activePlatform.toLowerCase();
     list = list.filter(g => platformMatches(g, key));
@@ -648,4 +602,3 @@ syncActiveButtons();
 applyRouteMeta();
 applyRouteH1();
 loadGames();
-

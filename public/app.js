@@ -46,11 +46,10 @@ function slugify(str = "") {
     .replace(/(^-|-$)/g, "");
 }
 
-function normalizeForAppleSearch(str = "") {
+function googleSafeQuery(str = "") {
   return str
-    .normalize("NFKD")
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "+")
+    .replace(/[^\w\s]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -86,7 +85,7 @@ function setActive(button) {
 }
 
 /* =========================
-   STORE CTA LOGIC (LOCKED + FIXED)
+   STORE CTA LOGIC (LOCKED + SAFE)
 ========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
@@ -95,60 +94,30 @@ function getPrimaryStore(game) {
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc"))
-    return {
-      label: "View on Steam →",
-      url: `https://store.steampowered.com/search/?term=${encodedName}`,
-      platform: "pc",
-      store: "steam"
-    };
+    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${encodedName}` };
 
   if (p.includes("playstation"))
-    return {
-      label: "View on PlayStation →",
-      url: `https://store.playstation.com/search/${encodedName}`,
-      platform: "playstation",
-      store: "playstation"
-    };
+    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${encodedName}` };
 
   if (p.includes("xbox"))
-    return {
-      label: "View on Xbox →",
-      url: `https://www.xbox.com/en-US/Search?q=${encodedName}`,
-      platform: "xbox",
-      store: "xbox"
-    };
+    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${encodedName}` };
 
   if (p.includes("nintendo"))
-    return {
-      label: "View on Nintendo →",
-      url: `https://www.nintendo.com/us/search/#q=${encodedName}`,
-      platform: "nintendo",
-      store: "nintendo"
-    };
+    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encodedName}` };
 
-  // ✅ iOS FIX: avoid apps.apple.com search (can 404 / block); use Google site-restricted search
-  if (p.includes("ios"))
+  // ✅ iOS SAFE FALLBACK (no Apple search, no encoding issues)
+  if (p.includes("ios")) {
+    const q = googleSafeQuery(game.name);
     return {
       label: "View on App Store →",
-      url: `https://www.google.com/search?q=${encodedName}+site%3Aapps.apple.com%2Fus%2Fapp`,
-      platform: "ios",
-      store: "apple"
+      url: `https://www.google.com/search?q="${q}"+site:apps.apple.com`
     };
+  }
 
   if (p.includes("android"))
-    return {
-      label: "View on Google Play →",
-      url: `https://play.google.com/store/search?q=${encodedName}&c=apps`,
-      platform: "android",
-      store: "google_play"
-    };
+    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${encodedName}&c=apps` };
 
-  return {
-    label: "View on Store →",
-    url: `https://www.google.com/search?q=${encodedName}+game`,
-    platform: "unknown",
-    store: "generic"
-  };
+  return { label: "View on Store →", url: `https://www.google.com/search?q=${encodedName}+game` };
 }
 
 /* =========================
@@ -191,9 +160,7 @@ function applyFilters(reset = false) {
   viewMode = "list";
 
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
-  setMetaDescription(
-    "Track new and upcoming game releases across PC, console, and mobile. Updated daily."
-  );
+  setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
 
   const now = new Date();
   const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);

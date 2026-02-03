@@ -523,6 +523,10 @@ function renderDetails(game, replace = false) {
     <li><a href="/steam-games-this-week">Steam games released this week</a></li>
     <li><a href="/steam-games-upcoming">Upcoming Steam game releases</a></li>
   </ul>
+  <p style="margin-top:6px; font-size:0.75rem; opacity:0.75;">
+  Looking for something else?
+  <a href="/steam-games">Browse all Steam game releases →</a>
+</p>
 </div>
 
         <button class="details-back" id="backBtn">← Back to list</button>

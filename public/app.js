@@ -209,19 +209,32 @@ function addDays(dateObj, days) {
 function getTimeWindow(section, timeKey) {
   if (!timeKey || timeKey === "all") return null;
 
-  const todayStart = startOfLocalDay(new Date());
-  const tomorrowStart = startOfTomorrow();
+  const today = localDay(new Date());
 
   if (section === "out") {
-    if (timeKey === "today") return { start: todayStart, end: tomorrowStart };
-    if (timeKey === "thisweek") return { start: addDays(todayStart, -6), end: tomorrowStart };
-    if (timeKey === "thismonth") return { start: addDays(todayStart, -29), end: tomorrowStart };
+    if (timeKey === "today") {
+      return { start: today, end: today + 1 };
+    }
+    if (timeKey === "thisweek") {
+      return { start: today - 6, end: today + 1 };
+    }
+    if (timeKey === "thismonth") {
+      return { start: today - 29, end: today + 1 };
+    }
     return null;
   }
 
-  if (timeKey === "today") return { start: tomorrowStart, end: addDays(tomorrowStart, 1) };
-  if (timeKey === "thisweek") return { start: tomorrowStart, end: addDays(tomorrowStart, 7) };
-  if (timeKey === "thismonth") return { start: tomorrowStart, end: addDays(tomorrowStart, 30) };
+  // coming soon
+  if (timeKey === "today") {
+    return { start: today + 1, end: today + 2 };
+  }
+  if (timeKey === "thisweek") {
+    return { start: today + 1, end: today + 8 };
+  }
+  if (timeKey === "thismonth") {
+    return { start: today + 1, end: today + 31 };
+  }
+
   return null;
 }
 

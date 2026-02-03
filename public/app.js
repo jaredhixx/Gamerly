@@ -1,5 +1,3 @@
-// DEPLOY_SCREENSHOTS_AFTER_DOMAIN_FIX
-
 const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
@@ -47,6 +45,9 @@ if (ageGate && ageBtn) {
    STATE (LOCKED)
 ========================= */
 let allGames = [];
+let activeSection = "out";
+let activeTime = "all";
+let activePlatform = "all";
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 let viewMode = "list";
@@ -64,6 +65,13 @@ function slugify(str = "") {
     .replace(/(^-|-$)/g, "");
 }
 
+function appleSearchTerm(str = "") {
+  return str
+    .replace(/[^\w\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function parseDetailsIdFromPath(pathname) {
   const clean = (pathname || "").split("?")[0].split("#")[0];
   const m = clean.match(/^\/game\/(\d+)(?:-.*)?$/);
@@ -77,15 +85,6 @@ function setMetaTitle(title) {
 function setMetaDescription(desc) {
   const tag = document.querySelector('meta[name="description"]');
   if (tag) tag.setAttribute("content", desc);
-}
-
-function escapeHtml(str = "") {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 /* =========================
@@ -111,6 +110,8 @@ async function loadGames() {
       }
       history.replaceState({}, "", "/");
     }
+
+    applyFilters(true);
   } catch {
     errorBox.textContent = "Failed to load games.";
   } finally {
@@ -119,72 +120,103 @@ async function loadGames() {
 }
 
 /* =========================
-   DETAILS PAGE (SCREENSHOTS FIXED)
+   FILTER PIPELINE (LOCKED + STEAM MONEY PAGES)
 ========================= */
-function renderDetails(game, replace = false) {
-  viewMode = "details";
+function applyFilters(reset = false) {
+  if (reset) visibleCount = 0;
+  viewMode = "list";
 
-  const slug = slugify(game.name);
-  const path = `/game/${game.id}${slug ? "-" + slug : ""}`;
+  const now = new Date();
 
-  if (replace) history.replaceState({}, "", path);
-  else history.pushState({}, "", path);
+  // ===== STEAM MONEY PAGES (CTR-OPTIMIZED META ONLY) =====
+  if (IS_STEAM_MONEY_PAGE) {
+    if (ROUTE.STEAM_ALL) {
+      setMetaTitle("Steam Games — New & Upcoming PC Releases (Updated Daily)");
+      setMetaDescription(
+        "Browse new and upcoming Steam games in one place. Daily-updated PC releases with direct links to Steam."
+      );
+    } else if (ROUTE.STEAM_TODAY) {
+      setMetaTitle("New Steam Games Today — PC Releases You Can Play Now");
+      setMetaDescription(
+        "All new Steam games released today. Discover PC games you can buy and play right now on Steam."
+      );
+    } else if (ROUTE.STEAM_WEEK) {
+      setMetaTitle("New Steam Games This Week — Best PC Releases");
+      setMetaDescription(
+        "See new Steam games released this week plus upcoming PC titles worth watching. Updated daily."
+      );
+    } else if (ROUTE.STEAM_UPCOMING) {
+      setMetaTitle("Upcoming Steam Games — New PC Releases Coming Soon");
+      setMetaDescription(
+        "Track upcoming Steam games and future PC releases. Stay ahead of what’s launching next on Steam."
+      );
+    }
 
-  setMetaTitle(`${game.name} — Gamerly`);
+    let list = allGames.filter(g => g.releaseDate && isPCSteamCandidate(g));
 
-  const summaryText = game.summary
-    ? escapeHtml(game.summary.slice(0, 240))
-    : "";
+    if (ROUTE.STEAM_TODAY) {
+      const start = startOfLocalDay(now);
+      const end = new Date(start.getTime() + 86400000);
+      list = list.filter(g => {
+        const d = new Date(g.releaseDate);
+        return d >= start && d < end;
+      });
+      list.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+    } else if (ROUTE.STEAM_WEEK) {
+      const start = startOfLocalDay(now);
+      const end = new Date(start.getTime() + 7 * 86400000);
+      list = list.filter(g => {
+        const d = new Date(g.releaseDate);
+        return d >= start && d < end;
+      });
+      list.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+    } else if (ROUTE.STEAM_UPCOMING) {
+      list = list.filter(g => new Date(g.releaseDate) > now);
+      list.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+    } else if (ROUTE.STEAM_ALL) {
+      const outNow = list.filter(g => new Date(g.releaseDate) <= now);
+      const comingSoon = list.filter(g => new Date(g.releaseDate) > now);
+      outNow.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+      comingSoon.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+      list = [...outNow, ...comingSoon];
+    }
 
-  setMetaDescription(summaryText || `Release info for ${game.name}.`);
+    lastListPath = PATH;
+    renderList(list);
+    return;
+  }
 
-  const release = game.releaseDate
-    ? new Date(game.releaseDate).toDateString()
-    : "Release date unknown";
+  // ===== HOME (UNCHANGED) =====
+  setMetaTitle("Gamerly — Daily Game Releases, Curated");
+  setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
 
-  const screenshotsHtml =
-    Array.isArray(game.screenshots) && game.screenshots.length
-      ? `
-        <section class="details-screenshots" style="margin-top:20px;">
-          <h3 style="margin-bottom:8px;">Screenshots</h3>
-          <div style="
-            display:flex;
-            gap:12px;
-            overflow-x:auto;
-            padding-bottom:8px;
-          ">
-            ${game.screenshots.map(url => `
-              <img
-                src="${url}"
-                alt="${escapeHtml(game.name)} screenshot"
-                loading="lazy"
-                style="height:160px;border-radius:8px;flex-shrink:0;"
-              />
-            `).join("")}
-          </div>
-        </section>
-      `
-      : "";
+  const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
+  const comingSoon = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) > now);
 
-  grid.innerHTML = `
-    <section class="details">
-      <div class="details-cover">
-        <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover">
-      </div>
-      <div class="details-info">
-        <h1 class="details-title">${escapeHtml(game.name)}</h1>
-        <div class="details-sub">${escapeHtml(release)}</div>
-        ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
-        <button class="details-back" id="backBtn">← Back to list</button>
-      </div>
-      ${screenshotsHtml}
-    </section>
-  `;
+  updateSectionCounts(outNow.length, comingSoon.length);
 
-  document.getElementById("backBtn").onclick = () => {
-    history.pushState({}, "", lastListPath || "/");
-    applyFilters?.(true);
-  };
+  let list = activeSection === "out" ? outNow : comingSoon;
+
+  if (activeTime !== "all") {
+    list = list.filter(g => {
+      const d = new Date(g.releaseDate);
+      if (activeTime === "today") return d.toDateString() === now.toDateString();
+      if (activeTime === "week") return d <= new Date(now.getTime() + 7 * 864e5);
+      if (activeTime === "month") return d <= new Date(now.getTime() + 30 * 864e5);
+      return true;
+    });
+  }
+
+  if (activePlatform !== "all") {
+    const key = activePlatform.toLowerCase();
+    list = list.filter(g =>
+      Array.isArray(g.platforms) &&
+      g.platforms.some(p => p.toLowerCase().includes(key))
+    );
+  }
+
+  lastListPath = "/";
+  renderList(list);
 }
 
 /* =========================

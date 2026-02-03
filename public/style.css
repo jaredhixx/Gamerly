@@ -531,3 +531,23 @@ main {
   border-color: rgba(59,130,246,0.45);
   color: #3b82f6;
 }
+
+/* =========================================================
+   ✅ ROUTE COPY VISUAL DEDUPING
+   - Keeps all SEO text crawlable
+   - Shows only primary paragraph to users
+   - Zero JS, zero logic risk
+========================================================= */
+
+.route-copy p {
+  display: none;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.78);
+}
+
+/* Show only the first paragraph visually */
+.route-copy p:first-of-type {
+  display: block;
+}

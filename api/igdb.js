@@ -64,26 +64,28 @@ function normalizeGame(g) {
     });
   }
 
-  // Pick earliest valid date
+  // ✅ EARLIEST real release (PC / console / mobile)
   const earliest =
     dates.length > 0 ? Math.min(...dates) : null;
 
   return {
     id: g.id,
     name: g.name,
-    releaseDate: g.first_release_date
-  ? new Date(g.first_release_date * 1000).toISOString()
-  : Array.isArray(g.release_dates) && g.release_dates.length
-    ? new Date(
-        Math.min(...g.release_dates.map(r => r.date)) * 1000
-      ).toISOString()
-    : null,
+
+    // ✅ FIX: use earliest actual release, not first_release_date only
+    releaseDate: earliest
+      ? new Date(earliest * 1000).toISOString()
+      : null,
+
     aggregated_rating: g.aggregated_rating ?? null,
     aggregated_rating_count: g.aggregated_rating_count ?? null,
+
     coverUrl: normalizeCover(g.cover?.url),
+
     platforms: Array.isArray(g.platforms)
       ? g.platforms.map(p => p.name).filter(Boolean)
       : [],
+
     category: g.genres?.[0]?.name ?? null,
 
     // SEO + trust

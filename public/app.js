@@ -46,6 +46,14 @@ function slugify(str = "") {
     .replace(/(^-|-$)/g, "");
 }
 
+function normalizeForAppleSearch(str = "") {
+  return str
+    .normalize("NFKD")
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "+")
+    .trim();
+}
+
 function parseDetailsIdFromPath(pathname) {
   const clean = (pathname || "").split("?")[0].split("#")[0];
   const m = clean.match(/^\/game\/(\d+)(?:-.*)?$/);
@@ -78,73 +86,59 @@ function setActive(button) {
 }
 
 /* =========================
-   STORE CTA LOGIC (SAFE, FINAL)
+   STORE CTA LOGIC (LOCKED + FIXED)
 ========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
 
-  const rawName = game.name; // IMPORTANT: unencoded for Apple
-  const encodedName = encodeURIComponent(game.name); // for everyone else
+  const encodedName = encodeURIComponent(game.name);
+  const appleSafeName = normalizeForAppleSearch(game.name);
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc"))
     return {
       label: "View on Steam →",
-      url: `https://store.steampowered.com/search/?term=${encodedName}`,
-      platform: "pc",
-      store: "steam"
+      url: `https://store.steampowered.com/search/?term=${encodedName}`
     };
 
   if (p.includes("playstation"))
     return {
       label: "View on PlayStation →",
-      url: `https://store.playstation.com/search/${encodedName}`,
-      platform: "playstation",
-      store: "playstation"
+      url: `https://store.playstation.com/search/${encodedName}`
     };
 
   if (p.includes("xbox"))
     return {
       label: "View on Xbox →",
-      url: `https://www.xbox.com/en-US/Search?q=${encodedName}`,
-      platform: "xbox",
-      store: "xbox"
+      url: `https://www.xbox.com/en-US/Search?q=${encodedName}`
     };
 
   if (p.includes("nintendo"))
     return {
       label: "View on Nintendo →",
-      url: `https://www.nintendo.com/us/search/#q=${encodedName}`,
-      platform: "nintendo",
-      store: "nintendo"
+      url: `https://www.nintendo.com/us/search/#q=${encodedName}`
     };
 
   if (p.includes("ios"))
     return {
       label: "View on App Store →",
-      url: `https://apps.apple.com/us/search?term=${rawName}`,
-      platform: "ios",
-      store: "apple"
+      url: `https://apps.apple.com/us/search?term=${appleSafeName}`
     };
 
   if (p.includes("android"))
     return {
       label: "View on Google Play →",
-      url: `https://play.google.com/store/search?q=${encodedName}&c=apps`,
-      platform: "android",
-      store: "google_play"
+      url: `https://play.google.com/store/search?q=${encodedName}&c=apps`
     };
 
   return {
     label: "View on Store →",
-    url: `https://www.google.com/search?q=${encodedName}+game`,
-    platform: "unknown",
-    store: "generic"
+    url: `https://www.google.com/search?q=${encodedName}+game`
   };
 }
 
 /* =========================
-   FETCH (STABLE)
+   FETCH
 ========================= */
 async function loadGames() {
   try {
@@ -153,8 +147,9 @@ async function loadGames() {
 
     const res = await fetch("/api/igdb");
     const data = await res.json();
+    if (!data.ok) throw new Error("API failed");
 
-    allGames = data.games || data || [];
+    allGames = data.games || [];
 
     const id = parseDetailsIdFromPath(window.location.pathname);
     if (id) {
@@ -167,8 +162,7 @@ async function loadGames() {
     }
 
     applyFilters(true);
-  } catch (err) {
-    console.error(err);
+  } catch {
     errorBox.textContent = "Failed to load games.";
   } finally {
     loading.style.display = "none";
@@ -176,7 +170,7 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (LAST STABLE)
+   FILTER PIPELINE (LOCKED)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
@@ -217,7 +211,7 @@ function applyFilters(reset = false) {
 }
 
 /* =========================
-   SECTION COUNTS
+   SECTION COUNTS (LOCKED)
 ========================= */
 function updateSectionCounts(outCount, soonCount) {
   const buttons = document.querySelectorAll(".section-segment button");
@@ -227,7 +221,7 @@ function updateSectionCounts(outCount, soonCount) {
 }
 
 /* =========================
-   LIST RENDER
+   LIST RENDER (LOCKED)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -255,7 +249,7 @@ function renderList(list) {
       <div class="card-body">
         ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
-        <div class="card-meta">
+        <div class="card-meta" style="display:flex; justify-content:space-between; align-items:center;">
           <span>${releaseDate}</span>
           ${
             store
@@ -280,7 +274,7 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE
+   DETAILS PAGE (LOCKED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
@@ -342,7 +336,7 @@ function openDetails(game) {
 }
 
 /* =========================
-   RATINGS / PLATFORMS
+   RATINGS / PLATFORMS (LOCKED)
 ========================= */
 function renderRating(game) {
   const s = game.aggregated_rating;
@@ -365,7 +359,7 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   FILTER EVENTS
+   FILTER EVENTS (LOCKED)
 ========================= */
 document.querySelectorAll(".time-segment button").forEach(btn => {
   btn.onclick = () => {

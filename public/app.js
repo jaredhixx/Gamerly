@@ -327,7 +327,7 @@ function getPrimaryStore(game) {
   const p = game.platforms.join(" ").toLowerCase();
 
   if (p.includes("windows") || p.includes("pc"))
-    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${encodedName}` };
+  return { label: "View on Steam (PC) →", url: `https://store.steampowered.com/search/?term=${encodedName}` };
 
   if (p.includes("playstation"))
     return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${encodedName}` };

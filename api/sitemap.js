@@ -1,12 +1,9 @@
 export default async function handler(req, res) {
   try {
-    const protocol =
-      req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
-    const host = req.headers.host;
-    const baseUrl = `${protocol}://${host}`;
+    const BASE_URL = "https://gamerly.net";
 
     // Fetch games from existing IGDB endpoint (read-only)
-    const apiRes = await fetch(`${baseUrl}/api/igdb`);
+    const apiRes = await fetch(`${BASE_URL}/api/igdb`, { cache: "no-store" });
     const data = await apiRes.json();
 
     if (!data || !data.ok || !Array.isArray(data.games)) {
@@ -25,20 +22,24 @@ export default async function handler(req, res) {
         .replace(/-+/g, "-")
         .replace(/(^-|-$)/g, "");
 
-    const today = new Date().toISOString();
+    const now = new Date().toISOString();
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
-    // Homepage
+    /* =========================
+       HOMEPAGE
+    ========================= */
     xml += `  <url>\n`;
-    xml += `    <loc>https://gamerly.net/</loc>\n`;
-    xml += `    <lastmod>${today}</lastmod>\n`;
+    xml += `    <loc>${BASE_URL}/</loc>\n`;
+    xml += `    <lastmod>${now}</lastmod>\n`;
     xml += `    <changefreq>daily</changefreq>\n`;
     xml += `    <priority>1.0</priority>\n`;
     xml += `  </url>\n`;
 
-    // 🔥 STEAM MONEY PAGES (HIGHEST ROI)
+    /* =========================
+       STEAM MONEY PAGES (HIGHEST ROI)
+    ========================= */
     const steamPages = [
       "/steam-games",
       "/steam-games-today",
@@ -48,28 +49,38 @@ export default async function handler(req, res) {
 
     for (const path of steamPages) {
       xml += `  <url>\n`;
-      xml += `    <loc>https://gamerly.net${path}</loc>\n`;
-      xml += `    <lastmod>${today}</lastmod>\n`;
+      xml += `    <loc>${BASE_URL}${path}</loc>\n`;
+      xml += `    <lastmod>${now}</lastmod>\n`;
       xml += `    <changefreq>daily</changefreq>\n`;
       xml += `    <priority>0.9</priority>\n`;
       xml += `  </url>\n`;
     }
 
-    // Game detail pages
+    /* =========================
+       GAME DETAIL PAGES
+    ========================= */
+    let count = 0;
+    const MAX_URLS = 45000; // safety margin
+
     for (const game of games) {
+      if (count >= MAX_URLS) break;
       if (!game || !game.id || !game.name) continue;
 
       const slug = slugify(game.name);
-      const url = `https://gamerly.net/game/${game.id}${
-        slug ? "-" + slug : ""
-      }`;
+      const url = `${BASE_URL}/game/${game.id}${slug ? "-" + slug : ""}`;
 
       xml += `  <url>\n`;
       xml += `    <loc>${url}</loc>\n`;
-      xml += `    <lastmod>${today}</lastmod>\n`;
+
+      if (game.releaseDate) {
+        xml += `    <lastmod>${new Date(game.releaseDate).toISOString()}</lastmod>\n`;
+      }
+
       xml += `    <changefreq>weekly</changefreq>\n`;
       xml += `    <priority>0.6</priority>\n`;
       xml += `  </url>\n`;
+
+      count++;
     }
 
     xml += `</urlset>`;

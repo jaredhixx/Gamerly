@@ -247,7 +247,8 @@ function applyTimeWindow(list, section, timeKey) {
 
   return list.filter(g => {
     if (!g || !g.releaseDate) return false;
-    const t = new Date(g.releaseDate).getTime();
+    const d = new Date(g.releaseDate);
+    const t = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
     if (!Number.isFinite(t)) return false;
     return t >= startMs && t < endMs;
   });

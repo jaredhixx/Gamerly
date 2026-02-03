@@ -486,18 +486,20 @@ function renderDetails(game, replace = false) {
   const store = getPrimaryStore(game);
 
   const gallery =
-    Array.isArray(game.screenshots) && game.screenshots.length
-      ? `
-        <div style="margin-top:14px;">
-          <div style="font-weight:800; margin-bottom:8px;">Screenshots</div>
-          <div class="details-gallery">
-            ${game.screenshots.map(
-              url => `<img src="${url}" alt="${escapeHtml(game.name)} screenshot" loading="lazy" />`
-            ).join("")}
-          </div>
+  Array.isArray(game.screenshots) && game.screenshots.length
+    ? `
+      <section class="details-screenshots" aria-labelledby="screenshots-heading" style="margin-top:14px;">
+        <h2 id="screenshots-heading" style="font-weight:800; margin-bottom:8px;">
+          Screenshots
+        </h2>
+        <div class="details-gallery">
+          ${game.screenshots.map(
+            url => `<img src="${url}" alt="${escapeHtml(game.name)} screenshot" loading="lazy" />`
+          ).join("")}
         </div>
-      `
-      : "";
+      </section>
+    `
+    : "";
 
   grid.innerHTML = `
     <section class="details">

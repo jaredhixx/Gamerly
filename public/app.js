@@ -581,4 +581,5 @@ window.addEventListener("popstate", () => {
 ========================= */
 initRouteDefaults();
 syncActiveButtons();
+applyRouteMeta();
 loadGames();

@@ -46,7 +46,6 @@ function normalizeCover(url) {
 
 function normalizeScreenshot(url) {
   if (!url) return null;
-  // Use large but safe size for gallery
   return `https:${url}`.replace("t_thumb", "t_screenshot_big");
 }
 
@@ -64,29 +63,29 @@ function normalizeGame(g) {
     });
   }
 
-  // Pick earliest valid date
-  const earliest =
-    dates.length > 0 ? Math.min(...dates) : null;
+  // ✅ USE THE EARLIEST REAL RELEASE DATE
+  const earliest = dates.length ? Math.min(...dates) : null;
 
   return {
     id: g.id,
     name: g.name,
-    releaseDate: g.first_release_date
-  ? new Date(g.first_release_date * 1000).toISOString()
-  : Array.isArray(g.release_dates) && g.release_dates.length
-    ? new Date(
-        Math.min(...g.release_dates.map(r => r.date)) * 1000
-      ).toISOString()
-    : null,
+
+    // ✅ FINAL FIX
+    releaseDate: earliest
+      ? new Date(earliest * 1000).toISOString()
+      : null,
+
     aggregated_rating: g.aggregated_rating ?? null,
     aggregated_rating_count: g.aggregated_rating_count ?? null,
+
     coverUrl: normalizeCover(g.cover?.url),
+
     platforms: Array.isArray(g.platforms)
       ? g.platforms.map(p => p.name).filter(Boolean)
       : [],
+
     category: g.genres?.[0]?.name ?? null,
 
-    // SEO + trust
     summary: g.summary || g.storyline || null,
 
     screenshots: Array.isArray(g.screenshots)
@@ -119,39 +118,39 @@ async function postIGDB(query, token) {
 ========================= */
 function buildRecentQuery({ pastDays = 120, limit = 250 }) {
   const now = new Date();
-const endOfTodayUTC = new Date(
-  Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    23, 59, 59
-  )
-);
+  const endOfTodayUTC = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23, 59, 59
+    )
+  );
   const past = new Date(now.getTime() - pastDays * 86400000);
 
   return `
     fields
-  name,
-  summary,
-  storyline,
-  first_release_date,
-  release_dates.date,
-  release_dates.platform,
-  aggregated_rating,
-  aggregated_rating_count,
-  cover.url,
-  screenshots.url,
-  platforms.name,
-  genres.name;
+      name,
+      summary,
+      storyline,
+      first_release_date,
+      release_dates.date,
+      aggregated_rating,
+      aggregated_rating_count,
+      cover.url,
+      screenshots.url,
+      platforms.name,
+      genres.name;
     where
-  (
-    first_release_date >= ${unixSeconds(past)} &
-    first_release_date <= ${unixSeconds(endOfTodayUTC)}
-  ) |
-  (
-    release_dates.date >= ${unixSeconds(past)} &
-    release_dates.date <= ${unixSeconds(endOfTodayUTC)}
-  );
+      (
+        first_release_date >= ${unixSeconds(past)} &
+        first_release_date <= ${unixSeconds(endOfTodayUTC)}
+      )
+      |
+      (
+        release_dates.date >= ${unixSeconds(past)} &
+        release_dates.date <= ${unixSeconds(endOfTodayUTC)}
+      );
     sort first_release_date desc;
     limit ${limit};
   `;
@@ -159,39 +158,39 @@ const endOfTodayUTC = new Date(
 
 function buildUpcomingQuery({ futureDays = 540, limit = 250 }) {
   const now = new Date();
-const endOfTodayUTC = new Date(
-  Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    23, 59, 59
-  )
-);
+  const endOfTodayUTC = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23, 59, 59
+    )
+  );
   const future = new Date(now.getTime() + futureDays * 86400000);
 
   return `
     fields
-  name,
-  summary,
-  storyline,
-  first_release_date,
-  release_dates.date,
-  release_dates.platform,
-  aggregated_rating,
-  aggregated_rating_count,
-  cover.url,
-  screenshots.url,
-  platforms.name,
-  genres.name;
+      name,
+      summary,
+      storyline,
+      first_release_date,
+      release_dates.date,
+      aggregated_rating,
+      aggregated_rating_count,
+      cover.url,
+      screenshots.url,
+      platforms.name,
+      genres.name;
     where
-  (
-    first_release_date > ${unixSeconds(endOfTodayUTC)} &
-    first_release_date <= ${unixSeconds(future)}
-  ) |
-  (
-    release_dates.date > ${unixSeconds(endOfTodayUTC)} &
-    release_dates.date <= ${unixSeconds(future)}
-  );
+      (
+        first_release_date > ${unixSeconds(endOfTodayUTC)} &
+        first_release_date <= ${unixSeconds(future)}
+      )
+      |
+      (
+        release_dates.date > ${unixSeconds(endOfTodayUTC)} &
+        release_dates.date <= ${unixSeconds(future)}
+      );
     sort first_release_date asc;
     limit ${limit};
   `;
@@ -213,7 +212,6 @@ export default async function handler(req, res) {
       .map(normalizeGame)
       .filter(g => g.releaseDate && g.coverUrl);
 
-    // De-duplicate by ID
     const byId = new Map();
     for (const g of merged) {
       byId.set(g.id, g);

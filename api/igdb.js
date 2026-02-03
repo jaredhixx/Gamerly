@@ -1,4 +1,4 @@
-still not showing but nothing broken - full current code - // api/igdb.js
+// api/igdb.js
 // Gamerly — LOCKED backend (frontend handles Out Now / Coming Soon)
 // Stable + ratings + summaries + screenshots added safely (ROI-first)
 

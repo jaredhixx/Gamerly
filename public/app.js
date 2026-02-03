@@ -110,10 +110,10 @@ function getPrimaryStore(game) {
     };
 
   if (p.includes("ios"))
-    return {
-      label: "View on App Store →",
-      url: `https://www.apple.com/us/search/${name}?src=globalnav`
-    };
+  return {
+    label: "View on App Store →",
+    url: `https://apps.apple.com/us/search?term=${name}`
+  };
 
   if (p.includes("android"))
     return {

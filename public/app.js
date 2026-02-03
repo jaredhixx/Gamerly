@@ -4,16 +4,13 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   ROUTE MODE (SAFE, ADDITIVE)
+   ROUTE MODE (SAFE)
 ========================= */
 const PATH = (window.location.pathname || "").split("?")[0].split("#")[0];
 
 const ROUTE = {
   HOME: PATH === "/" || PATH === "",
-  DETAILS: /^\/game\/\d+/.test(PATH),
 };
-
-let lastListPath = "/";
 
 /* =========================
    AGE GATE (LOCKED)
@@ -38,24 +35,14 @@ if (ageGate && ageBtn) {
    STATE (LOCKED)
 ========================= */
 let allGames = [];
-let activeSection = "out"; // out | soon
+let activeSection = "out";        // out | soon
+let activePlatform = "all";       // all | pc | xbox | etc
 let visibleCount = 0;
 const PAGE_SIZE = 24;
-let viewMode = "list";
 
 /* =========================
    HELPERS
 ========================= */
-function slugify(str = "") {
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/['"]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
 function startOfLocalDay(d = new Date()) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
@@ -64,15 +51,6 @@ function startOfTomorrow() {
   const t = startOfLocalDay(new Date());
   t.setDate(t.getDate() + 1);
   return t;
-}
-
-function setMetaTitle(title) {
-  document.title = title;
-}
-
-function setMetaDescription(desc) {
-  const tag = document.querySelector('meta[name="description"]');
-  if (tag) tag.setAttribute("content", desc);
 }
 
 function escapeHtml(str = "") {
@@ -110,22 +88,24 @@ async function loadGames() {
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
-  viewMode = "list";
-
-  setMetaTitle("Gamerly — Daily Game Releases, Curated");
-  setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
 
   const tomorrowStart = startOfTomorrow();
 
-  const outNow = allGames.filter(
-    g => new Date(g.releaseDate) < tomorrowStart
-  );
+  let list =
+    activeSection === "out"
+      ? allGames.filter(g => new Date(g.releaseDate) < tomorrowStart)
+      : allGames.filter(g => new Date(g.releaseDate) >= tomorrowStart);
 
-  const comingSoon = allGames.filter(
-    g => new Date(g.releaseDate) >= tomorrowStart
-  );
+  // ✅ PLATFORM FILTER (RESTORED)
+  if (activePlatform !== "all") {
+    const key = activePlatform.toLowerCase();
+    list = list.filter(
+      g =>
+        Array.isArray(g.platforms) &&
+        g.platforms.some(p => p.toLowerCase().includes(key))
+    );
+  }
 
-  const list = activeSection === "out" ? outNow : comingSoon;
   renderList(list);
 }
 
@@ -166,7 +146,7 @@ function renderList(list) {
 }
 
 /* =========================
-   PLATFORMS
+   PLATFORMS (LOCKED)
 ========================= */
 function renderPlatforms(game) {
   if (!Array.isArray(game.platforms)) return "";
@@ -182,12 +162,21 @@ function renderPlatforms(game) {
 }
 
 /* =========================
-   SECTION BUTTON EVENTS
+   UI EVENTS
 ========================= */
 document.querySelectorAll(".section-segment button").forEach(btn => {
   btn.onclick = () => {
     activeSection = btn.textContent.includes("Out") ? "out" : "soon";
     document.querySelectorAll(".section-segment button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".platforms button").forEach(btn => {
+  btn.onclick = () => {
+    activePlatform = btn.dataset.platform || "all";
+    document.querySelectorAll(".platforms button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     applyFilters(true);
   };

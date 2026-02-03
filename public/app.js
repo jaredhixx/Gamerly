@@ -1,4 +1,3 @@
-const grid = document.getElementById("gamesGrid");
 const loading = document.getElementById("loading");
 const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
@@ -65,6 +64,13 @@ function slugify(str = "") {
     .replace(/(^-|-$)/g, "");
 }
 
+function appleSearchTerm(str = "") {
+  return str
+    .replace(/[^\w\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function parseDetailsIdFromPath(pathname) {
   const clean = (pathname || "").split("?")[0].split("#")[0];
   const m = clean.match(/^\/game\/(\d+)(?:-.*)?$/);
@@ -89,36 +95,57 @@ function escapeHtml(str = "") {
     .replaceAll("'", "&#039;");
 }
 
+function setActive(button) {
+  const group = button.parentElement;
+  if (!group) return;
+  group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+  button.classList.add("active");
+}
+
+function isPCSteamCandidate(game) {
+  if (!game || !Array.isArray(game.platforms)) return false;
+  const p = game.platforms.join(" ").toLowerCase();
+  // your data uses "PC (Microsoft Windows)" — this catches it safely
+  return p.includes("windows") || p.includes("pc");
+}
+
 function startOfLocalDay(d = new Date()) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-function isPCSteamCandidate(game) {
-  if (!Array.isArray(game.platforms)) return false;
-  return game.platforms.join(" ").toLowerCase().includes("windows");
-}
-
 /* =========================
-   STORE CTA (LOCKED)
+   STORE CTA LOGIC (LOCKED)
 ========================= */
 function getPrimaryStore(game) {
-  const encoded = encodeURIComponent(game.name);
-  const p = (game.platforms || []).join(" ").toLowerCase();
+  if (!Array.isArray(game.platforms)) return null;
 
-  if (p.includes("windows"))
-    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${encoded}` };
+  const encodedName = encodeURIComponent(game.name);
+  const appleTerm = appleSearchTerm(game.name);
+  const p = game.platforms.join(" ").toLowerCase();
+
+  if (p.includes("windows") || p.includes("pc"))
+    return { label: "View on Steam →", url: `https://store.steampowered.com/search/?term=${encodedName}` };
+
   if (p.includes("playstation"))
-    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${encoded}` };
-  if (p.includes("xbox"))
-    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${encoded}` };
-  if (p.includes("nintendo"))
-    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encoded}` };
-  if (p.includes("ios"))
-    return { label: "View on App Store →", url: `https://apps.apple.com/us/search?term=${encoded}` };
-  if (p.includes("android"))
-    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${encoded}&c=apps` };
+    return { label: "View on PlayStation →", url: `https://store.playstation.com/search/${encodedName}` };
 
-  return null;
+  if (p.includes("xbox"))
+    return { label: "View on Xbox →", url: `https://www.xbox.com/en-US/Search?q=${encodedName}` };
+
+  if (p.includes("nintendo"))
+    return { label: "View on Nintendo →", url: `https://www.nintendo.com/us/search/#q=${encodedName}` };
+
+  // ✅ iOS: best possible behavior without App IDs
+  if (p.includes("ios"))
+    return {
+      label: "View on App Store →",
+      url: `https://apps.apple.com/us/search?term=${encodeURIComponent(appleTerm)}`
+    };
+
+  if (p.includes("android"))
+    return { label: "View on Google Play →", url: `https://play.google.com/store/search?q=${encodedName}&c=apps` };
+
+  return { label: "View on Store →", url: `https://www.google.com/search?q=${encodedName}+game` };
 }
 
 /* =========================
@@ -138,28 +165,57 @@ async function loadGames() {
     const id = parseDetailsIdFromPath(window.location.pathname);
     if (id) {
       const g = allGames.find(x => String(x.id) === String(id));
-      if (g) return renderDetails(g, true);
+      if (g) {
+        renderDetails(g, true);
+        return;
+      }
+      // If someone hits an unknown /game/* route, go home safely
       history.replaceState({}, "", "/");
     }
 
     applyFilters(true);
-  } catch (e) {
+  } catch {
     errorBox.textContent = "Failed to load games.";
-    console.error(e);
   } finally {
     loading.style.display = "none";
   }
 }
 
 /* =========================
-   FILTER PIPELINE
+   FILTER PIPELINE (LOCKED + STEAM MONEY PAGES)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
   viewMode = "list";
+
   const now = new Date();
 
+  // ===== STEAM MONEY PAGES (additive, isolated) =====
   if (IS_STEAM_MONEY_PAGE) {
+    // SEO per route
+    if (ROUTE.STEAM_ALL) {
+      setMetaTitle("New & Upcoming Steam Games (Updated Daily) | Gamerly");
+      setMetaDescription(
+        "Browse new and upcoming Steam games. Updated daily with curated PC releases and direct links to Steam."
+      );
+    } else if (ROUTE.STEAM_TODAY) {
+      setMetaTitle("New Steam Games Today | Gamerly");
+      setMetaDescription(
+        "See all new Steam game releases today. Updated daily with direct links to Steam."
+      );
+    } else if (ROUTE.STEAM_WEEK) {
+      setMetaTitle("New Steam Games This Week | Gamerly");
+      setMetaDescription(
+        "Browse new Steam games released this week and upcoming PC titles with direct Steam links."
+      );
+    } else if (ROUTE.STEAM_UPCOMING) {
+      setMetaTitle("Upcoming Steam Games | Gamerly");
+      setMetaDescription(
+        "Discover upcoming Steam games and PC releases. Updated daily with direct links to Steam."
+      );
+    }
+
+    // Always PC-only on Steam money pages
     let list = allGames.filter(g => g.releaseDate && isPCSteamCandidate(g));
 
     if (ROUTE.STEAM_TODAY) {
@@ -169,32 +225,82 @@ function applyFilters(reset = false) {
         const d = new Date(g.releaseDate);
         return d >= start && d < end;
       });
+      // newest first within the day
+      list.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
     } else if (ROUTE.STEAM_WEEK) {
-      const end = new Date(now.getTime() + 7 * 86400000);
-      list = list.filter(g => new Date(g.releaseDate) <= end);
+      const start = startOfLocalDay(now);
+      const end = new Date(start.getTime() + 7 * 86400000);
+      list = list.filter(g => {
+        const d = new Date(g.releaseDate);
+        return d >= start && d < end;
+      });
+      // closest release first (conversion-focused)
+      list.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
     } else if (ROUTE.STEAM_UPCOMING) {
-      list = list.filter(g => new Date(g.releaseDate) > now);
+      const start = now;
+      // keep it reasonably “upcoming” (matches backend’s 540-day horizon anyway)
+      list = list.filter(g => new Date(g.releaseDate) > start);
+      list.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+    } else if (ROUTE.STEAM_ALL) {
+      const outNow = list.filter(g => new Date(g.releaseDate) <= now);
+      const comingSoon = list.filter(g => new Date(g.releaseDate) > now);
+
+      outNow.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)); // newest out now
+      comingSoon.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate)); // soonest upcoming
+
+      list = [...outNow, ...comingSoon];
     }
 
-    lastListPath = PATH;
+    lastListPath = PATH; // back button from details returns to this money page
     renderList(list);
     return;
   }
 
+  // ===== HOME / DEFAULT (UNCHANGED v5 behavior) =====
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
   setMetaDescription("Track new and upcoming game releases across PC, console, and mobile. Updated daily.");
 
-  const outNow = allGames.filter(g => new Date(g.releaseDate) <= now);
-  const comingSoon = allGames.filter(g => new Date(g.releaseDate) > now);
+  const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) <= now);
+  const comingSoon = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) > now);
 
   updateSectionCounts(outNow.length, comingSoon.length);
+
   let list = activeSection === "out" ? outNow : comingSoon;
 
+  if (activeTime !== "all") {
+    list = list.filter(g => {
+      const d = new Date(g.releaseDate);
+      if (activeTime === "today") return d.toDateString() === now.toDateString();
+      if (activeTime === "week") return d <= new Date(now.getTime() + 7 * 864e5);
+      if (activeTime === "month") return d <= new Date(now.getTime() + 30 * 864e5);
+      return true;
+    });
+  }
+
+  if (activePlatform !== "all") {
+    const key = activePlatform.toLowerCase();
+    list = list.filter(g =>
+      Array.isArray(g.platforms) &&
+      g.platforms.some(p => p.toLowerCase().includes(key))
+    );
+  }
+
+  lastListPath = "/";
   renderList(list);
 }
 
 /* =========================
-   LIST RENDER
+   SECTION COUNTS (LOCKED)
+========================= */
+function updateSectionCounts(outCount, soonCount) {
+  const buttons = document.querySelectorAll(".section-segment button");
+  if (buttons.length < 2) return;
+  buttons[0].innerHTML = `Out Now <span class="count">${outCount}</span>`;
+  buttons[1].innerHTML = `Coming Soon <span class="count">${soonCount}</span>`;
+}
+
+/* =========================
+   LIST RENDER (LOCKED)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -209,22 +315,37 @@ function renderList(list) {
 
   slice.forEach(game => {
     const store = getPrimaryStore(game);
-    const release = new Date(game.releaseDate).toLocaleDateString();
+    const releaseDate = new Date(game.releaseDate).toLocaleDateString();
 
     const card = document.createElement("div");
     card.className = "card";
+    card.setAttribute("role", "button");
+
     card.innerHTML = `
-      <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover">
+      <div class="platform-overlay">${renderPlatforms(game)}</div>
+      ${renderRating(game)}
+      <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover" />
       <div class="card-body">
+        ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
-        <div class="card-meta">
-          <span>${release}</span>
-          ${store ? `<a class="card-cta" href="${store.url}" target="_blank" rel="nofollow noopener">Store →</a>` : ""}
+        <div class="card-meta" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>${releaseDate}</span>
+          ${
+            store
+              ? `<a class="card-cta"
+                   href="${store.url}"
+                   target="_blank"
+                   rel="nofollow sponsored noopener"
+                   onclick="event.stopPropagation()">
+                   ${store.label}
+                 </a>`
+              : ""
+          }
         </div>
       </div>
     `;
 
-    card.onclick = () => renderDetails(game);
+    card.onclick = () => openDetails(game);
     grid.appendChild(card);
   });
 
@@ -232,17 +353,28 @@ function renderList(list) {
 }
 
 /* =========================
-   DETAILS PAGE
+   DETAILS PAGE (LOCKED)
 ========================= */
 function renderDetails(game, replace = false) {
   viewMode = "details";
 
   const slug = slugify(game.name);
   const path = `/game/${game.id}${slug ? "-" + slug : ""}`;
-  replace ? history.replaceState({}, "", path) : history.pushState({}, "", path);
+
+  if (replace) history.replaceState({}, "", path);
+  else history.pushState({}, "", path);
 
   setMetaTitle(`${game.name} — Gamerly`);
-  setMetaDescription(game.summary || `Release info for ${game.name}.`);
+
+  const summaryText = game.summary
+    ? escapeHtml(game.summary.slice(0, 240))
+    : "";
+
+  setMetaDescription(summaryText || `Release info for ${game.name}.`);
+
+  const release = game.releaseDate
+    ? new Date(game.releaseDate).toDateString()
+    : "Release date unknown";
 
   const store = getPrimaryStore(game);
 
@@ -253,29 +385,111 @@ function renderDetails(game, replace = false) {
       </div>
       <div class="details-info">
         <h1 class="details-title">${escapeHtml(game.name)}</h1>
-        ${game.summary ? `<p class="details-summary">${escapeHtml(game.summary)}</p>` : ""}
-        ${store ? `<a class="cta-primary" href="${store.url}" target="_blank" rel="nofollow noopener">${store.label}</a>` : ""}
-        <button class="details-back" id="backBtn">← Back</button>
+        <div class="details-sub">${escapeHtml(release)}</div>
+        ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
+        <div class="details-platforms">${renderPlatforms(game)}</div>
+        ${
+          store
+            ? `<a class="cta-primary"
+                 href="${store.url}"
+                 target="_blank"
+                 rel="nofollow sponsored noopener">
+                 ${store.label}
+               </a>`
+            : ""
+        }
+        <button class="details-back" id="backBtn">← Back to list</button>
       </div>
     </section>
   `;
 
+  showMoreBtn.style.display = "none";
   document.getElementById("backBtn").onclick = () => {
     history.pushState({}, "", lastListPath || "/");
     applyFilters(true);
   };
 }
 
-/* =========================
-   COUNTS
-========================= */
-function updateSectionCounts(out, soon) {
-  const btns = document.querySelectorAll(".section-segment button");
-  if (btns.length >= 2) {
-    btns[0].innerHTML = `Out Now <span class="count">${out}</span>`;
-    btns[1].innerHTML = `Coming Soon <span class="count">${soon}</span>`;
-  }
+function openDetails(game) {
+  renderDetails(game);
 }
+
+/* =========================
+   RATINGS / PLATFORMS (LOCKED)
+========================= */
+function renderRating(game) {
+  const s = game.aggregated_rating;
+  const c = game.aggregated_rating_count;
+  if (typeof s !== "number" || typeof c !== "number" || s < 65) return "";
+  return `<div class="rating-badge">${Math.round(s)}</div>`;
+}
+
+function renderPlatforms(game) {
+  if (!Array.isArray(game.platforms)) return "";
+  const p = game.platforms.join(" ").toLowerCase();
+  const chips = [];
+  if (p.includes("windows")) chips.push(`<span class="platform-chip">PC</span>`);
+  if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
+  if (p.includes("playstation")) chips.push(`<span class="platform-chip ps">PS</span>`);
+  if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
+  if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
+  if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
+  return chips.join("");
+}
+
+/* =========================
+   FILTER EVENTS (LOCKED)
+========================= */
+document.querySelectorAll(".time-segment button").forEach(btn => {
+  btn.onclick = () => {
+    if (IS_STEAM_MONEY_PAGE) return;
+    if (viewMode === "details") history.pushState({}, "", "/");
+    activeTime = btn.textContent.toLowerCase().replace(" ", "");
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".section-segment button").forEach(btn => {
+  btn.onclick = () => {
+    if (IS_STEAM_MONEY_PAGE) return;
+    if (viewMode === "details") history.pushState({}, "", "/");
+    activeSection = btn.textContent.includes("Out") ? "out" : "soon";
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+document.querySelectorAll(".platforms button").forEach(btn => {
+  btn.onclick = () => {
+    if (IS_STEAM_MONEY_PAGE) return;
+    if (viewMode === "details") history.pushState({}, "", "/");
+    activePlatform = btn.dataset.platform || "all";
+    setActive(btn);
+    applyFilters(true);
+  };
+});
+
+showMoreBtn.onclick = () => {
+  visibleCount += PAGE_SIZE;
+  applyFilters();
+};
+
+window.addEventListener("popstate", () => {
+  const id = parseDetailsIdFromPath(window.location.pathname);
+  if (id) {
+    const g = allGames.find(x => String(x.id) === String(id));
+    if (g) return renderDetails(g, true);
+  }
+  // update list path when navigating directly between list pages
+  const p = (window.location.pathname || "").split("?")[0].split("#")[0];
+  if (p === "/steam-games" || p === "/steam-games-today" || p === "/steam-games-this-week" || p === "/steam-games-upcoming") {
+    lastListPath = p;
+  } else {
+    lastListPath = "/";
+  }
+  applyFilters(true);
+});
 
 /* =========================
    INIT

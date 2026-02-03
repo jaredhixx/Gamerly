@@ -78,7 +78,7 @@ function setActive(button) {
 }
 
 /* =========================
-   STORE CTA LOGIC (SAFE)
+   STORE CTA LOGIC (SAFE, FINAL)
 ========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
@@ -112,7 +112,7 @@ function getPrimaryStore(game) {
   if (p.includes("ios"))
     return {
       label: "View on App Store →",
-      url: `https://www.apple.com/app-store/`
+      url: `https://www.apple.com/us/search/${name}?src=globalnav`
     };
 
   if (p.includes("android"))
@@ -128,7 +128,7 @@ function getPrimaryStore(game) {
 }
 
 /* =========================
-   FETCH (KNOWN WORKING)
+   FETCH (STABLE)
 ========================= */
 async function loadGames() {
   try {

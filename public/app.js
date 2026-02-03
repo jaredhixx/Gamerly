@@ -191,6 +191,12 @@ function startOfTomorrow() {
   return t;
 }
 
+/* ✅ LOCAL DAY NORMALIZER (FIXES UTC BUG) */
+function localDay(date) {
+  const d = new Date(date);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
 /* =========================
    TIME WINDOW (SAFE, ADDITIVE)
 ========================= */
@@ -359,16 +365,21 @@ async function loadGames() {
 }
 
 /* =========================
-   FILTER PIPELINE (LOCKED)
+   FILTER PIPELINE (LOCKED + FIXED)
 ========================= */
 function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
   viewMode = "list";
 
-  const tomorrow = startOfTomorrow();
+  const todayLocal = localDay(new Date());
 
-  const outNow = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) < tomorrow);
-  const comingSoon = allGames.filter(g => g.releaseDate && new Date(g.releaseDate) >= tomorrow);
+  const outNow = allGames.filter(
+    g => g.releaseDate && localDay(g.releaseDate) <= todayLocal
+  );
+
+  const comingSoon = allGames.filter(
+    g => g.releaseDate && localDay(g.releaseDate) > todayLocal
+  );
 
   let list = activeSection === "out" ? outNow : comingSoon;
 
@@ -449,11 +460,8 @@ function renderDetails(game, replace = false) {
   else history.pushState({}, "", path);
 
   setMetaTitle(`${game.name} — Gamerly`);
-
   const summaryText = game.summary ? escapeHtml(game.summary.slice(0, 240)) : "";
   setMetaDescription(summaryText || `Release info for ${game.name}.`);
-
-  /* ✅ DETAIL SELF-CANONICAL (HIGH ROI, SAFE) */
   setCanonical(`https://gamerly.net${path}`);
 
   const release = game.releaseDate
@@ -468,17 +476,9 @@ function renderDetails(game, replace = false) {
         <div style="margin-top:14px;">
           <div style="font-weight:800; margin-bottom:8px;">Screenshots</div>
           <div class="details-gallery">
-            ${game.screenshots
-              .map(
-                (url) => `
-                <img
-                  src="${url}"
-                  alt="${escapeHtml(game.name)} screenshot"
-                  loading="lazy"
-                />
-              `
-              )
-              .join("")}
+            ${game.screenshots.map(
+              url => `<img src="${url}" alt="${escapeHtml(game.name)} screenshot" loading="lazy" />`
+            ).join("")}
           </div>
         </div>
       `
@@ -489,28 +489,13 @@ function renderDetails(game, replace = false) {
       <div class="details-cover">
         <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover">
       </div>
-
       <div class="details-info">
         <h1 class="details-title">${escapeHtml(game.name)}</h1>
         <div class="details-sub">${escapeHtml(release)}</div>
-
         ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
-
         <div class="details-platforms">${renderPlatforms(game)}</div>
-
         ${gallery}
-
-        ${
-          store
-            ? `<a class="cta-primary"
-                 href="${store.url}"
-                 target="_blank"
-                 rel="nofollow sponsored noopener">
-                 ${store.label}
-               </a>`
-            : ""
-        }
-
+        ${store ? `<a class="cta-primary" href="${store.url}" target="_blank" rel="nofollow sponsored noopener">${store.label}</a>` : ""}
         <button class="details-back" id="backBtn">← Back to list</button>
       </div>
     </section>

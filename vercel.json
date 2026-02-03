@@ -1,16 +1,16 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "^/api/(.*)$",
-      "dest": "/api/$1"
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
     },
     {
-      "src": "/(.*)\\.(css|js|png|jpg|jpeg|gif|svg|ico|webp)$",
-      "dest": "/$1"
+      "source": "/api/sitemap",
+      "destination": "/api/sitemap"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

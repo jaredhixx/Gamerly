@@ -39,9 +39,9 @@ if (ageGate && ageBtn) {
    STATE (LOCKED)
 ========================= */
 let allGames = [];
-let activeSection = "out";        // out | soon
-let activeTime = "all";           // all | today | thisweek | thismonth
-let activePlatform = "all";       // all | pc | playstation | xbox | nintendo | ios | android
+let activeSection = "out";
+let activeTime = "all";
+let activePlatform = "all";
 let visibleCount = 0;
 const PAGE_SIZE = 24;
 let viewMode = "list";
@@ -127,14 +127,13 @@ function applyRouteMeta() {
     return;
   }
 
-  // Homepage fallback
   setMetaTitle("Gamerly — Daily Game Releases, Curated");
   setMetaDescription(
     "Track new and upcoming game releases across PC, console, and mobile. Updated daily and curated so you only see what matters."
   );
 }
 
- /* =========================
+/* =========================
    SEO ROUTE H1 (HIGH ROI, SAFE)
 ========================= */
 function applyRouteH1() {
@@ -186,7 +185,6 @@ function startOfLocalDay(d = new Date()) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-// ✅ "Coming Soon" starts tomorrow
 function startOfTomorrow() {
   const t = startOfLocalDay(new Date());
   t.setDate(t.getDate() + 1);
@@ -215,7 +213,6 @@ function getTimeWindow(section, timeKey) {
     return null;
   }
 
-  // section === "soon"
   if (timeKey === "today") return { start: tomorrowStart, end: addDays(tomorrowStart, 1) };
   if (timeKey === "thisweek") return { start: tomorrowStart, end: addDays(tomorrowStart, 7) };
   if (timeKey === "thismonth") return { start: tomorrowStart, end: addDays(tomorrowStart, 30) };
@@ -240,7 +237,6 @@ function applyTimeWindow(list, section, timeKey) {
 function platformMatches(game, key) {
   if (!game || !Array.isArray(game.platforms)) return false;
   const p = game.platforms.join(" ").toLowerCase();
-
   if (key === "pc") return p.includes("windows") || p.includes("pc");
   return p.includes(key);
 }
@@ -456,6 +452,9 @@ function renderDetails(game, replace = false) {
 
   const summaryText = game.summary ? escapeHtml(game.summary.slice(0, 240)) : "";
   setMetaDescription(summaryText || `Release info for ${game.name}.`);
+
+  /* ✅ DETAIL SELF-CANONICAL (HIGH ROI, SAFE) */
+  setCanonical(`https://gamerly.net${path}`);
 
   const release = game.releaseDate
     ? new Date(game.releaseDate).toDateString()

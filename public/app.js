@@ -514,7 +514,7 @@ function renderDetails(game, replace = false) {
 
         <div class="more-steam">
   <div style="font-weight:800; margin-top:14px; margin-bottom:6px;">
-    More Steam Releases
+    More PC Games on Steam
   </div>
   <ul style="list-style:none; padding:0; margin:0;">
     <li><a href="/steam-games-today">Steam games released today</a></li>

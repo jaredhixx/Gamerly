@@ -131,8 +131,14 @@ function buildRecentQuery({ pastDays = 120, limit = 250 }) {
       platforms.name,
       genres.name;
     where
-      first_release_date >= ${unixSeconds(past)} &
-      first_release_date <= ${unixSeconds(now)};
+  (
+    first_release_date >= ${unixSeconds(past)} &
+    first_release_date <= ${unixSeconds(now)}
+  ) |
+  (
+    release_dates.date >= ${unixSeconds(past)} &
+    release_dates.date <= ${unixSeconds(now)}
+  );
     sort first_release_date desc;
     limit ${limit};
   `;
@@ -156,8 +162,14 @@ function buildUpcomingQuery({ futureDays = 540, limit = 250 }) {
       platforms.name,
       genres.name;
     where
-      first_release_date > ${unixSeconds(now)} &
-      first_release_date <= ${unixSeconds(future)};
+  (
+    first_release_date > ${unixSeconds(now)} &
+    first_release_date <= ${unixSeconds(future)}
+  ) |
+  (
+    release_dates.date > ${unixSeconds(now)} &
+    release_dates.date <= ${unixSeconds(future)}
+  );
     sort first_release_date asc;
     limit ${limit};
   `;

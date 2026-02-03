@@ -1,6 +1,12 @@
 User-agent: *
 Allow: /
 
+# Block internal API routes
 Disallow: /api/
 
+# Discourage indexing of querystring / filter states
+Disallow: /*?
+Disallow: /*&
+
+# Sitemap
 Sitemap: https://gamerly.net/api/sitemap

@@ -119,7 +119,10 @@ async function postIGDB(query, token) {
 /* =========================
    QUERIES
 ========================= */
-function buildRecentQuery({ limit = 500 }) {
+function buildRecentQuery({ pastDays = 180, limit = 300 }) {
+  const now = new Date();
+  const past = new Date(now.getTime() - pastDays * 86400000);
+
   return `
     fields
       name,
@@ -134,14 +137,24 @@ function buildRecentQuery({ limit = 500 }) {
       platforms.name,
       genres.name;
     where
-      first_release_date != null
-      | release_dates.date != null;
+      (
+        first_release_date >= ${unixSeconds(past)} &
+        first_release_date <= ${unixSeconds(now)}
+      )
+      |
+      (
+        release_dates.date >= ${unixSeconds(past)} &
+        release_dates.date <= ${unixSeconds(now)}
+      );
     sort first_release_date desc;
     limit ${limit};
   `;
 }
 
-function buildUpcomingQuery({ limit = 500 }) {
+function buildUpcomingQuery({ futureDays = 365, limit = 300 }) {
+  const now = new Date();
+  const future = new Date(now.getTime() + futureDays * 86400000);
+
   return `
     fields
       name,
@@ -156,12 +169,20 @@ function buildUpcomingQuery({ limit = 500 }) {
       platforms.name,
       genres.name;
     where
-      first_release_date != null
-      | release_dates.date != null;
+      (
+        first_release_date > ${unixSeconds(now)} &
+        first_release_date <= ${unixSeconds(future)}
+      )
+      |
+      (
+        release_dates.date > ${unixSeconds(now)} &
+        release_dates.date <= ${unixSeconds(future)}
+      );
     sort first_release_date asc;
     limit ${limit};
   `;
 }
+
 
 /* =========================
    HANDLER

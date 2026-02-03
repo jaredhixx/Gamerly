@@ -119,39 +119,39 @@ async function postIGDB(query, token) {
 ========================= */
 function buildRecentQuery({ pastDays = 120, limit = 250 }) {
   const now = new Date();
-const endOfTodayUTC = new Date(
-  Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    23, 59, 59
-  )
-);
+  const endOfTodayUTC = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23, 59, 59
+    )
+  );
   const past = new Date(now.getTime() - pastDays * 86400000);
 
   return `
     fields
-  name,
-  summary,
-  storyline,
-  first_release_date,
-  release_dates.date,
-  release_dates.platform,
-  aggregated_rating,
-  aggregated_rating_count,
-  cover.url,
-  screenshots.url,
-  platforms.name,
-  genres.name;
+      name,
+      summary,
+      storyline,
+      first_release_date,
+      release_dates.date,
+      aggregated_rating,
+      aggregated_rating_count,
+      cover.url,
+      screenshots.url,
+      platforms.name,
+      genres.name;
     where
-  (
-    first_release_date <= ${unixSeconds(endOfTodayUTC)}
-release_dates.date <= ${unixSeconds(endOfTodayUTC)}
-  ) |
-  (
-    release_dates.date >= ${unixSeconds(past)} &
-    release_dates.date <= ${unixSeconds(now)}
-  );
+      (
+        first_release_date >= ${unixSeconds(past)} &
+        first_release_date <= ${unixSeconds(endOfTodayUTC)}
+      )
+      |
+      (
+        release_dates.date >= ${unixSeconds(past)} &
+        release_dates.date <= ${unixSeconds(endOfTodayUTC)}
+      );
     sort first_release_date desc;
     limit ${limit};
   `;
@@ -159,39 +159,39 @@ release_dates.date <= ${unixSeconds(endOfTodayUTC)}
 
 function buildUpcomingQuery({ futureDays = 540, limit = 250 }) {
   const now = new Date();
-const endOfTodayUTC = new Date(
-  Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    23, 59, 59
-  )
-);
+  const endOfTodayUTC = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23, 59, 59
+    )
+  );
   const future = new Date(now.getTime() + futureDays * 86400000);
 
   return `
     fields
-  name,
-  summary,
-  storyline,
-  first_release_date,
-  release_dates.date,
-  release_dates.platform,
-  aggregated_rating,
-  aggregated_rating_count,
-  cover.url,
-  screenshots.url,
-  platforms.name,
-  genres.name;
+      name,
+      summary,
+      storyline,
+      first_release_date,
+      release_dates.date,
+      aggregated_rating,
+      aggregated_rating_count,
+      cover.url,
+      screenshots.url,
+      platforms.name,
+      genres.name;
     where
-  (
-    first_release_date > ${unixSeconds(endOfTodayUTC)}
-release_dates.date > ${unixSeconds(endOfTodayUTC)}
-  ) |
-  (
-    release_dates.date > ${unixSeconds(now)} &
-    release_dates.date <= ${unixSeconds(future)}
-  );
+      (
+        first_release_date > ${unixSeconds(endOfTodayUTC)} &
+        first_release_date <= ${unixSeconds(future)}
+      )
+      |
+      (
+        release_dates.date > ${unixSeconds(endOfTodayUTC)} &
+        release_dates.date <= ${unixSeconds(future)}
+      );
     sort first_release_date asc;
     limit ${limit};
   `;

@@ -4,86 +4,15 @@ const errorBox = document.getElementById("errorBox");
 const showMoreBtn = document.getElementById("showMore");
 
 /* =========================
-   ROUTE MODE (SAFE, ADDITIVE)
-========================= */
-const PATH = (window.location.pathname || "").split("?")[0].split("#")[0];
-
-const ROUTE = {
-  HOME: PATH === "/" || PATH === "",
-  DETAILS: /^\/game\/\d+/.test(PATH),
-  STEAM_ALL: PATH === "/steam-games",
-  STEAM_TODAY: PATH === "/steam-games-today",
-  STEAM_WEEK: PATH === "/steam-games-this-week",
-  STEAM_UPCOMING: PATH === "/steam-games-upcoming",
-};
-
-const IS_STEAM_MONEY_PAGE =
-  ROUTE.STEAM_ALL || ROUTE.STEAM_TODAY || ROUTE.STEAM_WEEK || ROUTE.STEAM_UPCOMING;
-
-let lastListPath = ROUTE.HOME ? "/" : (IS_STEAM_MONEY_PAGE ? PATH : "/");
-
-/* =========================
-   AGE GATE (LOCKED)
-========================= */
-const ageGate = document.getElementById("ageGate");
-const ageBtn = document.getElementById("ageConfirmBtn");
-
-if (ageGate && ageBtn) {
-  if (localStorage.getItem("gamerly_age_verified") === "true") {
-    ageGate.style.display = "none";
-  } else {
-    ageGate.style.display = "flex";
-  }
-
-  ageBtn.onclick = () => {
-    localStorage.setItem("gamerly_age_verified", "true");
-    ageGate.style.display = "none";
-  };
-}
-
-/* =========================
    STATE (LOCKED)
 ========================= */
 let allGames = [];
-let activeSection = "out";
-let activeTime = "all";
-let activePlatform = "all";
 let visibleCount = 0;
 const PAGE_SIZE = 24;
-let viewMode = "list";
 
 /* =========================
    HELPERS
 ========================= */
-function slugify(str = "") {
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/['"]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
-function appleSearchTerm(str = "") {
-  return str.replace(/[^\w\s]/g, "").replace(/\s+/g, " ").trim();
-}
-
-function parseDetailsIdFromPath(pathname) {
-  const clean = (pathname || "").split("?")[0].split("#")[0];
-  const m = clean.match(/^\/game\/(\d+)(?:-.*)?$/);
-  return m ? m[1] : null;
-}
-
-function setMetaTitle(title) {
-  document.title = title;
-}
-
-function setMetaDescription(desc) {
-  const tag = document.querySelector('meta[name="description"]');
-  if (tag) tag.setAttribute("content", desc);
-}
-
 function escapeHtml(str = "") {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -93,25 +22,12 @@ function escapeHtml(str = "") {
     .replaceAll("'", "&#039;");
 }
 
-function setActive(button) {
-  const group = button.parentElement;
-  if (!group) return;
-  group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-  button.classList.add("active");
-}
-
-function isPCSteamCandidate(game) {
-  if (!game || !Array.isArray(game.platforms)) return false;
-  const p = game.platforms.join(" ").toLowerCase();
-  return p.includes("windows") || p.includes("pc");
-}
-
-function startOfLocalDay(d = new Date()) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+function appleSearchTerm(str = "") {
+  return str.replace(/[^\w\s]/g, "").replace(/\s+/g, " ").trim();
 }
 
 /* =========================
-   STORE CTA LOGIC (LOCKED)
+   STORE CTA (LOCKED)
 ========================= */
 function getPrimaryStore(game) {
   if (!Array.isArray(game.platforms)) return null;
@@ -137,36 +53,30 @@ function getPrimaryStore(game) {
 }
 
 /* =========================
-   FETCH
+   RENDER HELPERS (LOCKED)
 ========================= */
-async function loadGames() {
-  try {
-    loading.style.display = "block";
-    errorBox.textContent = "";
+function renderRating(game) {
+  const s = game.aggregated_rating;
+  const c = game.aggregated_rating_count;
+  if (typeof s !== "number" || typeof c !== "number" || s < 65) return "";
+  return `<div class="rating-badge">${Math.round(s)}</div>`;
+}
 
-    const res = await fetch("/api/igdb");
-    const data = await res.json();
-    if (!data.ok) throw new Error("API failed");
-
-    allGames = data.games || [];
-
-    const id = parseDetailsIdFromPath(window.location.pathname);
-    if (id) {
-      const g = allGames.find(x => String(x.id) === String(id));
-      if (g) return renderDetails(g, true);
-      history.replaceState({}, "", "/");
-    }
-
-    applyFilters(true);
-  } catch {
-    errorBox.textContent = "Failed to load games.";
-  } finally {
-    loading.style.display = "none";
-  }
+function renderPlatforms(game) {
+  if (!Array.isArray(game.platforms)) return "";
+  const p = game.platforms.join(" ").toLowerCase();
+  const chips = [];
+  if (p.includes("windows")) chips.push(`<span class="platform-chip">PC</span>`);
+  if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
+  if (p.includes("playstation")) chips.push(`<span class="platform-chip ps">PS</span>`);
+  if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
+  if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
+  if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
+  return chips.join("");
 }
 
 /* =========================
-   LIST RENDER (LOCKED — FIXED STACKING)
+   LIST RENDER (STABLE)
 ========================= */
 function renderList(list) {
   const slice = list.slice(0, visibleCount + PAGE_SIZE);
@@ -188,7 +98,7 @@ function renderList(list) {
     card.setAttribute("role", "button");
 
     card.innerHTML = `
-      <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover" />
+      <img src="${game.coverUrl}" alt="${escapeHtml(game.name)} cover" />
       ${renderRating(game)}
       <div class="platform-overlay">${renderPlatforms(game)}</div>
       <div class="card-body">
@@ -211,7 +121,6 @@ function renderList(list) {
       </div>
     `;
 
-    card.onclick = () => renderDetails(game);
     grid.appendChild(card);
   });
 
@@ -219,26 +128,32 @@ function renderList(list) {
 }
 
 /* =========================
-   RATINGS / PLATFORMS (LOCKED)
+   APPLY FILTERS (RESTORED — MINIMAL)
 ========================= */
-function renderRating(game) {
-  const s = game.aggregated_rating;
-  const c = game.aggregated_rating_count;
-  if (typeof s !== "number" || typeof c !== "number" || s < 65) return "";
-  return `<div class="rating-badge">${Math.round(s)}</div>`;
+function applyFilters(reset = false) {
+  if (reset) visibleCount = 0;
+  renderList(allGames);
 }
 
-function renderPlatforms(game) {
-  if (!Array.isArray(game.platforms)) return "";
-  const p = game.platforms.join(" ").toLowerCase();
-  const chips = [];
-  if (p.includes("windows")) chips.push(`<span class="platform-chip">PC</span>`);
-  if (p.includes("xbox")) chips.push(`<span class="platform-chip xbox">Xbox</span>`);
-  if (p.includes("playstation")) chips.push(`<span class="platform-chip ps">PS</span>`);
-  if (p.includes("nintendo")) chips.push(`<span class="platform-chip">Switch</span>`);
-  if (p.includes("ios")) chips.push(`<span class="platform-chip">iOS</span>`);
-  if (p.includes("android")) chips.push(`<span class="platform-chip">Android</span>`);
-  return chips.join("");
+/* =========================
+   FETCH
+========================= */
+async function loadGames() {
+  try {
+    loading.style.display = "block";
+    errorBox.textContent = "";
+
+    const res = await fetch("/api/igdb");
+    const data = await res.json();
+    if (!data.ok) throw new Error("API failed");
+
+    allGames = data.games || [];
+    applyFilters(true);
+  } catch (err) {
+    errorBox.textContent = "Failed to load games.";
+  } finally {
+    loading.style.display = "none";
+  }
 }
 
 /* =========================

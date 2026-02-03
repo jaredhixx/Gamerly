@@ -511,6 +511,18 @@ function renderDetails(game, replace = false) {
         <div class="details-platforms">${renderPlatforms(game)}</div>
         ${gallery}
         ${store ? `<a class="cta-primary" href="${store.url}" target="_blank" rel="nofollow sponsored noopener">${store.label}</a>` : ""}
+
+        <div class="more-steam">
+  <div style="font-weight:800; margin-top:14px; margin-bottom:6px;">
+    More Steam Releases
+  </div>
+  <ul style="list-style:none; padding:0; margin:0;">
+    <li><a href="/steam-games-today">Steam games released today</a></li>
+    <li><a href="/steam-games-this-week">Steam games released this week</a></li>
+    <li><a href="/steam-games-upcoming">Upcoming Steam game releases</a></li>
+  </ul>
+</div>
+
         <button class="details-back" id="backBtn">← Back to list</button>
       </div>
     </section>

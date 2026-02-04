@@ -409,7 +409,7 @@ if (timeKey === "thisweek") {
 }
 
 if (timeKey === "thismonth") {
-  const end = endOfMonth(today);
+  const end = endOfMonth(tomorrow);
   return { start: tomorrow, end };
 }
 

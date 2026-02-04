@@ -479,10 +479,6 @@ main {
     width: calc(100% + 3.2rem);
     margin-left: -1.6rem;
     margin-right: -1.6rem;
-
-    /* ✅ Safety: prevent any horizontal weirdness */
-    overflow-x: hidden;
-    touch-action: pan-y;
   }
 
   @media (max-width: 768px) {

@@ -546,6 +546,8 @@ if (activePlatform !== "all") {
 // STEAM GENRE FILTER (SAFE)
 // =========================
 if (ACTIVE_GENRE) {
+  console.log("ACTIVE_GENRE:", ACTIVE_GENRE);
+  console.log("SAMPLE CATEGORIES:", allGames.slice(0, 10).map(g => g.category));
   list = list.filter(g => genreMatches(g, ACTIVE_GENRE));
 }
 

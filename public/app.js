@@ -421,7 +421,7 @@ function initRouteDefaults() {
   if (!ROUTE.STEAM) return;
 
 if (ACTIVE_GENRE) {
-  activeSection = "out";
+  activeSection = "all";   // 🔑 allow out + upcoming
   activeTime = "all";
   activePlatform = "pc";
   return;
@@ -555,7 +555,12 @@ function applyFilters(reset = false) {
     g => g.releaseDate && localDay(g.releaseDate) > todayLocal
   );
 
-  let list = activeSection === "out" ? outNow : comingSoon;
+  let list =
+  activeSection === "out"
+    ? outNow
+    : activeSection === "soon"
+    ? comingSoon
+    : [...outNow, ...comingSoon]; // ✅ genre pages
 
 list = applyTimeWindow(list, activeSection, activeTime);
 

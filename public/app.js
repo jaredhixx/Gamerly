@@ -400,17 +400,25 @@ function applyFilters(reset = false) {
 
 list = applyTimeWindow(list, activeSection, activeTime);
 
+/* ✅ DEFAULT FRESHNESS CAP FOR "OUT NOW" (PRODUCT FIX) */
+if (activeSection === "out" && activeTime === "all") {
+  const cutoff = addDays(startOfLocalDay(new Date()), -90).getTime();
+  list = list.filter(g => {
+    if (!g.releaseDate) return false;
+    const t = localDay(g.releaseDate);
+    return t >= cutoff;
+  });
+}
+
 if (activePlatform !== "all") {
   const key = activePlatform.toLowerCase();
   list = list.filter(g => platformMatches(g, key));
 }
 
-/* ✅ EXPLICIT SORT (CRITICAL FIX) */
+/* ✅ EXPLICIT SORT */
 list.sort((a, b) => {
-  const da = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
-  const db = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
-
-  // Out Now → newest first | Coming Soon → soonest first
+  const da = a.releaseDate ? localDay(a.releaseDate) : 0;
+  const db = b.releaseDate ? localDay(b.releaseDate) : 0;
   return activeSection === "out" ? db - da : da - db;
 });
 

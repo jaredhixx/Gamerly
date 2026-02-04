@@ -707,3 +707,33 @@ body[data-path="/steam-games-upcoming"] .steam-context[data-route="/steam-games-
   text-decoration: none;
 }
 
+/* =========================
+   CARD CTA (LIST VIEW — POLISHED)
+   High-ROI, low-noise, consistent
+========================= */
+
+.card-cta {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+
+  margin-top: 0.25rem;
+
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+
+  color: rgba(59,130,246,0.9);
+  text-decoration: none;
+
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.card-cta:hover {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.card-cta:active {
+  transform: translateY(1px);
+}

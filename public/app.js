@@ -58,14 +58,22 @@ let viewMode = "list";
    HELPERS
 ========================= */
 
+function normalizeGenreName(name = "") {
+  return name
+    .toLowerCase()
+    .replace(/\(.*?\)/g, "")   // remove (RPG)
+    .replace(/[^a-z\s]/g, "") // remove punctuation
+    .trim();
+}
+
 function genreMatches(game, genreSlug) {
   if (!game || !Array.isArray(game.genres)) return false;
 
-  const genres = game.genres.map(g => g.toLowerCase());
+  const genres = game.genres.map(g => normalizeGenreName(g));
 
   switch (genreSlug) {
     case "horror":
-      return genres.includes("horror");
+      return genres.some(g => g.includes("horror"));
 
     case "action":
       return genres.some(g =>
@@ -77,7 +85,7 @@ function genreMatches(game, genreSlug) {
 
     case "rpg":
       return genres.some(g =>
-        g.includes("role-playing") || g.includes("rpg")
+        g.includes("role") || g.includes("rpg")
       );
 
     case "simulation":
@@ -89,7 +97,8 @@ function genreMatches(game, genreSlug) {
       );
 
     case "indie":
-      // Indie is not an IGDB genre — infer instead
+      // IGDB doesn't reliably tag "Indie"
+      // Infer by excluding AAA-heavy genres
       return !genres.some(g =>
         g.includes("sports") ||
         g.includes("racing") ||
@@ -570,8 +579,6 @@ if (activePlatform !== "all") {
 // STEAM GENRE FILTER (SAFE)
 // =========================
 if (ACTIVE_GENRE) {
-  console.log("ACTIVE_GENRE:", ACTIVE_GENRE);
-  console.log("SAMPLE CATEGORIES:", allGames.slice(0, 10).map(g => g.category));
   list = list.filter(g => genreMatches(g, ACTIVE_GENRE));
 }
 

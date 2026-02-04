@@ -432,7 +432,14 @@ function renderList(list) {
     card.setAttribute("role", "button");
 
     card.innerHTML = `
-      <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover" />
+      <img 
+  src="${game.coverUrl || ""}" 
+  alt="${escapeHtml(game.name)} cover"
+  loading="lazy"
+  decoding="async"
+  width="300"
+  height="400"
+/>
       ${renderRating(game)}
       <div class="platform-overlay">${renderPlatforms(game)}</div>
       <div class="card-body">

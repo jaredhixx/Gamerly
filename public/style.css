@@ -1007,3 +1007,31 @@ body[data-path^="/steam-games/genre"] .steam-genres a[href*="genre"] {
 body[data-path="/"] .steam-genres {
   display: none;
 }
+
+/* =========================
+   STEAM CTA STACK (HIGH ROI)
+========================= */
+.steam-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.steam-secondary {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.steam-secondary a {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(59,130,246,0.85);
+  text-decoration: none;
+}
+
+.steam-secondary a:hover {
+  text-decoration: underline;
+  color: #3b82f6;
+}

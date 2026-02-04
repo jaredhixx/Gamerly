@@ -564,16 +564,14 @@ function applyFilters(reset = false) {
 
 list = applyTimeWindow(list, activeSection, activeTime);
 
-/* ✅ DEFAULT FRESHNESS CAP FOR "OUT NOW" (PRODUCT FIX) */
-if (
-  activeSection === "out" &&
-  activeTime === "all" &&
-  !ACTIVE_GENRE
-) {
+/* ✅ FRESHNESS CAP (GLOBAL, GENRE-AWARE) */
+if (activeTime === "all") {
   const days =
-    activePlatform === "ios" || activePlatform === "android"
-      ? 30   // mobile catalogs are noisy
-      : 90;  // PC / console are cleaner
+    ACTIVE_GENRE
+      ? 120   // 🎯 genre pages: last ~4 months only
+      : activePlatform === "ios" || activePlatform === "android"
+        ? 30
+        : 90;
 
   const cutoff = addDays(startOfLocalDay(new Date()), -days).getTime();
 
@@ -600,7 +598,12 @@ if (ACTIVE_GENRE) {
 list.sort((a, b) => {
   const da = a.releaseDate ? localDay(a.releaseDate) : 0;
   const db = b.releaseDate ? localDay(b.releaseDate) : 0;
-  return activeSection === "out" ? db - da : da - db;
+  /* ✅ SORT: newest first (genre-safe) */
+list.sort((a, b) => {
+  const da = a.releaseDate ? localDay(a.releaseDate) : 0;
+  const db = b.releaseDate ? localDay(b.releaseDate) : 0;
+  return db - da;
+});
 });
 
 lastListPath = window.location.pathname || "/";

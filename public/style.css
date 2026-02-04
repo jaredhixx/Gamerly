@@ -233,6 +233,24 @@ main {
   border-radius: 8px;
 }
 
+/* =========================
+   NEW RELEASE BADGE
+========================= */
+.new-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 7;
+  padding: 4px 7px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #1f1300;
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.45);
+}
+
 /* ========================= PLATFORM OVERLAY (NO OVERLAP) ========================= */
 .platform-overlay {
   position: absolute;

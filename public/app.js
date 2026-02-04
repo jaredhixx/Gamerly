@@ -19,10 +19,12 @@ let lastListPath = "/";
 /* =========================
    AGE GATE (LOCKED)
 ========================= */
-const ageGate = document.getElementById("ageGate");
-const ageBtn = document.getElementById("ageConfirmBtn");
+document.addEventListener("DOMContentLoaded", () => {
+  const ageGate = document.getElementById("ageGate");
+  const ageBtn = document.getElementById("ageConfirmBtn");
 
-if (ageGate && ageBtn) {
+  if (!ageGate || !ageBtn) return;
+
   if (localStorage.getItem("gamerly_age_verified") === "true") {
     ageGate.style.display = "none";
   } else {
@@ -33,7 +35,7 @@ if (ageGate && ageBtn) {
     localStorage.setItem("gamerly_age_verified", "true");
     ageGate.style.display = "none";
   };
-}
+});
 
 /* =========================
    STATE (LOCKED)

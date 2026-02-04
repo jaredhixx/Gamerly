@@ -362,6 +362,11 @@ function localDay(date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 
+function dateKey(date) {
+  if (!date) return null;
+  return new Date(date).toISOString().split("T")[0];
+}
+
 /* =========================
    TIME WINDOW (SAFE, ADDITIVE)
 ========================= */
@@ -594,15 +599,17 @@ function applyFilters(reset = false) {
   if (reset) visibleCount = 0;
   viewMode = "list";
 
-  const todayLocal = localDay(new Date());
+  const todayKey = dateKey(new Date());
 
-  const outNow = allGames.filter(
-    g => g.releaseDate && localDay(g.releaseDate) <= todayLocal
-  );
+const outNow = allGames.filter(g => {
+  if (!g.releaseDate) return false;
+  return dateKey(g.releaseDate) <= todayKey;
+});
 
-  const comingSoon = allGames.filter(
-    g => g.releaseDate && localDay(g.releaseDate) > todayLocal
-  );
+const comingSoon = allGames.filter(g => {
+  if (!g.releaseDate) return false;
+  return dateKey(g.releaseDate) > todayKey;
+});
 
   let list =
   activeSection === "out"

@@ -84,7 +84,9 @@ function normalizeGame(g) {
     platforms: Array.isArray(g.platforms)
       ? g.platforms.map(p => p.name).filter(Boolean)
       : [],
-    category: g.genres?.[0]?.name ?? null,
+    genres: Array.isArray(g.genres)
+  ? g.genres.map(gn => gn.name).filter(Boolean)
+  : [],
 
     // SEO + trust
     summary: g.summary || g.storyline || null,

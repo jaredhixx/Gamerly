@@ -618,11 +618,11 @@ function applyFilters(reset = false) {
 
 list = applyTimeWindow(list, activeSection, activeTime);
 
-/* ✅ FRESHNESS CAP (GLOBAL, GENRE-AWARE) */
-if (activeTime === "all") {
+/* ✅ FRESHNESS CAP — OUT NOW ONLY */
+if (activeSection === "out" && activeTime === "all") {
   const days =
     ACTIVE_GENRE
-      ? 120   // 🎯 genre pages: last ~4 months only
+      ? 120
       : activePlatform === "ios" || activePlatform === "android"
         ? 30
         : 90;

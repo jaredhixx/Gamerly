@@ -482,6 +482,31 @@ main {
     overflow-x: hidden;
   }
 
+  @media (max-width: 768px) {
+  /* Center the content column itself */
+  .details-info {
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Keep long text readable */
+  .details-summary {
+    text-align: left;
+    width: 100%;
+  }
+
+  /* Visual balance */
+  .details-platforms {
+    justify-content: center;
+  }
+
+  /* CTA should feel intentional */
+  .cta-primary {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
   .details-gallery {
     margin-left: -1.25rem;
     margin-right: -1.25rem;

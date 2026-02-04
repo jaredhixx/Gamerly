@@ -398,15 +398,24 @@ function applyFilters(reset = false) {
 
   let list = activeSection === "out" ? outNow : comingSoon;
 
-  list = applyTimeWindow(list, activeSection, activeTime);
+list = applyTimeWindow(list, activeSection, activeTime);
 
-  if (activePlatform !== "all") {
-    const key = activePlatform.toLowerCase();
-    list = list.filter(g => platformMatches(g, key));
-  }
+if (activePlatform !== "all") {
+  const key = activePlatform.toLowerCase();
+  list = list.filter(g => platformMatches(g, key));
+}
 
-  lastListPath = window.location.pathname || "/";
-  renderList(list);
+/* ✅ EXPLICIT SORT (CRITICAL FIX) */
+list.sort((a, b) => {
+  const da = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
+  const db = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
+
+  // Out Now → newest first | Coming Soon → soonest first
+  return activeSection === "out" ? db - da : da - db;
+});
+
+lastListPath = window.location.pathname || "/";
+renderList(list);
 }
 
 /* =========================

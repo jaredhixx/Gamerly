@@ -782,3 +782,29 @@ body[data-path="/steam-games-upcoming"] .steam-context[data-route="/steam-games-
 .details-gallery img {
   cursor: zoom-in;
 }
+
+/* =========================================================
+   FIX: MOBILE SCREENSHOT GALLERY SCROLL (IOS SAFE)
+========================================================= */
+@media (max-width: 768px) {
+  /* IMPORTANT: don't clip the gallery scroll inside the details container */
+  .details {
+    overflow-x: visible !important;
+  }
+
+  /* Force horizontal scroller behavior */
+  .details-gallery {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    touch-action: pan-x;
+  }
+
+  /* Anchor wrappers must not shrink or wrap */
+  .details-gallery a {
+    flex: 0 0 auto !important;
+    display: block;
+  }
+}

@@ -492,7 +492,9 @@ function renderList(list) {
 
   slice.forEach(game => {
     const store = getPrimaryStore(game);
-    const releaseDate = new Date(game.releaseDate).toLocaleDateString();
+    const releaseObj = new Date(game.releaseDate);
+const releaseDate = releaseObj.toLocaleDateString();
+const releaseISO = releaseObj.toISOString().split("T")[0];
 
     const card = document.createElement("div");
     card.className = "card";
@@ -514,7 +516,7 @@ function renderList(list) {
         ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
         <div class="card-meta">
-  <span>${releaseDate}</span>
+  <time datetime="${releaseISO}">${releaseDate}</time>
 </div>
 ${
   store

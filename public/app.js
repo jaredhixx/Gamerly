@@ -427,12 +427,12 @@ function getTimeWindow(section, timeKey) {
     }
 
     if (timeKey === "thisweek") {
-      const end = endOfWeek(today);
+      const end = endOfWeek(tomorrow);
       return { start: tomorrow, end };
     }
 
     if (timeKey === "thismonth") {
-      const end = endOfMonth(today);
+      const end = endOfMonth(tomorrow);
       return { start: tomorrow, end };
     }
   }

@@ -560,7 +560,11 @@ function applyFilters(reset = false) {
 list = applyTimeWindow(list, activeSection, activeTime);
 
 /* ✅ DEFAULT FRESHNESS CAP FOR "OUT NOW" (PRODUCT FIX) */
-if (activeSection === "out" && activeTime === "all") {
+if (
+  activeSection === "out" &&
+  activeTime === "all" &&
+  !ACTIVE_GENRE
+) {
   const days =
     activePlatform === "ios" || activePlatform === "android"
       ? 30   // mobile catalogs are noisy

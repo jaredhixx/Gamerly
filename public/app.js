@@ -558,9 +558,14 @@ function renderDetails(game, replace = false) {
   setCanonical(`https://gamerly.net${path}`);
   injectGameSchema(game);
 
-  const release = game.releaseDate
-    ? new Date(game.releaseDate).toDateString()
-    : "Release date unknown";
+  let release = "Release date unknown";
+let releaseISO = null;
+
+if (game.releaseDate) {
+  const d = new Date(game.releaseDate);
+  release = d.toDateString();
+  releaseISO = d.toISOString().split("T")[0];
+}
 
   const store = getPrimaryStore(game);
 
@@ -587,7 +592,13 @@ function renderDetails(game, replace = false) {
       </div>
       <div class="details-info">
         <h1 class="details-title">${escapeHtml(game.name)}</h1>
-        <div class="details-sub">${escapeHtml(release)}</div>
+        <div class="details-sub">
+  ${
+    releaseISO
+      ? `<time datetime="${releaseISO}">${escapeHtml(release)}</time>`
+      : escapeHtml(release)
+  }
+</div>
         ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
         <div class="details-platforms">${renderPlatforms(game)}</div>
         ${gallery}

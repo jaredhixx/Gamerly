@@ -58,6 +58,19 @@ let viewMode = "list";
    HELPERS
 ========================= */
 
+function getGenreSlugsForLinks(genres = []) {
+  const supported = ["action", "rpg", "horror", "simulation", "indie"];
+
+  return genres
+    .map(g => normalizeGenreName(g))
+    .flatMap(g => {
+      if (g.includes("role")) return ["rpg"];
+      return supported.filter(s => g.includes(s));
+    })
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .slice(0, 3); // hard cap for SEO cleanliness
+}
+
 function normalizeGenreName(name = "") {
   return name
     .toLowerCase()
@@ -733,6 +746,8 @@ if (game.releaseDate) {
     `
     : "";
 
+  const genreLinks = getGenreSlugsForLinks(game.genres || []);
+ 
   grid.innerHTML = `
     <section class="details">
       <div class="details-cover">
@@ -758,6 +773,16 @@ if (game.releaseDate) {
   </div>
 
   <ul style="list-style:none; padding:0; margin:0;">
+  ${
+    genreLinks.length
+      ? genreLinks
+          .map(
+            g =>
+              `<li><a href="/steam-games/genre/${g}">${g.charAt(0).toUpperCase() + g.slice(1)} games on Steam</a></li>`
+          )
+          .join("")
+      : ""
+  }
   ${
     game.releaseDate && localDay(game.releaseDate) === localDay(new Date())
       ? `<li><a href="/steam-games-today">New PC games on Steam today</a></li>`

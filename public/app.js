@@ -14,6 +14,12 @@ const ROUTE = {
   STEAM: /^\/steam-games(?:-|$)/.test(PATH) || PATH === "/steam-games",
 };
 
+// =========================
+// STEAM GENRE ROUTE (SAFE)
+// =========================
+const GENRE_MATCH = PATH.match(/^\/steam-games\/genre\/([a-z-]+)/);
+const ACTIVE_GENRE = GENRE_MATCH ? GENRE_MATCH[1] : null;
+
 let lastListPath = "/";
 
 /* =========================
@@ -51,6 +57,14 @@ let viewMode = "list";
 /* =========================
    HELPERS
 ========================= */
+
+function genreMatches(game, genreSlug) {
+  if (!game || !game.category || !genreSlug) return false;
+
+  const gameGenre = String(game.category).toLowerCase().replace(/\s+/g, "-");
+  return gameGenre.includes(genreSlug);
+}
+
 function isNewRelease(game, days = 7) {
   if (!game || !game.releaseDate) return false;
 
@@ -103,6 +117,18 @@ function setCanonical(url) {
 function applyRouteMeta() {
   const path = window.location.pathname;
   const today = new Date();
+    // =========================
+  // STEAM GENRE SEO (HIGH ROI)
+  // =========================
+  if (ACTIVE_GENRE) {
+    const label = ACTIVE_GENRE.replace(/-/g, " ");
+    setMetaTitle(`New ${label} Games on Steam — Updated Daily`);
+    setMetaDescription(
+      `Browse new and upcoming ${label} games on Steam. Updated daily with PC releases worth playing.`
+    );
+    setCanonical(`https://gamerly.net/steam-games/genre/${ACTIVE_GENRE}`);
+    return;
+  }
   const fmt = today.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -157,6 +183,12 @@ function applyRouteMeta() {
 function applyRouteH1() {
   const h1 = document.querySelector(".hero-title");
   if (!h1) return;
+
+    if (ACTIVE_GENRE) {
+    const label = ACTIVE_GENRE.replace(/-/g, " ");
+    h1.textContent = `New ${label} Games on Steam`;
+    return;
+  }
 
   const path = window.location.pathname;
 
@@ -496,6 +528,13 @@ if (activeSection === "out" && activeTime === "all") {
 if (activePlatform !== "all") {
   const key = activePlatform.toLowerCase();
   list = list.filter(g => platformMatches(g, key));
+}
+
+// =========================
+// STEAM GENRE FILTER (SAFE)
+// =========================
+if (ACTIVE_GENRE) {
+  list = list.filter(g => genreMatches(g, ACTIVE_GENRE));
 }
 
 /* ✅ EXPLICIT SORT */

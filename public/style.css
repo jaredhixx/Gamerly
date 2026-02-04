@@ -485,9 +485,10 @@ main {
   @media (max-width: 768px) {
   /* Center the content column itself */
   .details-info {
-    align-items: center;
-    text-align: center;
-  }
+  align-items: center;
+  text-align: center;
+  touch-action: manipulation; /* ✅ allows child horizontal scroll */
+}
 
   /* Keep long text readable */
   .details-summary {
@@ -784,27 +785,34 @@ body[data-path="/steam-games-upcoming"] .steam-context[data-route="/steam-games-
 }
 
 /* =========================================================
-   FIX: MOBILE SCREENSHOT GALLERY SCROLL (IOS SAFE)
+   ✅ FINAL FIX: MOBILE SCREENSHOT GALLERY SCROLL (iOS SAFE)
 ========================================================= */
 @media (max-width: 768px) {
-  /* IMPORTANT: don't clip the gallery scroll inside the details container */
+  /* Ensure parent does NOT trap gestures */
   .details {
-    overflow-x: visible !important;
+    overflow-x: visible;
   }
 
-  /* Force horizontal scroller behavior */
+  /* Horizontal scroller */
   .details-gallery {
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    flex-wrap: nowrap !important;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     touch-action: pan-x;
   }
 
-  /* Anchor wrappers must not shrink or wrap */
+  /* Prevent shrink / wrapping */
   .details-gallery a {
-    flex: 0 0 auto !important;
+    flex: 0 0 auto;
     display: block;
+  }
+
+  /* Make swipe target generous */
+  .details-gallery img {
+    pointer-events: auto;
+    touch-action: pan-x;
   }
 }

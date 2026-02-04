@@ -246,7 +246,7 @@ main {
   font-weight: 900;
   letter-spacing: 0.04em;
   border-radius: 6px;
-  background: linear-gradient(135deg, #f59e0b, #fea580c);
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
   color: #1f1300;
   box-shadow: 0 6px 16px rgba(249, 115, 22, 0.45);
 }

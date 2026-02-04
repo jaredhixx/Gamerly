@@ -59,42 +59,41 @@ let viewMode = "list";
 ========================= */
 
 function genreMatches(game, genreSlug) {
-  if (!game) return false;
+  if (!game || !Array.isArray(game.genres)) return false;
 
-  const cat = (game.category || "").toLowerCase();
+  const genres = game.genres.map(g => g.toLowerCase());
 
   switch (genreSlug) {
-    case "indie":
-      // Indie is NOT an IGDB genre — treat as "smaller / non-AAA"
-      return (
-        !cat.includes("sports") &&
-        !cat.includes("racing") &&
-        !cat.includes("simulation")
-      );
-
     case "horror":
-      return cat.includes("horror");
+      return genres.includes("horror");
 
     case "action":
-      return (
-        cat.includes("action") ||
-        cat.includes("shooter") ||
-        cat.includes("fighting") ||
-        cat.includes("platform")
+      return genres.some(g =>
+        g.includes("action") ||
+        g.includes("shooter") ||
+        g.includes("fighting") ||
+        g.includes("platform")
       );
 
     case "rpg":
-      return (
-        cat.includes("rpg") ||
-        cat.includes("role")
+      return genres.some(g =>
+        g.includes("role-playing") || g.includes("rpg")
       );
 
     case "simulation":
-      return (
-        cat.includes("simulation") ||
-        cat.includes("simulator") ||
-        cat.includes("management") ||
-        cat.includes("tycoon")
+      return genres.some(g =>
+        g.includes("simulation") ||
+        g.includes("simulator") ||
+        g.includes("management") ||
+        g.includes("tycoon")
+      );
+
+    case "indie":
+      // Indie is not an IGDB genre — infer instead
+      return !genres.some(g =>
+        g.includes("sports") ||
+        g.includes("racing") ||
+        g.includes("simulation")
       );
 
     default:
@@ -624,7 +623,10 @@ const releaseISO = releaseObj.toISOString().split("T")[0];
   ${renderRating(game)}
   <div class="platform-overlay">${renderPlatforms(game)}</div>
   <div class="card-body">
-        ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
+        ${Array.isArray(game.genres) && game.genres.length
+  ? `<span class="badge-category">${escapeHtml(game.genres[0])}</span>`
+  : ""
+}
         <div class="card-title">${escapeHtml(game.name)}</div>
         <div class="card-meta">
   <time datetime="${releaseISO}">${releaseDate}</time>

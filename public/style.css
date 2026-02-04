@@ -200,7 +200,7 @@ main {
 
 .card img {
   width: 100%;
-  aspect-ratio: 3 / 4;
+  height: auto;
   object-fit: cover;
   display: block;
 }

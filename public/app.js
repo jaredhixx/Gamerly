@@ -648,20 +648,44 @@ if (game.releaseDate) {
         ${gallery}
         ${store ? `<a class="cta-primary" href="${store.url}" target="_blank" rel="nofollow sponsored noopener">${store.label}</a>` : ""}
 
-        <div class="more-steam">
-  <div style="font-weight:800; margin-top:14px; margin-bottom:6px;">
-    More PC Games on Steam
-  </div>
-  <ul style="list-style:none; padding:0; margin:0;">
-    <li><a href="/steam-games-today">Steam games released today</a></li>
-    <li><a href="/steam-games-this-week">Steam games released this week</a></li>
-    <li><a href="/steam-games-upcoming">Upcoming Steam game releases</a></li>
-  </ul>
-  <p style="margin-top:6px; font-size:0.75rem; opacity:0.75;">
-  Looking for something else?
-  <a href="/steam-games">Browse all Steam game releases →</a>
-</p>
-</div>
+                <div class="more-steam">
+          <div style="font-weight:800; margin-top:14px; margin-bottom:6px;">
+            More Games You Might Like
+          </div>
+
+          <ul style="list-style:none; padding:0; margin:0;">
+            ${
+              Array.isArray(game.platforms) && game.platforms.some(p => /windows|pc/i.test(p))
+                ? `
+                  <li><a href="/steam-games-today">Steam games released today</a></li>
+                  <li><a href="/steam-games-this-week">Steam games released this week</a></li>
+                  <li><a href="/steam-games-upcoming">Upcoming Steam game releases</a></li>
+                `
+                : ""
+            }
+
+            ${
+              Array.isArray(game.platforms) && game.platforms.some(p => /ios/i.test(p))
+                ? `
+                  <li><a href="/ios-games">New iOS game releases</a></li>
+                `
+                : ""
+            }
+
+            ${
+              Array.isArray(game.platforms) && game.platforms.some(p => /android/i.test(p))
+                ? `
+                  <li><a href="/android-games">New Android game releases</a></li>
+                `
+                : ""
+            }
+          </ul>
+
+          <p style="margin-top:6px; font-size:0.75rem; opacity:0.75;">
+            Prefer browsing?
+            <a href="/steam-games">Browse all Steam game releases →</a>
+          </p>
+        </div>
 
         <button class="details-back" id="backBtn">← Back to list</button>
       </div>

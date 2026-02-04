@@ -49,6 +49,16 @@ let viewMode = "list";
 /* =========================
    HELPERS
 ========================= */
+function isNewRelease(game, days = 7) {
+  if (!game || !game.releaseDate) return false;
+
+  const today = localDay(new Date());
+  const released = localDay(game.releaseDate);
+  const cutoff = addDays(startOfLocalDay(new Date()), -days).getTime();
+
+  return released >= cutoff && released <= today;
+}
+
 function slugify(str = "") {
   return str
     .toLowerCase()
@@ -455,10 +465,11 @@ function renderList(list) {
     card.setAttribute("role", "button");
 
     card.innerHTML = `
-      <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover" loading="lazy" decoding="async" />
-      ${renderRating(game)}
-      <div class="platform-overlay">${renderPlatforms(game)}</div>
-      <div class="card-body">
+  <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover" loading="lazy" decoding="async" />
+  ${isNewRelease(game) ? `<div class="new-badge">NEW</div>` : ""}
+  ${renderRating(game)}
+  <div class="platform-overlay">${renderPlatforms(game)}</div>
+  <div class="card-body">
         ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
         <div class="card-meta" style="display:flex; justify-content:space-between; align-items:center;">

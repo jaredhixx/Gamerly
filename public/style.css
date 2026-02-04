@@ -488,7 +488,6 @@ main {
   .details-info {
   align-items: center;
   text-align: center;
-  touch-action: manipulation; /* ✅ allows child horizontal scroll */
 }
 
   /* Keep long text readable */

@@ -765,7 +765,36 @@ if (game.releaseDate) {
         ${summaryText ? `<p class="details-summary">${summaryText}</p>` : ""}
         <div class="details-platforms">${renderPlatforms(game)}</div>
         ${gallery}
-        ${store ? `<a class="cta-primary" href="${store.url}" target="_blank" rel="nofollow sponsored noopener">${store.label}</a>` : ""}
+        ${store ? `
+  <div class="steam-actions">
+    <a
+      class="cta-primary"
+      href="${store.url}"
+      target="_blank"
+      rel="nofollow sponsored noopener"
+    >
+      Buy on Steam →
+    </a>
+
+    <div class="steam-secondary">
+      <a
+        href="https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}&category1=998"
+        target="_blank"
+        rel="nofollow sponsored noopener"
+      >
+        View Reviews
+      </a>
+
+      <a
+        href="https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}"
+        target="_blank"
+        rel="nofollow sponsored noopener"
+      >
+        Add to Wishlist
+      </a>
+    </div>
+  </div>
+` : ""}
 
                 <div class="more-steam">
   <div style="font-weight:800; margin-top:14px; margin-bottom:6px;">

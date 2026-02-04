@@ -59,22 +59,47 @@ let viewMode = "list";
 ========================= */
 
 function genreMatches(game, genreSlug) {
-  if (!game || !game.category || !genreSlug) return false;
+  if (!game) return false;
 
-  const g = game.category.toLowerCase();
+  const cat = (game.category || "").toLowerCase();
 
-  const GENRE_MAP = {
-    indie: ["indie"],
-    horror: ["horror"],
-    action: ["action", "shooter", "fighting", "platform"],
-    rpg: ["rpg", "role-playing"],
-    simulation: ["simulation", "simulator", "management", "tycoon"]
-  };
+  switch (genreSlug) {
+    case "indie":
+      // Indie is NOT an IGDB genre — treat as "smaller / non-AAA"
+      return (
+        !cat.includes("sports") &&
+        !cat.includes("racing") &&
+        !cat.includes("simulation")
+      );
 
-  const keywords = GENRE_MAP[genreSlug];
-  if (!keywords) return false;
+    case "horror":
+      return cat.includes("horror");
 
-  return keywords.some(k => g.includes(k));
+    case "action":
+      return (
+        cat.includes("action") ||
+        cat.includes("shooter") ||
+        cat.includes("fighting") ||
+        cat.includes("platform")
+      );
+
+    case "rpg":
+      return (
+        cat.includes("rpg") ||
+        cat.includes("role")
+      );
+
+    case "simulation":
+      return (
+        cat.includes("simulation") ||
+        cat.includes("simulator") ||
+        cat.includes("management") ||
+        cat.includes("tycoon")
+      );
+
+    default:
+      return false;
+  }
 }
 
 function isNewRelease(game, days = 7) {

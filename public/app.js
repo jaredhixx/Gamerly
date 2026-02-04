@@ -402,7 +402,13 @@ list = applyTimeWindow(list, activeSection, activeTime);
 
 /* ✅ DEFAULT FRESHNESS CAP FOR "OUT NOW" (PRODUCT FIX) */
 if (activeSection === "out" && activeTime === "all") {
-  const cutoff = addDays(startOfLocalDay(new Date()), -90).getTime();
+  const days =
+    activePlatform === "ios" || activePlatform === "android"
+      ? 30   // mobile catalogs are noisy
+      : 90;  // PC / console are cleaner
+
+  const cutoff = addDays(startOfLocalDay(new Date()), -days).getTime();
+
   list = list.filter(g => {
     if (!g.releaseDate) return false;
     const t = localDay(g.releaseDate);

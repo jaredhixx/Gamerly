@@ -55,6 +55,26 @@ export default async function handler(req, res) {
       xml += `    <priority>0.9</priority>\n`;
       xml += `  </url>\n`;
     }
+ 
+        /* =========================
+       STEAM GENRE PAGES (SEO, HIGH INTENT)
+    ========================= */
+    const steamGenres = [
+      "action",
+      "rpg",
+      "horror",
+      "simulation",
+      "indie"
+    ];
+
+    for (const genre of steamGenres) {
+      xml += `  <url>\n`;
+      xml += `    <loc>${BASE_URL}/steam-games/genre/${genre}</loc>\n`;
+      xml += `    <lastmod>${now}</lastmod>\n`;
+      xml += `    <changefreq>daily</changefreq>\n`;
+      xml += `    <priority>0.8</priority>\n`;
+      xml += `  </url>\n`;
+    }
 
     /* =========================
        GAME DETAIL PAGES

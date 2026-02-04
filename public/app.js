@@ -658,15 +658,18 @@ if (ACTIVE_GENRE) {
   list = list.filter(g => genreMatches(g, ACTIVE_GENRE));
 }
 
-/* ✅ EXPLICIT SORT */
+/* ✅ EXPLICIT SORT (SECTION-AWARE) */
 list.sort((a, b) => {
   const da = a.releaseDate ? localDay(a.releaseDate) : 0;
   const db = b.releaseDate ? localDay(b.releaseDate) : 0;
-  /* ✅ SORT: newest first (genre-safe) */
-list.sort((a, b) => {
-  const da = a.releaseDate ? localDay(a.releaseDate) : 0;
-  const db = b.releaseDate ? localDay(b.releaseDate) : 0;
-  return db - da;
+
+  // Out Now → newest first
+  if (activeSection === "out") {
+    return db - da;
+  }
+
+  // Coming Soon → soonest first
+  return da - db;
 });
 });
 

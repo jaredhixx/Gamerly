@@ -112,8 +112,8 @@ function applyRouteMeta() {
   if (path === "/steam-games-today") {
     setMetaTitle(`New Steam Games Today (${fmt}) — Full Release List`);
     setMetaDescription(
-      "See all new Steam games released today. Updated daily with the latest PC game launches available now on Steam."
-    );
+  "Play something new today. See every Steam game released today, all in one place — no storefront digging."
+);
     setCanonical("https://gamerly.net/steam-games-today");
     return;
   }
@@ -121,8 +121,8 @@ function applyRouteMeta() {
   if (path === "/steam-games-this-week") {
     setMetaTitle(`Steam Games This Week (${fmt}) — New PC Releases`);
     setMetaDescription(
-      "Browse Steam games released this week. Discover the newest PC games launching on Steam, updated daily."
-    );
+  "Discover new Steam games released this week. A clean, curated list of fresh PC games — updated daily."
+);
     setCanonical("https://gamerly.net/steam-games-this-week");
     return;
   }
@@ -130,8 +130,8 @@ function applyRouteMeta() {
   if (path === "/steam-games-upcoming") {
     setMetaTitle("Upcoming Steam Games (Next 30 Days) — Updated Daily");
     setMetaDescription(
-      "Explore upcoming Steam games and PC releases coming soon. Track what’s launching next on Steam before release."
-    );
+  "Track upcoming Steam game releases over the next 30 days. Know what’s coming before it launches."
+);
     setCanonical("https://gamerly.net/steam-games-upcoming");
     return;
   }
@@ -139,8 +139,8 @@ function applyRouteMeta() {
   if (path === "/steam-games") {
     setMetaTitle("Steam Game Releases — New & Upcoming PC Games");
     setMetaDescription(
-      "Browse new and upcoming Steam game releases on PC. Curated daily so you never miss what’s launching on Steam."
-    );
+  "All Steam game releases in one place — new, recent, and upcoming PC games updated daily."
+);
     setCanonical("https://gamerly.net/steam-games");
     return;
   }

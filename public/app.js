@@ -768,3 +768,35 @@ syncActiveButtons();
 applyRouteMeta();
 applyRouteH1();
 loadGames();
+
+/* =========================
+   MOBILE SAFARI FIX — SCREENSHOT GALLERY SWIPE
+   Scoped, low-risk, reversible
+========================= */
+(function () {
+  let startX = 0;
+  let startY = 0;
+  let isScrolling = false;
+
+  document.addEventListener("touchstart", (e) => {
+    const gallery = e.target.closest(".details-gallery");
+    if (!gallery) return;
+
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isScrolling = false;
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (e) => {
+    const gallery = e.target.closest(".details-gallery");
+    if (!gallery) return;
+
+    const dx = Math.abs(e.touches[0].clientX - startX);
+    const dy = Math.abs(e.touches[0].clientY - startY);
+
+    if (dx > dy) {
+      isScrolling = true;
+    }
+  }, { passive: true });
+
+  document.addEventL

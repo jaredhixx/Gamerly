@@ -654,19 +654,28 @@ if (game.releaseDate) {
   </div>
 
   <ul style="list-style:none; padding:0; margin:0;">
-    <li>
-      <a href="/steam-games-today">Steam games released today</a>
-    </li>
-    <li>
-      <a href="/steam-games-this-week">Steam games released this week</a>
-    </li>
-    <li>
-      <a href="/steam-games-upcoming">Upcoming Steam game releases</a>
-    </li>
-    <li>
-      <a href="/steam-games">Browse all Steam games</a>
-    </li>
-  </ul>
+  ${
+    game.releaseDate && localDay(game.releaseDate) === localDay(new Date())
+      ? `<li><a href="/steam-games-today">Steam games released today</a></li>`
+      : ""
+  }
+
+  ${
+    game.releaseDate &&
+    localDay(game.releaseDate) >= addDays(startOfLocalDay(new Date()), -6).getTime() &&
+    localDay(game.releaseDate) <= localDay(new Date())
+      ? `<li><a href="/steam-games-this-week">Steam games released this week</a></li>`
+      : ""
+  }
+
+  <li>
+    <a href="/steam-games-upcoming">Upcoming Steam game releases</a>
+  </li>
+
+  <li>
+    <a href="/steam-games">Browse all Steam games</a>
+  </li>
+</ul>
 
   <p style="margin-top:8px; font-size:0.75rem; opacity:0.75; max-width:420px;">
     Gamerly tracks new and upcoming Steam game releases daily so you never miss what’s launching on PC.

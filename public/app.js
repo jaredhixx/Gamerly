@@ -382,6 +382,15 @@ function startOfMonth(date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+function endOfWeek(date) {
+  const start = startOfWeek(date);
+  return addDays(start, 7);
+}
+
+function endOfMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 1);
+}
+
 function getTimeWindow(section, timeKey) {
   if (!timeKey || timeKey === "all") return null;
 
@@ -389,19 +398,20 @@ function getTimeWindow(section, timeKey) {
   const tomorrow = addDays(today, 1);
 
   if (section === "out") {
-  if (timeKey === "today") {
-    return { start: today, end: tomorrow };
-  }
+  // coming soon
+if (timeKey === "today") {
+  return { start: tomorrow, end: addDays(tomorrow, 1) };
+}
 
-  if (timeKey === "thisweek") {
-    const start = startOfWeek(today);
-    return { start, end: tomorrow };
-  }
+if (timeKey === "thisweek") {
+  const end = endOfWeek(today);
+  return { start: tomorrow, end };
+}
 
-  if (timeKey === "thismonth") {
-    const start = startOfMonth(today);
-    return { start, end: tomorrow };
-  }
+if (timeKey === "thismonth") {
+  const end = endOfMonth(today);
+  return { start: tomorrow, end };
+}
 
   return null;
 }

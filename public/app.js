@@ -575,6 +575,11 @@ function applyFilters(reset = false) {
     ? comingSoon
     : [...outNow, ...comingSoon]; // ✅ genre pages
 
+   if (activePlatform !== "all") {
+  const key = activePlatform.toLowerCase();
+  list = list.filter(g => platformMatches(g, key));
+}
+
 list = applyTimeWindow(list, activeSection, activeTime);
 
 /* ✅ FRESHNESS CAP (GLOBAL, GENRE-AWARE) */
@@ -595,10 +600,7 @@ if (activeTime === "all") {
   });
 }
 
-if (activePlatform !== "all") {
-  const key = activePlatform.toLowerCase();
-  list = list.filter(g => platformMatches(g, key));
-}
+
 
 // =========================
 // STEAM GENRE FILTER (SAFE)

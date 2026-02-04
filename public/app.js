@@ -481,19 +481,20 @@ function renderList(list) {
   <div class="card-body">
         ${game.category ? `<span class="badge-category">${escapeHtml(game.category)}</span>` : ""}
         <div class="card-title">${escapeHtml(game.name)}</div>
-        <div class="card-meta" style="display:flex; justify-content:space-between; align-items:center;">
-          <span>${releaseDate}</span>
-          ${
-            store
-              ? `<a class="card-cta"
-                   href="${store.url}"
-                   target="_blank"
-                   rel="nofollow sponsored noopener"
-                   onclick="event.stopPropagation()">
-                   ${store.label}
-                 </a>`
-              : ""
-          }
+        <div class="card-meta">
+  <span>${releaseDate}</span>
+</div>
+${
+  store
+    ? `<a class="card-cta"
+         href="${store.url}"
+         target="_blank"
+         rel="nofollow sponsored noopener"
+         onclick="event.stopPropagation()">
+         ${store.label}
+       </a>`
+    : ""
+}
         </div>
       </div>
     `;

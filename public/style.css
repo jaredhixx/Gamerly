@@ -778,3 +778,7 @@ body[data-path="/steam-games-upcoming"] .steam-context[data-route="/steam-games-
     touch-action: pan-x;
   }
 }
+
+.details-gallery img {
+  cursor: zoom-in;
+}

@@ -480,6 +480,7 @@ main {
 
     /* ✅ Safety: prevent any horizontal weirdness */
     overflow-x: hidden;
+    touch-action: pan-y;
   }
 
   @media (max-width: 768px) {

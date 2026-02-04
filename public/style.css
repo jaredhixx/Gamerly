@@ -430,6 +430,7 @@ main {
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   border-radius: 16px;
+  contain: layout paint;
 }
 
 .details-gallery img {

@@ -923,3 +923,22 @@ body[data-path^="/steam-games/genre/"] .seo-links,
 body[data-path^="/steam-games/genre/"] .steam-context {
   display: none;
 }
+
+.steam-genres {
+  margin-top: 24px;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.steam-genres ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+}
+
+.steam-genres a {
+  text-decoration: none;
+  color: inherit;
+}

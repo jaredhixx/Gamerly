@@ -467,7 +467,14 @@ function renderList(list) {
     card.setAttribute("role", "button");
 
     card.innerHTML = `
-  <img src="${game.coverUrl || ""}" alt="${escapeHtml(game.name)} cover" loading="lazy" decoding="async" />
+  <img
+  src="${game.coverUrl || ""}"
+  alt="${escapeHtml(game.name)} cover"
+  loading="lazy"
+  decoding="async"
+  width="264"
+  height="352"
+/>
   ${isNewRelease(game) ? `<div class="new-badge">NEW</div>` : ""}
   ${renderRating(game)}
   <div class="platform-overlay">${renderPlatforms(game)}</div>

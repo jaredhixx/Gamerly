@@ -913,3 +913,13 @@ body[data-path="/steam-games-upcoming"] .steam-context[data-route="/steam-games-
 
 .screenshot-prev { left: 14px; }
 .screenshot-next { right: 14px; }
+
+/* =========================
+   STEAM GENRE ROUTES
+========================= */
+
+body[data-path^="/steam-games/genre/"] .route-copy,
+body[data-path^="/steam-games/genre/"] .seo-links,
+body[data-path^="/steam-games/genre/"] .steam-context {
+  display: none;
+}

@@ -838,3 +838,15 @@ body[data-path="/steam-games-upcoming"] .steam-context[data-route="/steam-games-
     flex: 0 0 auto !important;
   }
 }
+
+/* =========================================================
+   CRITICAL FIX: Allow horizontal scroll INSIDE details page
+   while keeping global overflow lock
+========================================================= */
+.details {
+  overflow-x: visible;
+}
+
+.details-gallery {
+  overflow-x: auto;
+}

@@ -415,7 +415,9 @@ main {
 /* =========================================================
    ✅ GALLERY ADD-ON (ONLY NEW CODE)
 ========================================================= */
-.details { grid-template-columns: 300px minmax(0, 1fr); }
+@media (min-width: 769px) {
+  .details { grid-template-columns: 300px minmax(0, 1fr); }
+}
 .details-info { min-width: 0; }
 
 .details-gallery {

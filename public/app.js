@@ -186,6 +186,38 @@ function escapeHtml(str = "") {
     .replaceAll("'", "&#039;");
 }
 
+/* =========================
+   GAME SCHEMA (SEO, SAFE)
+========================= */
+function injectGameSchema(game) {
+  const existing = document.getElementById("game-schema");
+  if (existing) existing.remove();
+
+  if (!game || !game.name || !game.releaseDate) return;
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": game.name,
+    "datePublished": game.releaseDate.split("T")[0],
+    "image": [
+      game.coverUrl,
+      ...(Array.isArray(game.screenshots) ? game.screenshots : [])
+    ].filter(Boolean),
+    "gamePlatform": Array.isArray(game.platforms)
+      ? game.platforms
+      : undefined,
+    "applicationCategory": "Game"
+  };
+
+  const script = document.createElement("script");
+  script.type = "application/ld+json";
+  script.id = "game-schema";
+  script.textContent = JSON.stringify(schema);
+
+  document.head.appendChild(script);
+}
+
 function setActive(button) {
   const group = button.parentElement;
   if (!group) return;
@@ -522,6 +554,7 @@ function renderDetails(game, replace = false) {
   const summaryText = game.summary ? escapeHtml(game.summary.slice(0, 240)) : "";
   setMetaDescription(summaryText || `Release info for ${game.name}.`);
   setCanonical(`https://gamerly.net${path}`);
+  injectGameSchema(game);
 
   const release = game.releaseDate
     ? new Date(game.releaseDate).toDateString()

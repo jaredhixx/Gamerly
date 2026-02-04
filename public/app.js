@@ -656,7 +656,7 @@ if (game.releaseDate) {
   <ul style="list-style:none; padding:0; margin:0;">
   ${
     game.releaseDate && localDay(game.releaseDate) === localDay(new Date())
-      ? `<li><a href="/steam-games-today">Steam games released today</a></li>`
+      ? `<li><a href="/steam-games-today">New PC games on Steam today</a></li>`
       : ""
   }
 
@@ -664,16 +664,16 @@ if (game.releaseDate) {
     game.releaseDate &&
     localDay(game.releaseDate) >= addDays(startOfLocalDay(new Date()), -6).getTime() &&
     localDay(game.releaseDate) <= localDay(new Date())
-      ? `<li><a href="/steam-games-this-week">Steam games released this week</a></li>`
+      ? `<li><a href="/steam-games-this-week">New PC releases on Steam this week</a></li>`
       : ""
   }
 
   <li>
-    <a href="/steam-games-upcoming">Upcoming Steam game releases</a>
+    <a href="/steam-games-upcoming">Steam games coming soon to PC</a>
   </li>
 
   <li>
-    <a href="/steam-games">Browse all Steam games</a>
+    <a href="/steam-games">Full Steam game release list</a>
   </li>
 </ul>
 

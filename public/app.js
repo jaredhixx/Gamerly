@@ -615,7 +615,7 @@ if (game.releaseDate) {
         <div class="details-gallery">
           ${game.screenshots.map(
   url => `
-    <a href="${url}" target="_blank" rel="noopener">
+    <a href="${url}" rel="noopener">
       <img
         src="${url}"
         alt="${escapeHtml(game.name)} screenshot"

@@ -397,34 +397,44 @@ function getTimeWindow(section, timeKey) {
   const today = startOfLocalDay(new Date());
   const tomorrow = addDays(today, 1);
 
+  /* =========================
+     OUT NOW (CALENDAR-BASED)
+  ========================= */
   if (section === "out") {
-  // coming soon
-if (timeKey === "today") {
-  return { start: tomorrow, end: addDays(tomorrow, 1) };
-}
+    if (timeKey === "today") {
+      return { start: today, end: tomorrow };
+    }
 
-if (timeKey === "thisweek") {
-  const end = endOfWeek(today);
-  return { start: tomorrow, end };
-}
+    if (timeKey === "thisweek") {
+      const start = startOfWeek(today);
+      return { start, end: tomorrow };
+    }
 
-if (timeKey === "thismonth") {
-  const end = endOfMonth(tomorrow);
-  return { start: tomorrow, end };
-}
+    if (timeKey === "thismonth") {
+      const start = startOfMonth(today);
+      return { start, end: tomorrow };
+    }
 
-  return null;
-}
-
-  // coming soon
-  if (timeKey === "today") {
-    return { start: tomorrow, end: addDays(tomorrow, 1) };
+    return null;
   }
-  if (timeKey === "thisweek") {
-    return { start: tomorrow, end: addDays(tomorrow, 7) };
-  }
-  if (timeKey === "thismonth") {
-    return { start: tomorrow, end: addDays(tomorrow, 30) };
+
+  /* =========================
+     COMING SOON (CALENDAR-BASED)
+  ========================= */
+  if (section === "soon") {
+    if (timeKey === "today") {
+      return { start: tomorrow, end: addDays(tomorrow, 1) };
+    }
+
+    if (timeKey === "thisweek") {
+      const end = endOfWeek(today);
+      return { start: tomorrow, end };
+    }
+
+    if (timeKey === "thismonth") {
+      const end = endOfMonth(today);
+      return { start: tomorrow, end };
+    }
   }
 
   return null;

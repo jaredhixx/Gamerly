@@ -766,3 +766,15 @@ body[data-path="/steam-games-upcoming"] .steam-context[data-route="/steam-games-
 .card-cta:active {
   transform: translateY(1px);
 }
+
+/* =========================================================
+   FIX: MOBILE SCREENSHOT GALLERY SCROLL
+   - Restores horizontal swipe
+   - Zero layout impact
+========================================================= */
+@media (max-width: 768px) {
+  .details-gallery {
+    align-self: stretch;
+    touch-action: pan-x;
+  }
+}

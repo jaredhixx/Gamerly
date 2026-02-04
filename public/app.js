@@ -11,7 +11,7 @@ const PATH = (window.location.pathname || "").split("?")[0].split("#")[0];
 const ROUTE = {
   HOME: PATH === "/" || PATH === "",
   DETAILS: /^\/game\/\d+/.test(PATH),
-  STEAM: /^\/steam-games(?:-|$)/.test(PATH) || PATH === "/steam-games",
+  STEAM: PATH.startsWith("/steam-games"),
 };
 
 // =========================
@@ -825,6 +825,10 @@ initRouteDefaults();
 syncActiveButtons();
 applyRouteMeta();
 applyRouteH1();
+
+// Enable CSS route-copy targeting
+document.body.setAttribute("data-path", PATH);
+
 loadGames();
 
 /* =========================================================

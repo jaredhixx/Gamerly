@@ -422,6 +422,13 @@ function platformMatches(game, key) {
 function initRouteDefaults() {
   if (!ROUTE.STEAM) return;
 
+if (ACTIVE_GENRE) {
+  activeSection = "out";
+  activeTime = "all";
+  activePlatform = "pc";
+  return;
+}
+
   activePlatform = "pc";
 
   if (PATH === "/steam-games-upcoming") {

@@ -61,8 +61,20 @@ let viewMode = "list";
 function genreMatches(game, genreSlug) {
   if (!game || !game.category || !genreSlug) return false;
 
-  const gameGenre = String(game.category).toLowerCase().replace(/\s+/g, "-");
-  return gameGenre.includes(genreSlug);
+  const g = game.category.toLowerCase();
+
+  const GENRE_MAP = {
+    indie: ["indie"],
+    horror: ["horror"],
+    action: ["action", "shooter", "fighting", "platform"],
+    rpg: ["rpg", "role-playing"],
+    simulation: ["simulation", "simulator", "management", "tycoon"]
+  };
+
+  const keywords = GENRE_MAP[genreSlug];
+  if (!keywords) return false;
+
+  return keywords.some(k => g.includes(k));
 }
 
 function isNewRelease(game, days = 7) {

@@ -62,7 +62,9 @@ function normalizeGenreName(name = "") {
   return name
     .toLowerCase()
     .replace(/\(.*?\)/g, "")   // remove (RPG)
-    .replace(/[^a-z\s]/g, "") // remove punctuation
+    .replace(/[-/]/g, " ")     // convert hyphens & slashes to spaces
+    .replace(/[^a-z\s]/g, "")  // remove remaining punctuation
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -85,7 +87,8 @@ function genreMatches(game, genreSlug) {
 
     case "rpg":
       return genres.some(g =>
-        g.includes("role") || g.includes("rpg")
+        g.includes("role") ||
+        g.includes("rpg")
       );
 
     case "simulation":
@@ -97,13 +100,8 @@ function genreMatches(game, genreSlug) {
       );
 
     case "indie":
-      // IGDB doesn't reliably tag "Indie"
-      // Infer by excluding AAA-heavy genres
-      return !genres.some(g =>
-        g.includes("sports") ||
-        g.includes("racing") ||
-        g.includes("simulation")
-      );
+      // Indie exists in IGDB data — use it directly now
+      return genres.some(g => g.includes("indie"));
 
     default:
       return false;

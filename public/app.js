@@ -769,3 +769,70 @@ applyRouteMeta();
 applyRouteH1();
 loadGames();
 
+/* =========================================================
+   FULLSCREEN SCREENSHOT VIEWER (SAFE)
+========================================================= */
+let viewerIndex = 0;
+let viewerImages = [];
+
+function openScreenshotViewer(index) {
+  viewerIndex = index;
+
+  const viewer = document.createElement("div");
+  viewer.className = "screenshot-viewer active";
+
+  viewer.innerHTML = `
+    <button class="screenshot-close">✕</button>
+    <button class="screenshot-nav screenshot-prev">‹</button>
+    <img src="${viewerImages[viewerIndex]}" alt="Screenshot">
+    <button class="screenshot-nav screenshot-next">›</button>
+  `;
+
+  document.body.appendChild(viewer);
+
+  const img = viewer.querySelector("img");
+
+  function update() {
+    img.src = viewerImages[viewerIndex];
+  }
+
+  viewer.querySelector(".screenshot-close").onclick = close;
+  viewer.querySelector(".screenshot-prev").onclick = () => {
+    viewerIndex = (viewerIndex - 1 + viewerImages.length) % viewerImages.length;
+    update();
+  };
+  viewer.querySelector(".screenshot-next").onclick = () => {
+    viewerIndex = (viewerIndex + 1) % viewerImages.length;
+    update();
+  };
+
+  viewer.onclick = e => {
+    if (e.target === viewer) close();
+  };
+
+  document.addEventListener("keydown", esc);
+
+  function esc(e) {
+    if (e.key === "Escape") close();
+  }
+
+  function close() {
+    document.removeEventListener("keydown", esc);
+    viewer.remove();
+  }
+}
+
+/* Attach handlers after details render */
+document.addEventListener("click", e => {
+  const img = e.target.closest(".screenshot-thumb");
+  if (!img) return;
+
+  const gallery = img.closest(".details-gallery");
+  if (!gallery) return;
+
+  viewerImages = Array.from(
+    gallery.querySelectorAll(".screenshot-thumb")
+  ).map(i => i.src);
+
+  openScreenshotViewer(Number(img.dataset.screenshotIndex));
+});

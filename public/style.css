@@ -816,3 +816,24 @@ body[data-path="/steam-games-upcoming"] .steam-context[data-route="/steam-games-
     touch-action: pan-x;
   }
 }
+
+/* =========================================================
+   FIX 1: Mobile screenshot gallery can swipe horizontally
+   (small, safe, CSS-only)
+========================================================= */
+@media (max-width: 768px) {
+  .details-gallery {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 10px;
+    padding-bottom: 10px;
+    touch-action: pan-x;
+  }
+
+  .details-gallery img {
+    flex: 0 0 auto !important;
+  }
+}

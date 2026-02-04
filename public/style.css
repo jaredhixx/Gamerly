@@ -997,3 +997,13 @@ body[data-path^="/steam-games/genre/"] .steam-context {
 body[data-path^="/steam-games/genre"] .steam-genres a[href*="genre"] {
   opacity: 0.9;
 }
+
+/* =========================================================
+   ✅ HIDE STEAM GENRE PILLS ON HOMEPAGE ONLY
+   - Keeps SEO crawlable elsewhere
+   - Reduces hero crowding
+   - Zero JS / zero logic risk
+========================================================= */
+body[data-path="/"] .steam-genres {
+  display: none;
+}

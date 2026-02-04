@@ -254,7 +254,7 @@ main {
 /* ========================= PLATFORM OVERLAY (NO OVERLAP) ========================= */
 .platform-overlay {
   position: absolute;
-  top: 8px;
+  top: 32px; /* pushed down to make room for NEW */
   right: 8px;
   left: 64px;
   z-index: 6;

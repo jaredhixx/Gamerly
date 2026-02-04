@@ -615,13 +615,13 @@ if (game.releaseDate) {
         <div class="details-gallery">
           ${game.screenshots.map(
   url => `
-    <a href="${url}" rel="noopener">
-      <img
-        src="${url}"
-        alt="${escapeHtml(game.name)} screenshot"
-        loading="lazy"
-      />
-    </a>
+    <img
+  src="${url}"
+  alt="${escapeHtml(game.name)} screenshot"
+  loading="lazy"
+  data-screenshot-index="${i}"
+  class="screenshot-thumb"
+/>
   `
 ).join("")}
         </div>

@@ -192,6 +192,33 @@ function escapeHtml(str = "") {
     .replaceAll("'", "&#039;");
 }
 
+// ✅ Clean truncation: no mid-word cuts, prefers ending on punctuation
+function smartSnippet(text = "", max = 240) {
+  const s = String(text).replace(/\s+/g, " ").trim();
+  if (!s) return "";
+  if (s.length <= max) return s;
+
+  // look a bit past max so we can find punctuation or a word break
+  const window = s.slice(0, max + 20);
+
+  // Prefer ending on sentence punctuation if it appears "late enough"
+  const lastPeriod = window.lastIndexOf(".");
+  const lastBang = window.lastIndexOf("!");
+  const lastQ = window.lastIndexOf("?");
+  const punct = Math.max(lastPeriod, lastBang, lastQ);
+
+  // only use punctuation if it's not too early (avoids tiny snippets)
+  if (punct >= Math.floor(max * 0.6)) {
+    return window.slice(0, punct + 1).trim();
+  }
+
+  // otherwise cut at last space before max
+  const cut = s.slice(0, max + 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  const base = lastSpace > 0 ? cut.slice(0, lastSpace) : cut.slice(0, max);
+  return base.trim() + "…";
+}
+
 /* =========================
    GAME SCHEMA (SEO, SAFE)
 ========================= */
@@ -559,8 +586,11 @@ function renderDetails(game, replace = false) {
   else history.pushState({}, "", path);
 
   setMetaTitle(`${game.name} — Gamerly`);
-  const summaryText = game.summary ? escapeHtml(game.summary.slice(0, 240)) : "";
-  setMetaDescription(summaryText || `Release info for ${game.name}.`);
+  const rawSummary = game.summary ? String(game.summary) : "";
+const metaDesc = rawSummary ? smartSnippet(rawSummary, 155) : `Release info for ${game.name}.`;
+setMetaDescription(metaDesc);
+
+const summaryText = rawSummary ? escapeHtml(smartSnippet(rawSummary, 420)) : "";
   setCanonical(`https://gamerly.net${path}`);
   injectGameSchema(game);
 

@@ -430,23 +430,32 @@ function getTimeWindow(section, timeKey) {
   }
 
   /* =========================
-     COMING SOON (CALENDAR-BASED)
-  ========================= */
-  if (section === "soon") {
-    if (timeKey === "today") {
-      return { start: tomorrow, end: addDays(tomorrow, 1) };
-    }
+   COMING SOON (CALENDAR-ALIGNED)
+========================= */
+if (section === "soon") {
+  const start = startOfTomorrow();
 
-    if (timeKey === "thisweek") {
-      const end = endOfWeek(tomorrow);
-      return { start: tomorrow, end };
-    }
-
-    if (timeKey === "thismonth") {
-      const end = endOfMonth(tomorrow);
-      return { start: tomorrow, end };
-    }
+  if (timeKey === "today") {
+    return {
+      start,
+      end: addDays(start, 1)
+    };
   }
+
+  if (timeKey === "thisweek") {
+    return {
+      start,
+      end: endOfWeek(startOfLocalDay(new Date()))
+    };
+  }
+
+  if (timeKey === "thismonth") {
+    return {
+      start,
+      end: endOfMonth(startOfLocalDay(new Date()))
+    };
+  }
+}
 
   return null;
 }

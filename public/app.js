@@ -671,7 +671,6 @@ list.sort((a, b) => {
   // Coming Soon → soonest first
   return da - db;
 });
-});
 
 lastListPath = window.location.pathname || "/";
 renderList(list);

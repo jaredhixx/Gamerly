@@ -1,0 +1,38 @@
+import { Metadata } from "next";
+import GameGrid from "../../components/game/GameGrid";
+import { fetchGames } from "../../lib/igdb";
+
+import { buildCanonicalUrl } from "../../lib/site";
+
+export const metadata: Metadata = {
+  title: "Upcoming Games | Gamerly",
+  description: "Upcoming video game releases across all platforms.",
+  alternates: {
+    canonical: buildCanonicalUrl("/upcoming-games")
+  }
+};
+
+export default async function UpcomingGamesPage() {
+
+  const games = await fetchGames();
+
+  const now = new Date();
+
+  const upcoming = games.filter((g: any) => {
+    if (!g.releaseDate) return false;
+    return new Date(g.releaseDate) > now;
+  });
+
+  upcoming.sort((a: any, b: any) =>
+    new Date(a.releaseDate).getTime() -
+    new Date(b.releaseDate).getTime()
+  );
+
+  return (
+    <main>
+      <h1>Upcoming Video Games</h1>
+
+      <GameGrid games={upcoming.slice(0, 120)} />
+    </main>
+  );
+}

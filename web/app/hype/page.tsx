@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { fetchGames } from "../../lib/igdb";
 import { fetchTwitchStreams } from "../../lib/twitch";
 import { calculateHypeScore } from "../../lib/hype";

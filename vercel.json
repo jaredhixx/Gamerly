@@ -1,6 +1,4 @@
 {
-  "framework": "nextjs",
-  "rootDirectory": "web",
   "rewrites": [
     {
       "source": "/sitemap.xml",

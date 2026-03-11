@@ -339,10 +339,8 @@ const getUpcomingGamesCached = unstable_cache(fetchUpcomingGames, ["upcoming-gam
 
 export async function getAllGames(): Promise<GamerlyGame[]> {
   try {
-    const [recent, upcoming] = await Promise.all([
-      getRecentGamesCached(),
-      getUpcomingGamesCached(),
-    ]);
+    const recent = await getRecentGamesCached();
+const upcoming = await getUpcomingGamesCached();
 
     const merged = [...recent, ...upcoming].filter(
       (game) => game.releaseDate && game.coverUrl

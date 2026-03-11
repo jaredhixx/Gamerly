@@ -95,6 +95,21 @@ const trendingGames = [...games]
           trending={trendingHero}
         />
 
+        <p
+  style={{
+    marginTop: "24px",
+    marginBottom: "24px",
+    color: "#9aa3b2",
+    maxWidth: "760px",
+    lineHeight: "1.6"
+  }}
+>
+  Gamerly helps players discover new and upcoming video games across PC,
+  PlayStation, Xbox, and Nintendo Switch. Browse new releases, explore
+  upcoming titles, find top rated games, and discover what is trending
+  across genres and platforms.
+</p>
+
         <div hidden aria-hidden="true" data-ad-slot="home-top-leaderboard" />
 
         <SectionBlock>

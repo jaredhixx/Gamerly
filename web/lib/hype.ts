@@ -24,7 +24,7 @@ export function calculateHypeScore(
   --------------------------*/
 
   if (game.aggregated_rating) {
-    score += game.aggregated_rating * 0.5;
+    score += game.aggregated_rating * 0.35;
   }
 
   /* -------------------------
@@ -32,29 +32,37 @@ export function calculateHypeScore(
   --------------------------*/
 
   if (game.aggregated_rating_count) {
-    score += Math.log(game.aggregated_rating_count) * 10;
+    score += Math.log10(game.aggregated_rating_count + 1) * 12;
   }
 
   /* -------------------------
      Release proximity boost
   --------------------------*/
 
-  if (game.releaseDate) {
+if (game.releaseDate) {
 
-    const now = new Date().getTime();
-    const release = new Date(game.releaseDate).getTime();
+  const now = new Date().getTime();
+  const release = new Date(game.releaseDate).getTime();
 
-    const diffDays = (release - now) / (1000 * 60 * 60 * 24);
+  const diffDays = (release - now) / (1000 * 60 * 60 * 24);
 
-    if (diffDays < 30 && diffDays > 0) {
-      score += 30;
-    }
+  /* Upcoming games */
 
-    if (diffDays < 90 && diffDays > 30) {
-      score += 15;
-    }
-
+  if (diffDays > 0 && diffDays < 60) {
+    score += 40;
   }
+
+  if (diffDays >= 60 && diffDays < 120) {
+    score += 20;
+  }
+
+  /* Newly released games */
+
+  if (diffDays <= 0 && diffDays > -30) {
+    score += 30;
+  }
+
+}
 
   /* -------------------------
      Platform boost

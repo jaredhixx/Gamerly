@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import { fetchGames } from "../lib/igdb";
 import GameGrid from "../components/game/GameGrid";

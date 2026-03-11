@@ -40,6 +40,10 @@ export default async function PlatformPage(props: any) {
 
   const games = await fetchGames();
 
+  const platformLabel =
+  platformConfig.slug.charAt(0).toUpperCase() +
+  platformConfig.slug.slice(1);
+
   const filtered = games.filter((g: any) =>
   g.platforms.some((p: string) =>
     p.toLowerCase().includes(platformConfig.slug)
@@ -76,13 +80,13 @@ const newReleases = [...filtered]
   return (
   <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
     <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "30px" }}>
-      {platformConfig.name} Games
-    </h1>
+  {platformLabel} Games
+</h1>
 
     {topRated.length > 0 && (
       <section style={{ marginBottom: "50px" }}>
         <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-          Top Rated {platformConfig.name} Games
+          Top Rated {platformLabel} Games
         </h2>
         <GameGrid games={topRated} />
       </section>
@@ -91,7 +95,7 @@ const newReleases = [...filtered]
     {newReleases.length > 0 && (
       <section style={{ marginBottom: "50px" }}>
         <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-          New {platformConfig.name} Games
+          New {platformLabel} Games
         </h2>
         <GameGrid games={newReleases} />
       </section>
@@ -99,7 +103,7 @@ const newReleases = [...filtered]
 
     <section>
       <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-        All {platformConfig.name} Games
+        All {platformLabel} Games
       </h2>
 
   <GameGrid games={filtered.slice(0, 60)} />
@@ -130,43 +134,43 @@ const newReleases = [...filtered]
       marginBottom: "16px"
     }}
   >
-    Popular {platformConfig.name} Genres
+    Popular {platformLabel} Genres
   </h2>
 
   <ul style={{ lineHeight: "32px" }}>
     <li>
       <a href="/genre/rpg">
-        {platformConfig.name} RPG Games
+        {platformLabel} RPG Games
       </a>
     </li>
 
     <li>
       <a href="/genre/shooter">
-        {platformConfig.name} Shooter Games
+        {platformLabel} Shooter Games
       </a>
     </li>
 
     <li>
       <a href="/genre/strategy">
-        {platformConfig.name} Strategy Games
+        {platformLabel} Strategy Games
       </a>
     </li>
 
     <li>
       <a href="/genre/adventure">
-        {platformConfig.name} Adventure Games
+        {platformLabel} Adventure Games
       </a>
     </li>
 
     <li>
       <a href="/genre/indie">
-        {platformConfig.name} Indie Games
+        {platformLabel} Indie Games
       </a>
     </li>
 
     <li>
       <a href="/genre/simulation">
-        {platformConfig.name} Simulation Games
+        {platformLabel} Simulation Games
       </a>
     </li>
   </ul>

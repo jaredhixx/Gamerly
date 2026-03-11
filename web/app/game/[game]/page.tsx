@@ -224,17 +224,41 @@ export default async function GamePage(props: any) {
 
 <div className="gamePills">
 
-  {game.platforms?.slice(0,3).map((platform: string) => (
-    <span key={platform} className="gamePill">
-      {platform}
-    </span>
-  ))}
+  {game.platforms?.slice(0,3).map((platform: string) => {
+    const href = getPlatformHref(platform);
 
-  {game.genres?.slice(0,2).map((genre: string) => (
-    <span key={genre} className="gamePill">
-      {genre}
-    </span>
-  ))}
+    if (!href) {
+      return (
+        <span key={platform} className="gamePill">
+          {platform}
+        </span>
+      );
+    }
+
+    return (
+      <Link key={platform} href={href} className="gamePill">
+        {platform}
+      </Link>
+    );
+  })}
+
+  {game.genres?.slice(0,2).map((genre: string) => {
+    const href = getGenreHref(genre);
+
+    if (!href) {
+      return (
+        <span key={genre} className="gamePill">
+          {genre}
+        </span>
+      );
+    }
+
+    return (
+      <Link key={genre} href={href} className="gamePill">
+        {genre}
+      </Link>
+    );
+  })}
 
 </div>
 

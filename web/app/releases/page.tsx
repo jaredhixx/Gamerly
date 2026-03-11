@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { fetchGames } from "../../lib/igdb";
 import { buildCanonicalUrl } from "../../lib/site";
 
@@ -10,8 +11,22 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function ReleasesHubPage() {
+const monthNames = [
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december"
+];
 
+export default async function ReleasesHubPage() {
   const games = await fetchGames();
 
   const monthSet = new Set<string>();
@@ -21,14 +36,25 @@ export default async function ReleasesHubPage() {
 
     const date = new Date(g.releaseDate);
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getUTCFullYear();
+    const monthSlug = monthNames[date.getUTCMonth()];
 
-    monthSet.add(`${year}-${month}`);
+    monthSet.add(`${year}-${monthSlug}`);
   });
 
-  const months = Array.from(monthSet)
-    .sort((a, b) => b.localeCompare(a));
+  const months = Array.from(monthSet).sort((a, b) => {
+    const [aYear, aMonthSlug] = a.split("-");
+    const [bYear, bMonthSlug] = b.split("-");
+
+    const aDate = new Date(
+      Date.UTC(Number(aYear), monthNames.indexOf(aMonthSlug), 1)
+    );
+    const bDate = new Date(
+      Date.UTC(Number(bYear), monthNames.indexOf(bMonthSlug), 1)
+    );
+
+    return bDate.getTime() - aDate.getTime();
+  });
 
   return (
     <main style={{ maxWidth: "900px", margin: "0 auto", padding: "40px 20px" }}>
@@ -42,21 +68,22 @@ export default async function ReleasesHubPage() {
 
       <ul style={{ lineHeight: "32px" }}>
         {months.map((m) => {
+          const [year, monthSlug] = m.split("-");
+          const monthIndex = monthNames.indexOf(monthSlug);
 
-          const [year, month] = m.split("-");
-
-          const date = new Date(Number(year), Number(month) - 1);
-
-          const label = date.toLocaleString("default", {
+          const label = new Date(
+            Date.UTC(Number(year), monthIndex, 1)
+          ).toLocaleString("en-US", {
             month: "long",
-            year: "numeric"
+            year: "numeric",
+            timeZone: "UTC"
           });
 
           return (
             <li key={m}>
-              <a href={`/releases/${year}/${month}`}>
+              <Link href={`/releases/${year}/${monthSlug}`}>
                 {label}
-              </a>
+              </Link>
             </li>
           );
         })}

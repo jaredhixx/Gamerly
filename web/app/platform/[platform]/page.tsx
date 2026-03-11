@@ -4,6 +4,7 @@ import { fetchGames } from "../../../lib/igdb";
 import { platforms } from "../../../lib/platforms";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../lib/site";
+import Link from "next/link";
 
 export async function generateMetadata(props: any): Promise<Metadata> {
 
@@ -44,8 +45,8 @@ export default async function PlatformPage(props: any) {
   platformConfig.slug.charAt(0).toUpperCase() +
   platformConfig.slug.slice(1);
 
-  const filtered = games.filter((g: any) =>
-  g.platforms.some((p: string) =>
+const filtered = games.filter((g: any) =>
+  g.platforms?.some((p: string) =>
     p.toLowerCase().includes(platformConfig.slug)
   )
 );
@@ -110,8 +111,8 @@ const newReleases = [...filtered]
 
       {filtered.length > 60 && (
         <div style={{ marginTop: "24px" }}>
-          <a
-            href={`/platform/${platform}/page/2`}
+          <Link
+  href={`/platform/${platform}/page/2`}
             style={{
               color: "#6aa6ff",
               fontSize: "14px",
@@ -119,8 +120,8 @@ const newReleases = [...filtered]
               fontWeight: 600
             }}
           >
-            Browse more {platformConfig.name} games →
-          </a>
+            Browse more {platformLabel} games →
+          </Link>
         </div>
       )}
     </section>
@@ -137,43 +138,43 @@ const newReleases = [...filtered]
     Popular {platformLabel} Genres
   </h2>
 
-  <ul style={{ lineHeight: "32px" }}>
-    <li>
-      <a href="/genre/rpg">
-        {platformLabel} RPG Games
-      </a>
-    </li>
+<ul style={{ lineHeight: "32px" }}>
+  <li>
+    <Link href="/genre/rpg">
+      {platformLabel} RPG Games
+    </Link>
+  </li>
 
-    <li>
-      <a href="/genre/shooter">
-        {platformLabel} Shooter Games
-      </a>
-    </li>
+  <li>
+    <Link href="/genre/shooter">
+      {platformLabel} Shooter Games
+    </Link>
+  </li>
 
-    <li>
-      <a href="/genre/strategy">
-        {platformLabel} Strategy Games
-      </a>
-    </li>
+  <li>
+    <Link href="/genre/strategy">
+      {platformLabel} Strategy Games
+    </Link>
+  </li>
 
-    <li>
-      <a href="/genre/adventure">
-        {platformLabel} Adventure Games
-      </a>
-    </li>
+  <li>
+    <Link href="/genre/adventure">
+      {platformLabel} Adventure Games
+    </Link>
+  </li>
 
-    <li>
-      <a href="/genre/indie">
-        {platformLabel} Indie Games
-      </a>
-    </li>
+  <li>
+    <Link href="/genre/indie">
+      {platformLabel} Indie Games
+    </Link>
+  </li>
 
-    <li>
-      <a href="/genre/simulation">
-        {platformLabel} Simulation Games
-      </a>
-    </li>
-  </ul>
+  <li>
+    <Link href="/genre/simulation">
+      {platformLabel} Simulation Games
+    </Link>
+  </li>
+</ul>
 
 </section>
   </main>

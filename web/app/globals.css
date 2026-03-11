@@ -53,13 +53,23 @@ body {
 
 body {
 
-  background:
+background:
+
+radial-gradient(
+  ellipse at 50% -120px,
+  rgba(110,168,255,0.18) 0%,
+  rgba(110,168,255,0.08) 20%,
+  rgba(110,168,255,0.04) 40%,
+  rgba(0,0,0,0) 65%
+),
+
 radial-gradient(
   ellipse at top,
   rgba(110,168,255,0.06) 0%,
   rgba(110,168,255,0.02) 20%,
   rgba(0,0,0,0) 60%
 ),
+
 linear-gradient(
   180deg,
   #0B1020 0%,
@@ -359,6 +369,28 @@ p + p {
   border-bottom: 1px solid rgba(36,48,74,0.75);
 }
 
+.heroGrid::before {
+
+  content: "";
+
+  position: absolute;
+
+  top: -40px;
+  left: -20px;
+  right: -20px;
+
+  height: 80px;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(12,18,32,0.7),
+    rgba(12,18,32,0)
+  );
+
+  pointer-events: none;
+
+}
+
 /* Mobile */
 
 @media (max-width: 900px) {
@@ -384,10 +416,27 @@ p + p {
 
   border: 1px solid rgba(110,168,255,0.15);
 
-  box-shadow:
-  0 24px 60px rgba(0,0,0,0.55),
-  0 0 0 1px rgba(110,168,255,0.12),
-  inset 0 0 60px rgba(0,0,0,0.30);
+  .heroGrid::before {
+
+  content: "";
+
+  position: absolute;
+
+  top: -40px;
+  left: -20px;
+  right: -20px;
+
+  height: 80px;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(12,18,32,0.7),
+    rgba(12,18,32,0)
+  );
+
+  pointer-events: none;
+
+}
 }
 
 .heroCard:hover {
@@ -493,13 +542,13 @@ p + p {
 .heroTitle {
   margin: 0;
 
-  font-size: 48px;
+  font-size: 52px;
 
   font-weight: 800;
 
   letter-spacing: -0.035em;
 
-  line-height: 1.02;
+  line-height: 1.06;
 
   text-shadow:
     0 12px 40px rgba(0,0,0,.85),
@@ -530,7 +579,7 @@ p + p {
 
   box-shadow: 0 8px 20px rgba(0,0,0,0.28);
 
-  min-height: 110px;
+  height: 110px;
 
   transform: translateZ(0);
 
@@ -555,18 +604,20 @@ p + p {
 }
 
 .heroSideCard img {
+
   width: 120px;
   min-width: 120px;
 
-  height: 110px;
+  height: 100%;
 
   object-fit: cover;
 
   display: block;
+
 }
 
 .heroSideContent {
-  padding: 12px;
+  padding: 14px 16px;
 
   display: flex;
   flex-direction: column;
@@ -588,7 +639,7 @@ p + p {
 }
 
 .heroSideTitle {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
 
   line-height: 1.2;
@@ -1092,17 +1143,29 @@ p + p {
 
   z-index: 100;
 
-  background:
+background:
 
-    linear-gradient(
-      to bottom,
-      rgba(12,18,32,.92),
-      rgba(12,18,32,.75)
-    );
+  radial-gradient(
+    ellipse at 50% -80px,
+    rgba(110,168,255,0.25) 0%,
+    rgba(110,168,255,0.12) 30%,
+    rgba(110,168,255,0.03) 55%,
+    rgba(0,0,0,0) 70%
+  ),
 
-  backdrop-filter: blur(10px);
+  linear-gradient(
+    to bottom,
+    rgba(12,18,32,.94),
+    rgba(12,18,32,.82)
+  );
 
-  border-bottom: 1px solid rgba(110,168,255,.12);
+  backdrop-filter: blur(12px);
+
+  border-top: 1px solid rgba(110,168,255,0.05);
+
+  box-shadow:
+  0 10px 40px rgba(0,0,0,.45),
+  inset 0 -1px 0 rgba(110,168,255,.08);
 
 }
 
@@ -1197,6 +1260,63 @@ p + p {
     transform: scale(0.95);
     opacity: 0.45;
   }
+
+}
+
+/* -----------------------------
+   HEADER SEARCH
+----------------------------- */
+
+.siteSearch {
+
+  flex: 1;
+
+  max-width: 420px;
+
+  margin-left: 28px;
+  margin-right: 28px;
+
+}
+
+.siteSearchInput {
+
+  width: 100%;
+
+  padding: 10px 14px;
+
+  border-radius: var(--radius-md);
+
+  border: 1px solid var(--border-subtle);
+
+  background: rgba(17,24,43,0.9);
+
+  color: var(--text-primary);
+
+  font-size: 14px;
+
+  outline: none;
+
+  box-shadow:
+  inset 0 0 0 1px rgba(110,168,255,0.08);
+
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+
+}
+
+.siteSearchInput::placeholder {
+
+  color: var(--text-secondary);
+
+}
+
+.siteSearchInput:focus {
+
+  border-color: var(--accent);
+
+  box-shadow:
+    0 0 0 1px rgba(110,168,255,0.35);
 
 }
 
@@ -1654,5 +1774,13 @@ p + p {
 
   box-shadow:
     0 6px 16px rgba(0,0,0,0.5);
+
+}
+
+@media (max-width: 900px) {
+
+  .siteSearch {
+    display: none;
+  }
 
 }

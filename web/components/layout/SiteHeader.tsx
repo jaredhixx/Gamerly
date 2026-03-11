@@ -33,9 +33,18 @@ export default function SiteHeader() {
 <header className="siteHeader">
       <PageContainer>
 <div className="siteHeaderInner">
+
 <Link href="/" className="siteLogo">
   Gamerly
 </Link>
+
+<div className="siteSearch">
+  <input
+    type="text"
+    placeholder="Search games..."
+    className="siteSearchInput"
+  />
+</div>
 
 <nav className="siteNav">
   {primaryLinks.map((link) => (

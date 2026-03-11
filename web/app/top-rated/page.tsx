@@ -14,16 +14,12 @@ export const revalidate = 3600;
 export default async function TopRatedPage() {
   const games = await fetchGames();
 
-  const topRated = games
-    .filter(
-      (g) =>
-        (g.aggregated_rating ?? 0) > 85 &&
-        (g.aggregated_rating_count ?? 0) > 40
-    )
-    .sort(
-      (a, b) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0)
-    )
-    .slice(0, 60);
+const topRated = games
+  .filter((g) => (g.aggregated_rating ?? 0) > 75)
+  .sort(
+    (a, b) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0)
+  )
+  .slice(0, 60);
 
   return (
     <PageContainer>

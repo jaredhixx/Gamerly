@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
 
   images: {
     domains: ["images.igdb.com"]
@@ -9,17 +8,17 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-  source: "/game.html",
-  has: [
-    {
-      type: "query",
-      key: "slug",
-      value: "(.*)"
-    }
-  ],
-  destination: "/",
-  permanent: true
-},
+        source: "/game.html",
+        has: [
+          {
+            type: "query",
+            key: "slug",
+            value: "(.*)"
+          }
+        ],
+        destination: "/",
+        permanent: true
+      },
       {
         source: "/pc-games",
         destination: "/platform/pc",
@@ -77,6 +76,7 @@ const nextConfig: NextConfig = {
       }
     ];
   }
+
 };
 
-export default nextConfig;
+module.exports = nextConfig;

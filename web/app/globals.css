@@ -1935,3 +1935,8 @@ p + p {
 .searchResultTitle {
   font-size: 14px;
 }
+
+.heroGrid + .sectionBlock {
+  margin-top: 36px;
+  padding-top: 20px;
+}

@@ -23,8 +23,19 @@ export const metadata: Metadata = {
 export default async function Home() {
   const games = await fetchGames();
 
-  const hypeGames =
+const hypeGames =
   games
+    .filter((g) => {
+      if (!g.releaseDate) return true;
+
+      const release = new Date(g.releaseDate);
+      const now = new Date();
+
+      const daysFromNow =
+        (release.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+
+      return daysFromNow > -30; // upcoming or released in last 30 days
+    })
     .map((g) => ({
       ...g,
       hypeScore: calculateHypeScore(g)
@@ -95,6 +106,31 @@ const trendingGames = [...games]
           trending={trendingHero}
         />
 
+        <SectionBlock>
+  <SectionHeading
+    title="🔥 Most Hyped Games"
+    subtitle="Games building the most excitement across ratings, releases, and player interest."
+  />
+
+  <GameGrid games={hypeGames} />
+
+  <div className="sectionMoreLink">
+    <Link href="/hype">Browse all hyped games →</Link>
+  </div>
+</SectionBlock>
+
+                <SectionBlock>
+          <SectionHeading
+            title="Trending Games"
+            subtitle="Popular games players are discovering right now."
+          />
+          <GameGrid games={trendingGames} />
+
+          <div className="sectionMoreLink">
+            <Link href="/all-games">Browse more games →</Link>
+          </div>
+        </SectionBlock>
+
         <p
   style={{
     marginTop: "24px",
@@ -135,34 +171,11 @@ const trendingGames = [...games]
 </section>
         </SectionBlock>
 
-        <SectionBlock>
-          <SectionHeading
-            title="Trending Games"
-            subtitle="Popular games players are discovering right now."
-          />
-          <GameGrid games={trendingGames} />
-
-          <div className="sectionMoreLink">
-            <Link href="/all-games">Browse more games →</Link>
-          </div>
-        </SectionBlock>
-
         <div
           hidden
           aria-hidden="true"
           data-ad-slot="home-between-trending-and-new"
         />
-
-        <SectionBlock>
-
-<SectionHeading
-  title="🔥 Trending Now"
-  subtitle="Games gaining the most momentum across ratings, releases, and Twitch."
-/>
-
-<GameGrid games={hypeGames} />
-
-</SectionBlock>
 
         <SectionBlock>
           <SectionHeading

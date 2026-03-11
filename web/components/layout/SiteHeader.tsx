@@ -36,6 +36,7 @@ export default function SiteHeader() {
 
 <Link href="/" className="siteLogo">
   Gamerly
+  <span className="logoPulse"></span>
 </Link>
 
 <div className="siteSearch">

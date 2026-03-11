@@ -15,9 +15,7 @@ const platforms = [
   { name: "PC", slug: "pc" },
   { name: "PlayStation", slug: "playstation" },
   { name: "Xbox", slug: "xbox" },
-  { name: "Switch", slug: "switch" },
-  { name: "iOS", slug: "ios" },
-  { name: "Android", slug: "android" }
+  { name: "Switch", slug: "switch" }
 ];
 
 const genres = [

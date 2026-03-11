@@ -87,14 +87,6 @@ function getGenreHref(genre: string) {
   return null;
 }
 
-export async function generateStaticParams() {
-  const games = await fetchGames();
-
-  return games.map((game) => ({
-    game: `${game.id}-${game.slug}`
-  }));
-}
-
 export async function generateMetadata(props: any): Promise<Metadata> {
   const params = await props.params;
 

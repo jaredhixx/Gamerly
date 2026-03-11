@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { buildGamePath } from "../../lib/site";
 import type { GamerlyGame } from "../../lib/igdb";
 
@@ -36,6 +37,8 @@ function normalizeGenre(genre: string) {
 
 export default function GameCard({ game }: { game: GamerlyGame }) {
 
+  const router = useRouter();
+
   const gameUrl = buildGamePath(game.id, game.slug);
 
   return (
@@ -64,15 +67,44 @@ export default function GameCard({ game }: { game: GamerlyGame }) {
   <div className="gameCardPillStack">
 
     <div className="gameCardPillGroup">
-      {game.platforms?.slice(0, 2).map((platform) => (
-        <span
-          key={platform}
-          className="gameCardPill gameCardPlatform"
-          data-platform={normalizePlatform(platform)}
-        >
-          {normalizePlatform(platform)}
-        </span>
-      ))}
+{game.platforms?.slice(0, 2).map((platform) => {
+
+  const label = normalizePlatform(platform);
+
+  const platformSlug =
+    label === "PC" ? "pc" :
+    label === "Xbox" ? "xbox" :
+    label === "PS" ? "playstation" :
+    label === "Switch" ? "switch" :
+    label === "Android" ? "android" :
+    label === "iOS" ? "ios" :
+    null;
+
+  return (
+    <button
+      key={platform}
+      className="gameCardPill gameCardPlatform"
+      data-platform={label}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (platformSlug) {
+          router.push(`/platform/${platformSlug}`);
+        }
+      }}
+      style={{
+        cursor: "pointer",
+        border: "none",
+        background: "none",
+        padding: 0
+      }}
+    >
+      {label}
+    </button>
+  );
+
+})}
     </div>
 
     {game.genres?.[0] && (

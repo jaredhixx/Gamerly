@@ -907,6 +907,8 @@ p + p {
 
   inset: 0;
 
+  pointer-events: none;
+
   background:
     linear-gradient(
       to top,
@@ -961,11 +963,10 @@ p + p {
 
 .gameCardBody {
   padding: 14px;
-
   display: flex;
   flex-direction: column;
-
   gap: 6px;
+  position: relative;
 }
 
 .gameCardTitle {
@@ -1004,6 +1005,10 @@ p + p {
   align-items: flex-start;
 
   pointer-events: none;
+}
+
+.gameCardPill {
+  pointer-events: auto;
 }
 
 .gameCardPillStack {

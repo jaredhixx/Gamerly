@@ -324,6 +324,13 @@ export default async function GamePage(props: any) {
                 )
                 .slice(0, 8)}
             />
+
+            <div style={{ marginTop: "16px" }}>
+  <Link href={getGenreHref(game.genres[0]) || "/genre"}>
+    Browse all {game.genres[0]} games →
+  </Link>
+</div>
+
           </section>
         )}
 
@@ -349,6 +356,13 @@ export default async function GamePage(props: any) {
                 )
                 .slice(0, 8)}
             />
+
+            <div style={{ marginTop: "16px" }}>
+  <Link href={getPlatformHref(game.platforms[0]) || "/platform"}>
+    Browse all {game.platforms[0]} games →
+  </Link>
+</div>
+
           </section>
         )}
 

@@ -38,15 +38,15 @@ export default function SiteHeader() {
 </Link>
 
 <nav className="siteNav">
-            {primaryLinks.map((link) => (
-  <Link
-    key={link.href}
-    href={link.href}
-    className="navLink siteNavLink"
-  >
-    {link.label}
-  </Link>
-))}
+  {primaryLinks.map((link) => (
+    <Link
+      key={link.href}
+      href={link.href}
+      className="siteNavLink"
+    >
+      {link.label}
+    </Link>
+  ))}
 
 <div className="dropdown">
   <Link href="/platforms" className="dropdownLabel">
@@ -56,17 +56,12 @@ export default function SiteHeader() {
               <div className="dropdownMenu">
                 {platforms.map((p) => (
                   <Link
-                    key={p.slug}
-                    href={`/platform/${p.slug}`}
-                    style={{
-                      color: "#ffffff",
-                      textDecoration: "none",
-                      fontSize: "14px",
-                      fontWeight: 500
-                    }}
-                  >
-                    {p.name}
-                  </Link>
+  key={p.slug}
+  href={`/platform/${p.slug}`}
+  className="dropdownItem"
+>
+  {p.name}
+</Link>
                 ))}
               </div>
             </div>
@@ -79,17 +74,12 @@ export default function SiteHeader() {
               <div className="dropdownMenu">
                 {genres.map((g) => (
                   <Link
-                    key={g.slug}
-                    href={`/genre/${g.slug}`}
-                    style={{
-                      color: "#ffffff",
-                      textDecoration: "none",
-                      fontSize: "14px",
-                      fontWeight: 500
-                    }}
-                  >
-                    {g.name}
-                  </Link>
+  key={g.slug}
+  href={`/genre/${g.slug}`}
+  className="dropdownItem"
+>
+  {g.name}
+</Link>
                 ))}
               </div>
             </div>

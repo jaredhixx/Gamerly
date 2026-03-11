@@ -295,6 +295,32 @@ p + p {
   background: var(--bg-surface-2);
 }
 
+.dropdownItem {
+
+  padding: 8px 10px;
+
+  border-radius: var(--radius-sm);
+
+  font-weight: 500;
+
+  font-size: 14px;
+
+  color: var(--text-primary);
+
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+
+}
+
+.dropdownItem:hover {
+
+  background: var(--bg-surface-2);
+
+  color: #ffffff;
+
+}
+
 /* -----------------------------
    Responsive tweaks
    ----------------------------- */
@@ -1090,7 +1116,7 @@ p + p {
 
   gap: 28px;
 
-  height: 64px;
+  height: 72px;
 
 }
 
@@ -1180,13 +1206,16 @@ p + p {
   display: flex;
   align-items: center;
 
-  gap: 18px;
+  gap: 20px;
 
-  flex-wrap: nowrap;
   margin-left: auto;
 
+  flex-wrap: nowrap;
+
   min-width: 0;
+
   flex-shrink: 1;
+
 }
 
 .siteNavLink {

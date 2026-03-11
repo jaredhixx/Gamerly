@@ -24,27 +24,17 @@ export default async function Home() {
   const games = await fetchGames();
 
 const hypeGames =
-  games
-    .filter((g) => {
-      if (!g.releaseDate) return true;
-
-      const release = new Date(g.releaseDate);
-      const now = new Date();
-
-      const daysFromNow =
-        (release.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-
-      return daysFromNow > -30; // upcoming or released in last 30 days
-    })
+  [...games]
     .map((g) => ({
       ...g,
       hypeScore: calculateHypeScore(g)
     }))
     .sort((a, b) => b.hypeScore - a.hypeScore)
-    .slice(0, 6);
+    .slice(0, 12)   // get larger pool first
+    .slice(0, 8);   // display top 6
 
   const featuredGame =
-    games
+    [...games]
       .filter(
         (g) =>
           (g.aggregated_rating ?? 0) > 85 &&
@@ -55,7 +45,7 @@ const hypeGames =
       )[0] || games[0];
 
   const upcomingHero =
-    games
+    [...games]
       .filter((g) => g.releaseDate && new Date(g.releaseDate) > new Date())
       .sort(
         (a, b) =>
@@ -64,7 +54,7 @@ const hypeGames =
       )[0] || games[1];
 
   const trendingHero =
-    games
+    [...games]
       .filter((g) => (g.aggregated_rating_count ?? 0) > 100)
       .sort(
         (a, b) =>

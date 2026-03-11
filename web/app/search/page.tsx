@@ -17,8 +17,8 @@ export default async function SearchPage({ searchParams }: any) {
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
 
-      <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>
-  Search Results for "{query}"
+<h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>
+  Search Results for &quot;{query}&quot;
 </h1>
 
 <p style={{ color: "#9aa3b2", marginBottom: "28px" }}>

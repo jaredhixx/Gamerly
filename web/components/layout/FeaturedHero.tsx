@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { buildGamePath } from "../../lib/site";
 import type { GamerlyGame } from "../../lib/igdb";
 

@@ -134,13 +134,12 @@ const clientSecret = process.env.TWITCH_CLIENT_SECRET;
     throw new Error("Missing IGDB credentials");
   }
 
-  const response = await fetch(
-    `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
-    {
-      method: "POST",
-      cache: "no-store",
-    }
-  );
+const response = await fetch(
+  `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
+  {
+    method: "POST"
+  }
+);
 
   const data = await response.json();
 

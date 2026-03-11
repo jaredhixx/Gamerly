@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { MetadataRoute } from "next";
 import { fetchGames } from "../lib/igdb";
 import { SITE_URL } from "../lib/site";

@@ -100,19 +100,31 @@ const filtered = games
 
 {results.length > 0 && (
   <div className="searchDropdown">
-    {results.map((game) => (
-      <Link
-  key={game.id}
-  href={`/game/${game.id}-${game.slug}`}
-  className="searchResult"
-  onClick={() => {
-    setQuery("");
-    setResults([]);
-  }}
->
-        {game.name}
-      </Link>
-    ))}
+{results.map((game) => (
+  <Link
+    key={game.id}
+    href={`/game/${game.id}-${game.slug}`}
+    className="searchResult"
+    onClick={() => {
+      setQuery("");
+      setResults([]);
+    }}
+  >
+
+    {game.cover && (
+      <img
+        src={game.cover}
+        alt={game.name}
+        className="searchResultImage"
+      />
+    )}
+
+    <span className="searchResultTitle">
+      {game.name}
+    </span>
+
+  </Link>
+))}
   </div>
 )}
 </div>

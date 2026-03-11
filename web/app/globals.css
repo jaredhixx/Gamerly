@@ -1906,3 +1906,27 @@ p + p {
 .searchExploreLinks a:hover {
   text-decoration: underline;
 }
+
+.searchResult {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  text-decoration: none;
+  color: white;
+}
+
+.searchResult:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.searchResultImage {
+  width: 34px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.searchResultTitle {
+  font-size: 14px;
+}

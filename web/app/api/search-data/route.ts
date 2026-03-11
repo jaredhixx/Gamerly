@@ -4,10 +4,11 @@ export async function GET() {
   const games = await fetchGames();
 
   const simplified = games.slice(0, 300).map((g) => ({
-    id: g.id,
-    name: g.name,
-    slug: g.slug
-  }));
+  id: g.id,
+  name: g.name,
+  slug: g.slug,
+  cover: g.coverUrl
+}));
 
   return Response.json(simplified);
 }

@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+export const revalidate = 21600;
 
 import type { Metadata } from "next";
 import { fetchGames } from "../lib/igdb";

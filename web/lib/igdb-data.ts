@@ -174,7 +174,7 @@ async function postIGDB(query: string, token: string) {
     },
     body: query,
     next: {
-      revalidate: 3600,
+      revalidate: 21600,
     },
   });
 
@@ -284,8 +284,8 @@ function buildUpcomingQuery({ futureDays = 540, limit = 250, offset = 0 }) {
 async function fetchRecentGames(): Promise<GamerlyGame[]> {
   const token = await getTwitchToken();
 
-  const pageSize = 250;
-  const pages = 6;
+  const pageSize = 120;
+  const pages = 3;
   const results: any[] = [];
 
   for (let i = 0; i < pages; i++) {
@@ -332,11 +332,11 @@ async function fetchUpcomingGames(): Promise<GamerlyGame[]> {
 }
 
 const getRecentGamesCached = unstable_cache(fetchRecentGames, ["recent-games"], {
-  revalidate: 3600,
+  revalidate: 21600,
 });
 
 const getUpcomingGamesCached = unstable_cache(fetchUpcomingGames, ["upcoming-games"], {
-  revalidate: 3600,
+  revalidate: 21600,
 });
 
 export async function getAllGames(): Promise<GamerlyGame[]> {

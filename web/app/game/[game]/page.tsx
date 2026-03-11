@@ -138,7 +138,7 @@ export default async function GamePage(props: any) {
   const id = Number(slugParts[0]);
 
   const game = await getGameById(id);
-  const allGames = (await fetchGames()).slice(0, 500);
+  const allGames = (await fetchGames()).slice(0, 120);
 
   if (!game) {
     notFound();

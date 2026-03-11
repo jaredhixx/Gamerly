@@ -91,6 +91,11 @@ const filtered = games
   className="siteSearchInput"
   value={query}
   onChange={(e) => setQuery(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" && query.trim().length > 1) {
+      window.location.href = `/search?q=${encodeURIComponent(query)}`;
+    }
+  }}
 />
 
 {results.length > 0 && (

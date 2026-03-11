@@ -1884,3 +1884,25 @@ p + p {
 .searchResult:hover {
   background: #1F2937;
 }
+
+.searchGrid .gameGrid {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.searchExploreLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.searchExploreLinks a {
+  color: #8bb9ff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.searchExploreLinks a:hover {
+  text-decoration: underline;
+}

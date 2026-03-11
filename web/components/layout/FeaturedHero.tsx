@@ -16,6 +16,10 @@ export default function FeaturedHero({
   trending
 }: Props) {
 
+  if (!featured || !upcoming || !trending) {
+    return null;
+  }
+
   const featuredUrl = buildGamePath(featured.id, featured.slug);
   const upcomingUrl = buildGamePath(upcoming.id, upcoming.slug);
   const trendingUrl = buildGamePath(trending.id, trending.slug);

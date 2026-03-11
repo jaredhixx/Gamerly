@@ -1,5 +1,9 @@
+import fs from "fs";
+import path from "path";
 import "server-only";
 import { unstable_cache } from "next/cache";
+
+const CACHE_FILE = path.join(process.cwd(), "igdb-cache.json");
 
 export type GamerlyGame = {
   id: number;
@@ -15,6 +19,28 @@ export type GamerlyGame = {
   screenshots: string[];
   trailer: string | null;
 };
+
+function saveCache(games: GamerlyGame[]) {
+  try {
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(games));
+  } catch (err) {
+    console.warn("Failed to write IGDB cache:", err);
+  }
+}
+
+function loadCache(): GamerlyGame[] {
+  try {
+    if (fs.existsSync(CACHE_FILE)) {
+      const raw = fs.readFileSync(CACHE_FILE, "utf8");
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch (err) {
+    console.warn("Failed to read IGDB cache:", err);
+  }
+
+  return [];
+}
 
 let cachedToken: string | null = null;
 let tokenExpiry = 0;
@@ -58,7 +84,7 @@ function normalizeGame(g: any): GamerlyGame {
   const earliestReleaseDate =
     releaseDates.length > 0 ? Math.min(...releaseDates) : null;
 
-    const trailer =
+  const trailer =
     Array.isArray(g.videos) &&
     g.videos.length > 0 &&
     g.videos[0]?.video_id
@@ -66,30 +92,30 @@ function normalizeGame(g: any): GamerlyGame {
       : null;
 
   return {
-  id: g.id,
-  name: g.name,
-  slug: slugifyGameName(g.name),
-  releaseDate: earliestReleaseDate
-    ? new Date(earliestReleaseDate * 1000).toISOString()
-    : null,
-  aggregated_rating: g.aggregated_rating ?? null,
-  aggregated_rating_count: g.aggregated_rating_count ?? null,
-  coverUrl: normalizeCover(g.cover?.url),
-  platforms: Array.isArray(g.platforms)
-    ? g.platforms.map((p: any) => p.name).filter(Boolean)
-    : [],
-  genres: Array.isArray(g.genres)
-    ? g.genres.map((gn: any) => gn.name).filter(Boolean)
-    : [],
-  summary: g.summary || g.storyline || null,
-  screenshots: Array.isArray(g.screenshots)
-    ? g.screenshots
-        .map((s: any) => normalizeScreenshot(s.url))
-        .filter(Boolean)
-        .slice(0, 5)
-    : [],
-  trailer,
-};
+    id: g.id,
+    name: g.name,
+    slug: slugifyGameName(g.name),
+    releaseDate: earliestReleaseDate
+      ? new Date(earliestReleaseDate * 1000).toISOString()
+      : null,
+    aggregated_rating: g.aggregated_rating ?? null,
+    aggregated_rating_count: g.aggregated_rating_count ?? null,
+    coverUrl: normalizeCover(g.cover?.url),
+    platforms: Array.isArray(g.platforms)
+      ? g.platforms.map((p: any) => p.name).filter(Boolean)
+      : [],
+    genres: Array.isArray(g.genres)
+      ? g.genres.map((gn: any) => gn.name).filter(Boolean)
+      : [],
+    summary: g.summary || g.storyline || null,
+    screenshots: Array.isArray(g.screenshots)
+      ? g.screenshots
+          .map((s: any) => normalizeScreenshot(s.url))
+          .filter(Boolean)
+          .slice(0, 5)
+      : [],
+    trailer,
+  };
 }
 
 async function getTwitchToken(): Promise<string> {
@@ -99,8 +125,8 @@ async function getTwitchToken(): Promise<string> {
     return cachedToken;
   }
 
-  const clientId = process.env.IGDB_CLIENT_ID;
-  const clientSecret = process.env.IGDB_CLIENT_SECRET;
+const clientId = process.env.TWITCH_CLIENT_ID;
+const clientSecret = process.env.TWITCH_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     throw new Error("Missing IGDB credentials");
@@ -114,21 +140,12 @@ async function getTwitchToken(): Promise<string> {
     }
   );
 
-const data = await response.json();
+  const data = await response.json();
 
-if (!response.ok || !data.access_token) {
-  console.error(
-    "IGDB OAuth error:",
-    response.status,
-    data
-  );
-
-  if (cachedToken) {
-    return cachedToken;
+  if (!response.ok || !data.access_token) {
+    console.error("IGDB OAuth error:", response.status, data);
+    throw new Error(`IGDB OAuth failed: ${response.status}`);
   }
-
-  throw new Error("IGDB authentication failed and no cached token exists.");
-}
 
   cachedToken = data.access_token;
   tokenExpiry = now + data.expires_in * 1000;
@@ -137,10 +154,20 @@ if (!response.ok || !data.access_token) {
 }
 
 async function postIGDB(query: string, token: string) {
+  const clientId = process.env.TWITCH_CLIENT_ID;
+
+  if (!clientId) {
+    throw new Error("Missing IGDB_CLIENT_ID");
+  }
+
+  if (!token) {
+    throw new Error("Missing IGDB bearer token");
+  }
+
   const response = await fetch("https://api.igdb.com/v4/games", {
     method: "POST",
     headers: {
-      "Client-ID": process.env.IGDB_CLIENT_ID!,
+      "Client-ID": clientId,
       Authorization: `Bearer ${token}`,
       "Content-Type": "text/plain",
     },
@@ -203,7 +230,7 @@ function buildRecentQuery({ pastDays = 120, limit = 250, offset = 0 }) {
       );
     sort first_release_date desc;
     limit ${limit};
-offset ${offset};
+    offset ${offset};
   `;
 }
 
@@ -249,95 +276,104 @@ function buildUpcomingQuery({ futureDays = 540, limit = 250, offset = 0 }) {
       );
     sort first_release_date asc;
     limit ${limit};
-offset ${offset};
+    offset ${offset};
   `;
 }
 
-const getRecentGamesCached = unstable_cache(
-  async (): Promise<GamerlyGame[]> => {
+async function fetchRecentGames(): Promise<GamerlyGame[]> {
+  const token = await getTwitchToken();
 
-    const token = await getTwitchToken();
+  const pageSize = 250;
+  const pages = 6;
+  const results: any[] = [];
 
-    const pageSize = 250;
-    const pages = 6;
+  for (let i = 0; i < pages; i++) {
+    const offset = i * pageSize;
 
-    const results: any[] = [];
+    const page = await postIGDB(
+      buildRecentQuery({
+        pastDays: 120,
+        limit: pageSize,
+        offset,
+      }),
+      token
+    );
 
-    for (let i = 0; i < pages; i++) {
-
-      const offset = i * pageSize;
-
-      const page = await postIGDB(
-        buildRecentQuery({
-          pastDays: 120,
-          limit: pageSize,
-          offset
-        }),
-        token
-      );
-
-      results.push(...page);
-    }
-
-    return results.map(normalizeGame);
-
-  },
-  ["recent-games"],
-  { revalidate: 3600 }
-);
-
-
-const getUpcomingGamesCached = unstable_cache(
-  async (): Promise<GamerlyGame[]> => {
-
-    const token = await getTwitchToken();
-
-    const pageSize = 250;
-    const pages = 6;
-
-    const results: any[] = [];
-
-    for (let i = 0; i < pages; i++) {
-
-      const offset = i * pageSize;
-
-      const page = await postIGDB(
-        buildUpcomingQuery({
-          futureDays: 540,
-          limit: pageSize,
-          offset
-        }),
-        token
-      );
-
-      results.push(...page);
-    }
-
-    return results.map(normalizeGame);
-
-  },
-  ["upcoming-games"],
-  { revalidate: 3600 }
-);
-
-
-export async function getAllGames(): Promise<GamerlyGame[]> {
-
-  const [recent, upcoming] = await Promise.all([
-    getRecentGamesCached(),
-    getUpcomingGamesCached()
-  ]);
-
-  const merged = [...recent, ...upcoming]
-    .filter((game) => game.releaseDate && game.coverUrl);
-
-  const byId = new Map<number, GamerlyGame>();
-
-  for (const game of merged) {
-    byId.set(game.id, game);
+    results.push(...page);
   }
 
-  return Array.from(byId.values());
+  return results.map(normalizeGame);
+}
+
+async function fetchUpcomingGames(): Promise<GamerlyGame[]> {
+  const token = await getTwitchToken();
+
+  const pageSize = 250;
+  const pages = 6;
+  const results: any[] = [];
+
+  for (let i = 0; i < pages; i++) {
+    const offset = i * pageSize;
+
+    const page = await postIGDB(
+      buildUpcomingQuery({
+        futureDays: 540,
+        limit: pageSize,
+        offset,
+      }),
+      token
+    );
+
+    results.push(...page);
+  }
+
+  return results.map(normalizeGame);
+}
+
+const getRecentGamesCached = unstable_cache(fetchRecentGames, ["recent-games"], {
+  revalidate: 3600,
+});
+
+const getUpcomingGamesCached = unstable_cache(fetchUpcomingGames, ["upcoming-games"], {
+  revalidate: 3600,
+});
+
+export async function getAllGames(): Promise<GamerlyGame[]> {
+  try {
+    const [recent, upcoming] = await Promise.all([
+      getRecentGamesCached(),
+      getUpcomingGamesCached(),
+    ]);
+
+    const merged = [...recent, ...upcoming].filter(
+      (game) => game.releaseDate && game.coverUrl
+    );
+
+    const byId = new Map<number, GamerlyGame>();
+
+    for (const game of merged) {
+      byId.set(game.id, game);
+    }
+
+    const games = Array.from(byId.values());
+
+    if (games.length > 0) {
+      saveCache(games);
+      return games;
+    }
+
+    throw new Error("IGDB returned zero games after merge");
+  } catch (error) {
+    console.error("IGDB failed — serving cached games.", error);
+
+    const cached = loadCache();
+
+    if (cached.length > 0) {
+      return cached;
+    }
+
+    throw error;
+  }
 }
 
 export async function getGameByIdFromIGDB(id: number): Promise<GamerlyGame | null> {

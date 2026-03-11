@@ -1862,3 +1862,25 @@ p + p {
   }
 
 }
+
+.searchDropdown {
+  position: absolute;
+  background: #111827;
+  border: 1px solid #24304A;
+  width: 260px;
+  margin-top: 6px;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 50;
+}
+
+.searchResult {
+  display: block;
+  padding: 10px 14px;
+  color: #F5F7FB;
+  text-decoration: none;
+}
+
+.searchResult:hover {
+  background: #1F2937;
+}

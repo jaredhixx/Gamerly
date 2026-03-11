@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import PageContainer from "./PageContainer";
 
@@ -29,6 +30,50 @@ const genres = [
 ];
 
 export default function SiteHeader() {
+
+  const [query, setQuery] = useState("");
+const [results, setResults] = useState<any[]>([]);
+const [games, setGames] = useState<any[]>([]);
+
+useEffect(() => {
+  async function loadGames() {
+    try {
+      const res = await fetch("/api/search-data");
+      const data = await res.json();
+      setGames(data);
+    } catch (err) {
+      console.error("Search data failed to load", err);
+    }
+  }
+
+  loadGames();
+}, []);
+
+useEffect(() => {
+  if (query.length < 2) {
+    setResults([]);
+    return;
+  }
+
+const q = query.toLowerCase();
+
+const filtered = games
+  .filter((g) => g.name && g.name.toLowerCase().includes(q))
+  .sort((a, b) => {
+    const aStarts = a.name.toLowerCase().startsWith(q);
+    const bStarts = b.name.toLowerCase().startsWith(q);
+
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+
+    return a.name.localeCompare(b.name);
+  })
+  .slice(0, 6);
+
+  setResults(filtered);
+}, [query, games]);
+
+
   return (
 <header className="siteHeader">
       <PageContainer>
@@ -40,11 +85,31 @@ export default function SiteHeader() {
 </Link>
 
 <div className="siteSearch">
-  <input
-    type="text"
-    placeholder="Search games..."
-    className="siteSearchInput"
-  />
+<input
+  type="text"
+  placeholder="Search games..."
+  className="siteSearchInput"
+  value={query}
+  onChange={(e) => setQuery(e.target.value)}
+/>
+
+{results.length > 0 && (
+  <div className="searchDropdown">
+    {results.map((game) => (
+      <Link
+  key={game.id}
+  href={`/game/${game.id}-${game.slug}`}
+  className="searchResult"
+  onClick={() => {
+    setQuery("");
+    setResults([]);
+  }}
+>
+        {game.name}
+      </Link>
+    ))}
+  </div>
+)}
 </div>
 
 <nav className="siteNav">

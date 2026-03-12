@@ -338,9 +338,17 @@ const getUpcomingGamesCached = unstable_cache(fetchUpcomingGames, ["upcoming-gam
 });
 
 export async function getAllGames(): Promise<GamerlyGame[]> {
+  const cached = loadCache();
+
+  if (cached.length > 0) {
+    return cached;
+  }
+
   try {
-    const recent = await getRecentGamesCached();
-const upcoming = await getUpcomingGamesCached();
+    const [recent, upcoming] = await Promise.all([
+      getRecentGamesCached(),
+      getUpcomingGamesCached(),
+    ]);
 
     const merged = [...recent, ...upcoming].filter(
       (game) => game.releaseDate && game.coverUrl
@@ -354,21 +362,14 @@ const upcoming = await getUpcomingGamesCached();
 
     const games = Array.from(byId.values());
 
-    if (games.length > 0) {
-      saveCache(games);
-      return games;
+    if (games.length === 0) {
+      throw new Error("IGDB returned zero games after merge");
     }
 
-    throw new Error("IGDB returned zero games after merge");
+    saveCache(games);
+    return games;
   } catch (error) {
-    console.error("IGDB failed — serving cached games.", error);
-
-    const cached = loadCache();
-
-    if (cached.length > 0) {
-      return cached;
-    }
-
+    console.error("IGDB failed and no local cache was available.", error);
     throw error;
   }
 }

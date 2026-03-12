@@ -6,6 +6,7 @@ import { calculateHypeScore } from "../../lib/hype";
 import GameGrid from "../../components/game/GameGrid";
 import PageContainer from "../../components/layout/PageContainer";
 import SectionHeading from "../../components/ui/SectionHeading";
+import GameCarousel from "../../components/game/GameCarousel";
 
 export default async function HypePage() {
 
@@ -48,17 +49,37 @@ export default async function HypePage() {
     (a, b) => b.hypeScore - a.hypeScore
   );
 
-  return (
-    <PageContainer>
+return (
+  <PageContainer>
 
-      <SectionHeading
-        title="🔥 Gamerly Hype Index"
-        subtitle="Trending games ranked using ratings, popularity, upcoming release momentum, and live Twitch activity."
-      />
+    <SectionHeading
+      title="🔥 Gamerly Hype Index"
+      subtitle="Trending games ranked using ratings, popularity, upcoming release momentum, and live Twitch activity."
+    />
 
-      <GameGrid games={sortedGames.slice(0, 60)} />
+    <div className="sectionBlock">
 
-    </PageContainer>
-  );
+<div className="sectionHeaderRow">
+
+  <SectionHeading
+    title="Top Hyped Games"
+    subtitle="Games currently generating the most excitement across ratings, releases, and live player interest."
+  />
+
+  <a href="/hype" className="sectionViewAll">
+    View Full List →
+  </a>
+
+</div>
+
+      <GameCarousel
+  games={sortedGames.slice(0, 60)}
+  cardWidth={240}
+/>
+
+    </div>
+
+  </PageContainer>
+);
 
 }

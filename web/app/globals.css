@@ -126,8 +126,7 @@ p + p {
   max-width: var(--page-width);
   margin: 0 auto;
 
-  padding-left: 20px;
-  padding-right: 20px;
+  padding: 16px 20px 0;
 }
 
 /* -----------------------------
@@ -135,8 +134,8 @@ p + p {
    ----------------------------- */
 
 .sectionBlock {
-  margin-top: 64px;
-  padding-top: 28px;
+  margin-top: 40px;
+  padding-top: 24px;
 
   border-top: 1px solid var(--border-subtle);
 }
@@ -146,7 +145,7 @@ p + p {
 =========================== */
 
 .sectionHeading {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .sectionHeadingTop {
@@ -167,15 +166,16 @@ p + p {
   flex: 1;
   height: 1px;
   background: linear-gradient(
-    to right,
-    var(--accent),
-    transparent
-  );
+  to right,
+  rgba(110,168,255,0.65),
+  rgba(110,168,255,0.2),
+  transparent
+);
   opacity: 0.5;
 }
 
 .sectionHeadingSubtitle {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 14px;
   color: var(--text-secondary);
   max-width: 700px;
@@ -343,7 +343,7 @@ p + p {
   }
 
   .sectionBlock {
-    margin-top: 64px;
+    margin-top: 32px;
   }
 
   .sectionHeading h2 {
@@ -1096,11 +1096,34 @@ p + p {
 ----------------------------- */
 
 .gameGrid {
+
   display: grid;
 
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
 
-  gap: 22px;
+  gap: 26px;
+
+}
+
+/* Tablet */
+
+@media (max-width: 1100px) {
+
+  .gameGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+
+  .gameGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
 }
 
 /* Slightly tighter on smaller screens */
@@ -1979,5 +2002,207 @@ p + p {
   min-width: 26px;
 
   text-align: right;
+
+}
+
+/* =========================
+   HYPE CAROUSEL
+========================= */
+
+.carouselWrapper {
+  position: relative;
+}
+
+.carousel {
+
+  overflow-x: auto;
+
+  scroll-behavior: smooth;
+
+  scrollbar-width: none;
+
+  padding-left: 6px;
+
+  -webkit-overflow-scrolling: touch;
+
+  overscroll-behavior-x: contain;
+
+}
+
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Convert grid to horizontal row */
+
+.carousel .gameGrid {
+  display: flex;
+  gap: 20px;
+}
+
+/* Card width inside carousel */
+
+.carousel .gameCard {
+  min-width: 230px;
+  flex-shrink: 0;
+}
+
+/* Snap scrolling */
+
+.carousel {
+  scroll-snap-type: x mandatory;
+}
+
+.carousel .gameCard {
+  scroll-snap-align: start;
+}
+
+.carouselArrow {
+
+  position: absolute;
+
+  top: 42%;
+  transform: translateY(-50%);
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 999px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  background: rgba(17,24,43,0.75);
+  backdrop-filter: blur(6px);
+
+  color: white;
+
+  font-size: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  z-index: 3;
+
+  transition:
+    transform .15s ease,
+    background .15s ease,
+    box-shadow .15s ease,
+    border .15s ease;
+
+}
+
+.carouselArrow:hover {
+
+  background: rgba(30,41,59,0.9);
+
+  border: 1px solid rgba(255,255,255,0.15);
+
+  transform: translateY(-50%) scale(1.08);
+
+  box-shadow: 0 8px 20px rgba(0,0,0,.45);
+
+}
+
+.carouselArrow.left {
+  left: -18px;
+}
+
+.carouselArrow.right {
+  right: -18px;
+}
+
+.sectionHeaderRow {
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  gap: 20px;
+
+}
+
+.sectionViewAll {
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: var(--accent);
+
+  white-space: nowrap;
+
+  transition:
+    color .15s ease,
+    transform .15s ease;
+
+}
+
+.sectionViewAll:hover {
+
+  color: var(--accent-hover);
+
+  transform: translateX(2px);
+
+}
+.carouselWrapper::before,
+.carouselWrapper::after {
+
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  bottom: 0;
+
+  width: 60px;
+
+  pointer-events: none;
+
+  z-index: 2;
+
+}
+
+.carouselWrapper::before {
+
+  left: 0;
+
+  background: linear-gradient(
+    to right,
+    rgba(11,16,32,0.45),
+    rgba(11,16,32,0.2),
+    rgba(11,16,32,0)
+  );
+
+}
+
+.carouselWrapper::after {
+
+  right: 0;
+
+  background: linear-gradient(
+    to left,
+    rgba(11,16,32,0.65),
+    rgba(11,16,32,0.25),
+    rgba(11,16,32,0)
+  );
+
+}
+
+.carousel .gameCard {
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease;
+
+}
+
+.carousel .gameCard:hover {
+
+  transform: translateY(-6px) scale(1.02);
+
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.35);
 
 }

@@ -3,68 +3,71 @@ import PageContainer from "./PageContainer";
 
 export default function SiteFooter() {
   return (
-    <footer
-      style={{
-        marginTop: "64px",
-        borderTop: "1px solid #23262d",
-        backgroundColor: "#0f1115"
-      }}
-    >
+    <footer className="siteFooter">
       <PageContainer>
-        <div
-          style={{
-            paddingTop: "32px",
-            paddingBottom: "32px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px"
-          }}
-        >
-          <div
-            style={{
-              color: "#ffffff",
-              fontSize: "20px",
-              fontWeight: 800
-            }}
-          >
-            Gamerly
+
+        <div className="footerGrid">
+
+          {/* Brand */}
+
+          <div className="footerBrand">
+            <div className="footerLogo">Gamerly</div>
+
+            <p className="footerTagline">
+              Discover new and upcoming video games across PC, PlayStation,
+              Xbox, Nintendo Switch, and mobile platforms.
+            </p>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "16px"
-            }}
-          >
-            <Link href="/new-games" style={{ color: "#c7cedb", textDecoration: "none" }}>
-              New Games
-            </Link>
-            <Link href="/upcoming-games" style={{ color: "#c7cedb", textDecoration: "none" }}>
-              Upcoming Games
-            </Link>
-            <Link href="/platform/pc" style={{ color: "#c7cedb", textDecoration: "none" }}>
-              PC Games
-            </Link>
-            <Link href="/genre/rpg" style={{ color: "#c7cedb", textDecoration: "none" }}>
-              RPG Games
-            </Link>
-            <Link href="/releases" style={{ color: "#c7cedb", textDecoration: "none" }}>
-              Release Calendar
-            </Link>
+          {/* Discover */}
+
+          <div className="footerColumn">
+            <div className="footerHeading">Discover</div>
+
+            <Link href="/new-games">New Games</Link>
+            <Link href="/upcoming-games">Upcoming Games</Link>
+            <Link href="/live-games">Live Games</Link>
+            <Link href="/top-rated">Top Rated</Link>
+            <Link href="/releases">Release Calendar</Link>
           </div>
 
-          <p
-            style={{
-              margin: 0,
-              color: "#8f98a8",
-              fontSize: "14px",
-              lineHeight: 1.6
-            }}
-          >
-            Discover new and upcoming video games by platform, genre, and release date.
-          </p>
+          {/* Platforms */}
+
+          <div className="footerColumn">
+            <div className="footerHeading">Platforms</div>
+
+            <Link href="/platform/pc">PC</Link>
+            <Link href="/platform/playstation">PlayStation</Link>
+            <Link href="/platform/xbox">Xbox</Link>
+            <Link href="/platform/switch">Nintendo Switch</Link>
+          </div>
+
+          {/* Genres */}
+
+          <div className="footerColumn">
+            <div className="footerHeading">Genres</div>
+
+            <Link href="/genre/rpg">RPG</Link>
+            <Link href="/genre/shooter">Shooter</Link>
+            <Link href="/genre/strategy">Strategy</Link>
+            <Link href="/genre/adventure">Adventure</Link>
+            <Link href="/genre/indie">Indie</Link>
+          </div>
+
         </div>
+
+        <div className="footerBottom">
+
+          <div>© {new Date().getFullYear()} Gamerly</div>
+
+          <div className="footerLegal">
+            <Link href="/about">About</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/contact">Contact</Link>
+          </div>
+
+        </div>
+
       </PageContainer>
     </footer>
   );

@@ -2225,3 +2225,76 @@ p + p {
   font-weight: 600;
   color: #ff4d6d;
 }
+
+/* FOOTER */
+
+.siteFooter {
+  margin-top: 64px;
+  border-top: 1px solid #23262d;
+  background: #0f1115;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+  padding: 40px 0;
+}
+
+.footerLogo {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.footerTagline {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #8f98a8;
+  line-height: 1.6;
+}
+
+.footerColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footerHeading {
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.footerColumn a {
+  color: #c7cedb;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.footerColumn a:hover {
+  color: #ffffff;
+}
+
+.footerBottom {
+  border-top: 1px solid #23262d;
+  padding: 20px 0;
+  display: flex;
+  justify-content: space-between;
+  color: #8f98a8;
+  font-size: 13px;
+}
+
+.footerLegal {
+  display: flex;
+  gap: 16px;
+}
+
+.footerLegal a {
+  color: #8f98a8;
+  text-decoration: none;
+}
+
+.footerLegal a:hover {
+  color: #ffffff;
+}

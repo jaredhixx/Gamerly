@@ -24,7 +24,7 @@ export function calculateHypeScore(
   --------------------------*/
 
   if (game.aggregated_rating) {
-    score += game.aggregated_rating * 0.35;
+    score += game.aggregated_rating * 0.7;
   }
 
   /* -------------------------
@@ -32,8 +32,18 @@ export function calculateHypeScore(
   --------------------------*/
 
   if (game.aggregated_rating_count) {
-    score += Math.log10(game.aggregated_rating_count + 1) * 12;
+    score += Math.log10(game.aggregated_rating_count + 1) * 7;
   }
+
+  if (game.aggregated_rating_count) {
+  if (game.aggregated_rating_count > 500) {
+    score += 10;
+  }
+
+  if (game.aggregated_rating_count > 2000) {
+    score += 15;
+  }
+}
 
   /* -------------------------
      Release proximity boost
@@ -69,7 +79,7 @@ if (game.releaseDate) {
   --------------------------*/
 
   if (game.platforms) {
-    score += game.platforms.length * 3;
+    score += Math.min(game.platforms.length, 4) * 6
   }
 
   /* -------------------------

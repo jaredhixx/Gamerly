@@ -139,33 +139,35 @@ export default function GameCard({ game }: { game: GamerlyGame }) {
 
         </div>
 
-        <div className="gameCardBody">
+<div className="gameCardBody">
 
-          {game.hypeScore && (
-  <div className="gameCardHype">
-    🔥 Hype {game.hypeScore}
-  </div>
-)}
+  <h3 className="gameCardTitle">
+    {game.name}
+  </h3>
 
-          <h3 className="gameCardTitle">
-            {game.name}
-          </h3>
+  {game.releaseDate && (
+    <span className="gameCardDate">
+      {new Date(
+        typeof game.releaseDate === "number"
+          ? game.releaseDate * 1000
+          : game.releaseDate
+      ).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      })}
+    </span>
+  )}
 
-          {game.releaseDate && (
-            <span className="gameCardDate">
-              {new Date(
-                typeof game.releaseDate === "number"
-                  ? game.releaseDate * 1000
-                  : game.releaseDate
-              ).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-              })}
-            </span>
-          )}
+  {game.hypeScore && (
+<div className="gameCardHype">
+  <span className="hypeIcon"></span>
+  <span className="hypeLabel">HYPE</span>
+<span className="hypeScore">{game.hypeScore}</span>
+</div>
+  )}
 
-        </div>
+</div>
 
       </article>
     </Link>

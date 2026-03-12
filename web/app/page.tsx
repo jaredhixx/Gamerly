@@ -23,15 +23,13 @@ export const metadata: Metadata = {
 export default async function Home() {
   const games = await fetchGames();
 
-const hypeGames =
-  [...games]
-    .map((g) => ({
-      ...g,
-      hypeScore: calculateHypeScore(g)
-    }))
-    .sort((a, b) => b.hypeScore - a.hypeScore)
-    .slice(0, 12)   // get larger pool first
-    .slice(0, 8);   // display top 6
+const hypeGames = [...games]
+  .map((g) => ({
+    ...g,
+    hypeScore: calculateHypeScore(g)
+  }))
+  .sort((a, b) => (b.hypeScore ?? 0) - (a.hypeScore ?? 0))
+  .slice(0, 8);
 
   const featuredGame =
     [...games]

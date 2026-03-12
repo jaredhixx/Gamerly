@@ -283,7 +283,7 @@ async function fetchRecentGames(): Promise<GamerlyGame[]> {
   const token = await getTwitchToken();
 
   const pageSize = 120;
-  const pages = 3;
+  const pages = 6;
   const results: any[] = [];
 
   for (let i = 0; i < pages; i++) {
@@ -308,7 +308,7 @@ async function fetchUpcomingGames(): Promise<GamerlyGame[]> {
   const token = await getTwitchToken();
 
   const pageSize = 120;
-  const pages = 3;
+  const pages = 6;
   const results: any[] = [];
 
   for (let i = 0; i < pages; i++) {

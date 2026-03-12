@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { getAllGames, getGameByIdFromIGDB } from "./igdb-data";
 
 export type GamerlyGame = {
@@ -16,8 +17,18 @@ export type GamerlyGame = {
   hypeScore?: number;
 };
 
+const cachedGames = unstable_cache(
+  async () => {
+    return getAllGames();
+  },
+  ["all-games"],
+  {
+    revalidate: 1800
+  }
+);
+
 export async function fetchGames(): Promise<GamerlyGame[]> {
-  return getAllGames();
+  return cachedGames();
 }
 
 export async function getGameById(id: number) {

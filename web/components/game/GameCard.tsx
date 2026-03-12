@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { buildGamePath } from "../../lib/site";
 import type { GamerlyGame } from "../../lib/igdb";
 
+type GameWithLive = GamerlyGame & {
+  twitchViewers?: number;
+};
+
 function normalizePlatform(platform: string) {
 
   if (platform.includes("Xbox")) return "Xbox";
@@ -35,7 +39,7 @@ function normalizeGenre(genre: string) {
   return map[genre] ?? genre;
 }
 
-export default function GameCard({ game }: { game: GamerlyGame }) {
+export default function GameCard({ game }: { game: GameWithLive }) {
 
   const router = useRouter();
 
@@ -166,6 +170,16 @@ export default function GameCard({ game }: { game: GamerlyGame }) {
 <span className="hypeScore">{game.hypeScore}</span>
 </div>
   )}
+
+{game.twitchViewers && (
+  <div className="gameCardLive">
+    🔴 {game.twitchViewers >= 1000000
+      ? (game.twitchViewers / 1000000).toFixed(1) + "M"
+      : game.twitchViewers >= 1000
+      ? (game.twitchViewers / 1000).toFixed(1) + "K"
+      : game.twitchViewers} watching
+  </div>
+)}
 
 </div>
 

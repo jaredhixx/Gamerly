@@ -9,6 +9,7 @@ type Props = {
   featured: GamerlyGame;
   upcoming: GamerlyGame;
   trending: GamerlyGame;
+  viewerCount?: number;
 };
 
 function formatPlatforms(platforms?: string[]) {
@@ -31,7 +32,8 @@ function formatReleaseDate(date?: string | null) {
 export default function FeaturedHero({
   featured,
   upcoming,
-  trending
+  trending,
+  viewerCount
 }: Props) {
   if (!featured || !upcoming || !trending) {
     return null;
@@ -71,9 +73,15 @@ export default function FeaturedHero({
 
           <div className="heroContent">
 
-            <div className="heroLabel">
-              Featured Game
-            </div>
+<div className="heroLabel">
+  Featured Game
+</div>
+
+{viewerCount && viewerCount > 0 && (
+  <div className="heroLiveBadge">
+    🔴 Live on Twitch • {viewerCount.toLocaleString()} viewers
+  </div>
+)}
 
             <h2 className="heroTitle">
               {featured.name}

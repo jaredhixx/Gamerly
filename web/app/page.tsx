@@ -11,6 +11,7 @@ import FeaturedHero from "../components/layout/FeaturedHero";
 import PlatformStrip from "../components/layout/PlatformStrip";
 import Link from "next/link";
 import { calculateHypeScore } from "../lib/hype";
+import { fetchTwitchStreams } from "../lib/twitch";
 
 export const metadata: Metadata = {
   title: "New and Upcoming Video Games",
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const games = await fetchGames();
+  const streams = await fetchTwitchStreams();
 
 const hypeGames = [...games]
   .map((g) => ({
@@ -32,16 +34,31 @@ const hypeGames = [...games]
   .sort((a, b) => (b.hypeScore ?? 0) - (a.hypeScore ?? 0))
   .slice(0, 20);
 
-  const featuredGame =
-    [...games]
-      .filter(
-        (g) =>
-          (g.aggregated_rating ?? 0) > 85 &&
-          (g.aggregated_rating_count ?? 0) > 40
-      )
-      .sort(
-        (a, b) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0)
-      )[0] || games[0];
+const thirtyDaysAgo = new Date();
+thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+const recentGames = games.filter((g) => {
+  if (!g.releaseDate) return false;
+  return new Date(g.releaseDate) >= thirtyDaysAgo;
+});
+
+let featuredGame = games[0];
+let highestViewers = 0;
+let featuredViewerCount = 0;
+
+for (const stream of streams) {
+  const streamName = stream.game_name?.toLowerCase();
+
+  const matchedGame = recentGames.find(
+    (g) => g.name?.toLowerCase() === streamName
+  );
+
+  if (matchedGame && stream.viewer_count > highestViewers) {
+    highestViewers = stream.viewer_count;
+    featuredGame = matchedGame;
+    featuredViewerCount = stream.viewer_count;
+  }
+}
 
   const upcomingHero =
     [...games]
@@ -88,11 +105,12 @@ const topRatedGames = [...games]
   return (
     <main style={{ paddingTop: "32px", paddingBottom: "64px" }}>
       <PageContainer>
-                <FeaturedHero
-          featured={featuredGame}
-          upcoming={upcomingHero}
-          trending={trendingHero}
-        />
+<FeaturedHero
+  featured={featuredGame}
+  upcoming={upcomingHero}
+  trending={trendingHero}
+  viewerCount={featuredViewerCount}
+/>
 
         <SectionBlock>
   <SectionHeading

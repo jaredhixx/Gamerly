@@ -26,6 +26,25 @@ export default async function Home() {
   const games = await fetchGames();
   const streams = await fetchTwitchStreams();
 
+  const viewerMap = new Map<string, number>();
+
+for (const stream of streams) {
+  const name = stream.game_name?.toLowerCase();
+  if (!name) continue;
+
+  const current = viewerMap.get(name) || 0;
+  viewerMap.set(name, current + stream.viewer_count);
+}
+
+const liveGames = games
+  .map((game) => ({
+    ...game,
+    twitchViewers: viewerMap.get(game.name.toLowerCase()) || 0
+  }))
+  .filter((game) => game.twitchViewers > 0)
+  .sort((a, b) => b.twitchViewers - a.twitchViewers)
+  .slice(0, 20);
+
 const hypeGames = [...games]
   .map((g) => ({
     ...g,
@@ -125,6 +144,19 @@ const topRatedGames = [...games]
   </div>
 </SectionBlock>
 
+<SectionBlock>
+  <SectionHeading
+    title="🔴 Live Games on Twitch"
+    subtitle="Games currently attracting the most viewers on Twitch."
+  />
+
+  <GameCarousel games={liveGames} />
+
+  <div className="sectionMoreLink">
+    <Link href="/live-games">View all live games →</Link>
+  </div>
+</SectionBlock>
+
                 <SectionBlock>
           <SectionHeading
             title="Trending Games"
@@ -136,21 +168,6 @@ const topRatedGames = [...games]
             <Link href="/all-games">Browse more games →</Link>
           </div>
         </SectionBlock>
-
-        <p
-  style={{
-    marginTop: "24px",
-    marginBottom: "24px",
-    color: "#9aa3b2",
-    maxWidth: "760px",
-    lineHeight: "1.6"
-  }}
->
-  Gamerly helps players discover new and upcoming video games across PC,
-  PlayStation, Xbox, and Nintendo Switch. Browse new releases, explore
-  upcoming titles, find top rated games, and discover what is trending
-  across genres and platforms.
-</p>
 
         <div hidden aria-hidden="true" data-ad-slot="home-top-leaderboard" />
 
@@ -264,6 +281,21 @@ const topRatedGames = [...games]
             <Link href="/platform/switch">Nintendo Switch Games</Link>
           </div>
         </SectionBlock>
+
+                <p
+  style={{
+    marginTop: "48px",
+    marginBottom: "6px",
+    color: "#9aa3b2",
+    maxWidth: "760px",
+    lineHeight: "1.6"
+  }}
+>
+  Gamerly helps players discover new and upcoming video games across PC,
+  PlayStation, Xbox, and Nintendo Switch. Browse new releases, explore
+  upcoming titles, find top rated games, and discover what is trending
+  across genres and platforms.
+</p>
 
         <div
           hidden

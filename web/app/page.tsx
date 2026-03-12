@@ -3,6 +3,7 @@ export const revalidate = 21600;
 import type { Metadata } from "next";
 import { fetchGames } from "../lib/igdb";
 import GameGrid from "../components/game/GameGrid";
+import GameCarousel from "../components/game/GameCarousel";
 import PageContainer from "../components/layout/PageContainer";
 import SectionHeading from "../components/ui/SectionHeading";
 import SectionBlock from "../components/layout/SectionBlock";
@@ -29,7 +30,7 @@ const hypeGames = [...games]
     hypeScore: calculateHypeScore(g)
   }))
   .sort((a, b) => (b.hypeScore ?? 0) - (a.hypeScore ?? 0))
-  .slice(0, 8);
+  .slice(0, 20);
 
   const featuredGame =
     [...games]
@@ -72,14 +73,13 @@ const trendingGames = [...games]
   )
   .slice(0, 24);
 
-  const topRatedGames = [...games]
-    .filter(
-      (g) =>
-        (g.aggregated_rating ?? 0) > 0 &&
-        (g.aggregated_rating_count ?? 0) > 20
-    )
-    .sort((a, b) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
-    .slice(0, 8);
+const topRatedGames = [...games]
+  .filter(
+    (g) =>
+      (g.aggregated_rating ?? 0) >= 70
+  )
+  .sort((a, b) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
+  .slice(0, 20);
 
   const pcGames = games
     .filter((g) => g.platforms?.some((p) => p.toLowerCase().includes("pc")))
@@ -100,7 +100,7 @@ const trendingGames = [...games]
     subtitle="Games building the most excitement across ratings, releases, and player interest."
   />
 
-  <GameGrid games={hypeGames} />
+  <GameCarousel games={hypeGames} />
 
   <div className="sectionMoreLink">
     <Link href="/hype">Browse all hyped games →</Link>
@@ -112,7 +112,7 @@ const trendingGames = [...games]
             title="Trending Games"
             subtitle="Popular games players are discovering right now."
           />
-          <GameGrid games={trendingGames} />
+          <GameCarousel games={trendingGames} />
 
           <div className="sectionMoreLink">
             <Link href="/all-games">Browse more games →</Link>
@@ -170,7 +170,7 @@ const trendingGames = [...games]
             title="New Games"
             subtitle="Recently released video games across all platforms."
           />
-          <GameGrid games={newGames} />
+          <GameCarousel games={newGames} />
 
           <div className="sectionMoreLink">
             <Link href="/new-games">View all new games →</Link>
@@ -182,7 +182,7 @@ const trendingGames = [...games]
             title="Upcoming Games"
             subtitle="Video games releasing soon."
           />
-          <GameGrid games={upcomingGames} />
+          <GameCarousel games={upcomingGames} />
 
           <div className="sectionMoreLink">
             <Link href="/upcoming-games">View all upcoming games →</Link>
@@ -208,7 +208,7 @@ const trendingGames = [...games]
             title="Top Rated Games"
             subtitle="Highly rated games players love."
           />
-          <GameGrid games={topRatedGames} />
+          <GameCarousel games={topRatedGames} />
         </SectionBlock>
 
         <SectionBlock>
@@ -216,7 +216,7 @@ const trendingGames = [...games]
             title="PC Games"
             subtitle="Popular games available on PC."
           />
-          <GameGrid games={pcGames} />
+          <GameCarousel games={pcGames} />
 
           <div className="sectionMoreLink">
             <Link href="/platform/pc">Browse all PC games →</Link>

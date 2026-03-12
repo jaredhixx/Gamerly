@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { fetchGames } from "../../../lib/igdb";
 
 export async function GET() {

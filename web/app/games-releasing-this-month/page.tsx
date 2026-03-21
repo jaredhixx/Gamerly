@@ -5,7 +5,7 @@ import { fetchGames } from "../../lib/igdb";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
-  title: "Games Releasing This Month | Gamerly",
+  title: "Games Releasing This Month",
   description:
     "Video games releasing this month across PC, PlayStation, Xbox, Switch, and mobile.",
   alternates: {

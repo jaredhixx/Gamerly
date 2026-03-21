@@ -25,11 +25,11 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const name = genres[genre];
 
   if (!name) {
-    return { title: "Game Genres | Gamerly" };
+    return { title: "Game Genres" };
   }
 
   return {
-  title: `${name} Games | Gamerly`,
+  title: `${name} Games`,
   description: `Browse ${name.toLowerCase()} games including release dates, screenshots, ratings, and more.`,
   alternates: {
     canonical: buildCanonicalUrl(`/genre/${genre}`)

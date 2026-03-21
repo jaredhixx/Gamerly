@@ -3,7 +3,7 @@ import GameGrid from "../../components/game/GameGrid";
 import { fetchGames } from "../../lib/igdb";
 
 export const metadata: Metadata = {
-  title: "Upcoming PC Games | Gamerly",
+  title: "Upcoming PC Games",
   description:
     "Discover upcoming PC games including release dates, screenshots, ratings, and platforms.",
 };

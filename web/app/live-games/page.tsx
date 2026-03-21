@@ -7,7 +7,7 @@ import SectionBlock from "../../components/layout/SectionBlock";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Live Games on Twitch | Gamerly",
+  title: "Live Games on Twitch",
   description:
     "Discover video games currently trending on Twitch with the most viewers right now.",
   alternates: {

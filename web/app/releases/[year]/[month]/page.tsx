@@ -24,7 +24,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
 
   if (idx === -1) {
     return {
-    title: `Games Releasing ${month}/${year} | Gamerly`,
+    title: `Games Releasing ${month}/${year}`,
     description: `See all video games releasing in ${month}/${year} across PC, PlayStation, Xbox, and Nintendo Switch.`,
 
     alternates: {
@@ -36,7 +36,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const monthName = months[idx];
 
 return {
-  title: `Games Releasing ${monthName} ${year} | Gamerly`,
+  title: `Games Releasing ${monthName} ${year}`,
   description: `Browse video games releasing in ${monthName} ${year} across PC, PlayStation, Xbox, Switch, iOS, and Android.`,
   alternates: {
     canonical: buildCanonicalUrl(`/releases/${year}/${month}`)

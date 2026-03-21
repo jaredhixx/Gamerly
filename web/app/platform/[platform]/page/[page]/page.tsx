@@ -17,11 +17,11 @@ export async function generateMetadata(props: any): Promise<Metadata> {
     platforms[platform?.toLowerCase() as keyof typeof platforms];
 
   if (!platformConfig || !Number.isInteger(page) || page < 2) {
-    return { title: "Platform Not Found | Gamerly" };
+    return { title: "Platform Not Found" };
   }
 
   return {
-    title: `${platformConfig.name} Games — Page ${page} | Gamerly`,
+        title: `${platformConfig.name} Games — Page ${page}`,
     description: `Browse ${platformConfig.name.toLowerCase()} games including release dates, ratings, screenshots, and more.`,
     alternates: {
       canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}/page/${page}`)

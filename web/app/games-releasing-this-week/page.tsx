@@ -5,7 +5,7 @@ import { fetchGames } from "../../lib/igdb";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
-  title: "Games Releasing This Week | Gamerly",
+  title: "Games Releasing This Week",
   description: "Video games releasing this week across all platforms.",
   alternates: {
     canonical: buildCanonicalUrl("/games-releasing-this-week")

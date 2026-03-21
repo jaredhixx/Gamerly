@@ -3,7 +3,7 @@ import GameGrid from "../../components/game/GameGrid";
 import { fetchGames } from "../../lib/igdb";
 
 export const metadata: Metadata = {
-  title: "Upcoming Xbox Games | Gamerly",
+  title: "Upcoming Xbox Games",
   description:
     "Discover upcoming Xbox games including release dates, screenshots, ratings, and more.",
 };

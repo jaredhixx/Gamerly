@@ -125,19 +125,19 @@ async function getTwitchToken(): Promise<string> {
     return cachedToken;
   }
 
-const clientId = process.env.TWITCH_CLIENT_ID;
-const clientSecret = process.env.TWITCH_CLIENT_SECRET;
+  const clientId = process.env.TWITCH_CLIENT_ID;
+  const clientSecret = process.env.TWITCH_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     throw new Error("Missing IGDB credentials");
   }
 
-const response = await fetch(
-  `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
-  {
-    method: "POST"
-  }
-);
+  const response = await fetch(
+    `https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`,
+    {
+      method: "POST",
+    }
+  );
 
   const data = await response.json();
 
@@ -338,12 +338,6 @@ const getUpcomingGamesCached = unstable_cache(fetchUpcomingGames, ["upcoming-gam
 });
 
 export async function getAllGames(): Promise<GamerlyGame[]> {
-  const cached = loadCache();
-
-  if (cached.length > 0) {
-    return cached;
-  }
-
   try {
     const [recent, upcoming] = await Promise.all([
       getRecentGamesCached(),
@@ -369,6 +363,13 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
     saveCache(games);
     return games;
   } catch (error) {
+    const fallbackGames = loadCache();
+
+    if (fallbackGames.length > 0) {
+      console.warn("Using igdb-cache.json fallback because live IGDB fetch failed.", error);
+      return fallbackGames;
+    }
+
     console.error("IGDB failed and no local cache was available.", error);
     throw error;
   }

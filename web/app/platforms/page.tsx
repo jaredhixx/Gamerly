@@ -4,7 +4,7 @@ import { fetchGames } from "../../lib/igdb";
 import GameGrid from "../../components/game/GameGrid";
 
 export const metadata: Metadata = {
-  title: "Video Game Platforms | Gamerly",
+  title: "Video Game Platforms",
   description:
     "Discover video games by platform including PC, PlayStation, Xbox, Nintendo Switch, iOS, and Android."
 };

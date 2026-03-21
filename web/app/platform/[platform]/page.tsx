@@ -15,12 +15,12 @@ export async function generateMetadata(props: any): Promise<Metadata> {
 
   if (!platformConfig) {
     return {
-      title: "Platform Not Found | Gamerly"
+      title: "Platform Not Found"
     };
   }
 
   return {
-    title: `${platformConfig.name} — New & Upcoming Games | Gamerly`,
+    title: `${platformConfig.name} — New & Upcoming Games`,
     description: `Discover new and upcoming ${platformConfig.name.toLowerCase()} including release dates, ratings, screenshots, and more.`,
     alternates: {
       canonical: buildCanonicalUrl(`/platform/${platform}`)

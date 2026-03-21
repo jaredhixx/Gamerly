@@ -91,7 +91,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const slugParam = params?.game;
 
   if (!slugParam) {
-    return { title: "Game Not Found | Gamerly" };
+    return { title: "Game Not Found" };
   }
 
   const slugParts = slugParam.split("-");
@@ -110,11 +110,11 @@ if (slugParam !== correctSlug) {
 }
 
   if (!game) {
-    return { title: "Game Not Found | Gamerly" };
+    return { title: "Game Not Found" };
   }
 
   return {
-    title: `${game.name} Release Date & Platforms | Gamerly`,
+        title: `${game.name} Release Date & Platforms`,
     description:
       game.summary || `${game.name} game details and release info.`,
     alternates: {

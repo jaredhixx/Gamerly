@@ -4,6 +4,7 @@ import { fetchGames } from "../../../../../lib/igdb";
 import { platforms } from "../../../../../lib/platforms";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../../../lib/site";
+import Link from "next/link";
 
 const PAGE_SIZE = 60;
 
@@ -21,7 +22,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   }
 
   return {
-        title: `${platformConfig.name} Games — Page ${page}`,
+    title: `${platformConfig.name} Games — Page ${page}`,
     description: `Browse ${platformConfig.name.toLowerCase()} games including release dates, ratings, screenshots, and more.`,
     alternates: {
       canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}/page/${page}`)
@@ -45,9 +46,7 @@ export default async function PlatformPaginationPage(props: any) {
   const games = await fetchGames();
 
   const filtered = games.filter((g: any) =>
-    g.platforms?.some((p: string) =>
-      p.toLowerCase().includes(platformConfig.slug)
-    )
+    g.platformSlugs?.includes(platformConfig.slug)
   );
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -73,21 +72,21 @@ export default async function PlatformPaginationPage(props: any) {
 
       <div style={{ marginTop: "40px", display: "flex", gap: "10px" }}>
         {page > 2 && (
-          <a href={`/platform/${platformConfig.slug}/page/${page - 1}`}>
+          <Link href={`/platform/${platformConfig.slug}/page/${page - 1}`}>
             Previous
-          </a>
+          </Link>
         )}
 
         {page === 2 && (
-          <a href={`/platform/${platformConfig.slug}`}>
+          <Link href={`/platform/${platformConfig.slug}`}>
             Previous
-          </a>
+          </Link>
         )}
 
         {page < totalPages && (
-          <a href={`/platform/${platformConfig.slug}/page/${page + 1}`}>
+          <Link href={`/platform/${platformConfig.slug}/page/${page + 1}`}>
             Next
-          </a>
+          </Link>
         )}
       </div>
     </main>

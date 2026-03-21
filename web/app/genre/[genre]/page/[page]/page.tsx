@@ -1,21 +1,10 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import GameGrid from "../../../../../components/game/GameGrid";
 import { fetchGames } from "../../../../../lib/igdb";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../../../lib/site";
-
-const genres: Record<string, string> = {
-  rpg: "Role Playing",
-  shooter: "Shooter",
-  adventure: "Adventure",
-  strategy: "Strategy",
-  simulation: "Simulation",
-  puzzle: "Puzzle",
-  indie: "Indie",
-  fighting: "Fighting",
-  racing: "Racing",
-  sport: "Sports"
-};
+import { genres } from "../../../../../lib/genres";
 
 const PAGE_SIZE = 60;
 
@@ -25,7 +14,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const genre = params?.genre?.toLowerCase();
   const page = Number(params?.page);
 
-  const name = genres[genre];
+  const name = genres[genre as keyof typeof genres];
 
   if (!name || !Number.isInteger(page) || page < 2) {
     return { title: "Game Genres" };
@@ -46,7 +35,7 @@ export default async function GenrePaginationPage(props: any) {
   const genre = params?.genre?.toLowerCase();
   const page = Number(params?.page);
 
-  const name = genres[genre];
+  const name = genres[genre as keyof typeof genres];
 
   if (!name || !Number.isInteger(page) || page < 2) {
     notFound();
@@ -55,9 +44,7 @@ export default async function GenrePaginationPage(props: any) {
   const games = await fetchGames();
 
   const filtered = games.filter((g: any) =>
-    g.genres?.some((gen: string) =>
-      gen.toLowerCase().includes(genre)
-    )
+    g.genreSlugs?.includes(genre)
   );
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -83,21 +70,21 @@ export default async function GenrePaginationPage(props: any) {
 
       <div style={{ marginTop: "40px", display: "flex", gap: "10px" }}>
         {page > 2 && (
-          <a href={`/genre/${genre}/page/${page - 1}`}>
+          <Link href={`/genre/${genre}/page/${page - 1}`}>
             Previous
-          </a>
+          </Link>
         )}
 
         {page === 2 && (
-          <a href={`/genre/${genre}`}>
+          <Link href={`/genre/${genre}`}>
             Previous
-          </a>
+          </Link>
         )}
 
         {page < totalPages && (
-          <a href={`/genre/${genre}/page/${page + 1}`}>
+          <Link href={`/genre/${genre}/page/${page + 1}`}>
             Next
-          </a>
+          </Link>
         )}
       </div>
     </main>

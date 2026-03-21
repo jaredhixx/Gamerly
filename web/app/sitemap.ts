@@ -2,23 +2,13 @@ import { MetadataRoute } from "next";
 import { fetchGames } from "../lib/igdb";
 import { SITE_URL } from "../lib/site";
 import { platforms } from "../lib/platforms";
+import { genres } from "../lib/genres";
 
 export const revalidate = 21600;
 
 const PAGE_SIZE = 60;
 
-const genreSlugs = [
-  "rpg",
-  "shooter",
-  "adventure",
-  "strategy",
-  "simulation",
-  "puzzle",
-  "indie",
-  "fighting",
-  "racing",
-  "sport"
-];
+const genreSlugs = Object.keys(genres);
 
 const monthNames = [
   "january",
@@ -99,7 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const genrePaginationPages = genreSlugs.flatMap((genre) => {
     const filtered = games.filter((g: any) =>
-      g.genres?.some((gen: string) => gen.toLowerCase().includes(genre))
+      g.genreSlugs?.includes(genre as any)
     );
 
     const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -112,9 +102,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const platformPaginationPages = Object.keys(platforms).flatMap((platform) => {
     const filtered = games.filter((g: any) =>
-      g.platforms?.some((p: string) =>
-        p.toLowerCase().includes(platform)
-      )
+      g.platformSlugs?.includes(platform as any)
     );
 
     const totalPages = Math.ceil(filtered.length / PAGE_SIZE);

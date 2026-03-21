@@ -7,7 +7,6 @@ import { buildCanonicalUrl } from "../../../lib/site";
 import Link from "next/link";
 
 export async function generateMetadata(props: any): Promise<Metadata> {
-
   const params = await props.params;
   const platform = params?.platform;
 
@@ -23,13 +22,12 @@ export async function generateMetadata(props: any): Promise<Metadata> {
     title: `${platformConfig.name} — New & Upcoming Games`,
     description: `Discover new and upcoming ${platformConfig.name.toLowerCase()} including release dates, ratings, screenshots, and more.`,
     alternates: {
-      canonical: buildCanonicalUrl(`/platform/${platform}`)
+      canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}`)
     }
   };
 }
 
 export default async function PlatformPage(props: any) {
-
   const params = await props.params;
   const platform = params?.platform;
 
@@ -42,141 +40,119 @@ export default async function PlatformPage(props: any) {
   const games = await fetchGames();
 
   const platformLabel =
-  platformConfig.slug.charAt(0).toUpperCase() +
-  platformConfig.slug.slice(1);
+    platformConfig.slug.charAt(0).toUpperCase() + platformConfig.slug.slice(1);
 
-const filtered = games.filter((g: any) =>
-  g.platforms?.some((p: string) =>
-    p.toLowerCase().includes(platformConfig.slug)
-  )
-);
+  const filtered = games.filter((g: any) =>
+    g.platformSlugs?.includes(platformConfig.slug)
+  );
 
-const topRated = [...filtered]
-  .filter((g: any) => (g.aggregated_rating ?? 0) > 0)
-  .sort((a: any, b: any) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
-  .slice(0, 8);
+  const topRated = [...filtered]
+    .filter((g: any) => (g.aggregated_rating ?? 0) > 0)
+    .sort((a: any, b: any) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
+    .slice(0, 8);
 
-const upcoming = [...filtered]
-  .filter((g: any) => {
-    if (!g.releaseDate) return false;
-    return new Date(g.releaseDate) > new Date();
-  })
-  .sort(
-    (a: any, b: any) =>
-      new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
-  )
-  .slice(0, 8);
+  const upcoming = [...filtered]
+    .filter((g: any) => {
+      if (!g.releaseDate) return false;
+      return new Date(g.releaseDate) > new Date();
+    })
+    .sort(
+      (a: any, b: any) =>
+        new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
+    )
+    .slice(0, 8);
 
-const newReleases = [...filtered]
-  .filter((g: any) => {
-    if (!g.releaseDate) return false;
-    return new Date(g.releaseDate) <= new Date();
-  })
-  .sort(
-    (a: any, b: any) =>
-      new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
-  )
-  .slice(0, 8);
+  const newReleases = [...filtered]
+    .filter((g: any) => {
+      if (!g.releaseDate) return false;
+      return new Date(g.releaseDate) <= new Date();
+    })
+    .sort(
+      (a: any, b: any) =>
+        new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+    )
+    .slice(0, 8);
 
   return (
-  <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
-    <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "30px" }}>
-  {platformLabel} Games
-</h1>
+    <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
+      <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "30px" }}>
+        {platformLabel} Games
+      </h1>
 
-    {topRated.length > 0 && (
-      <section style={{ marginBottom: "50px" }}>
-        <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-          Top Rated {platformLabel} Games
-        </h2>
-        <GameGrid games={topRated} />
-      </section>
-    )}
-
-    {newReleases.length > 0 && (
-      <section style={{ marginBottom: "50px" }}>
-        <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-          New {platformLabel} Games
-        </h2>
-        <GameGrid games={newReleases} />
-      </section>
-    )}
-
-    <section>
-      <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-        All {platformLabel} Games
-      </h2>
-
-  <GameGrid games={filtered.slice(0, 60)} />
-
-      {filtered.length > 60 && (
-        <div style={{ marginTop: "24px" }}>
-          <Link
-  href={`/platform/${platform}/page/2`}
-            style={{
-              color: "#6aa6ff",
-              fontSize: "14px",
-              textDecoration: "none",
-              fontWeight: 600
-            }}
-          >
-            Browse more {platformLabel} games →
-          </Link>
-        </div>
+      {topRated.length > 0 && (
+        <section style={{ marginBottom: "50px" }}>
+          <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
+            Top Rated {platformLabel} Games
+          </h2>
+          <GameGrid games={topRated} />
+        </section>
       )}
-    </section>
 
-<section style={{ marginTop: "60px" }}>
+      {newReleases.length > 0 && (
+        <section style={{ marginBottom: "50px" }}>
+          <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
+            New {platformLabel} Games
+          </h2>
+          <GameGrid games={newReleases} />
+        </section>
+      )}
 
-  <h2
-    style={{
-      fontSize: "22px",
-      fontWeight: 700,
-      marginBottom: "16px"
-    }}
-  >
-    Popular {platformLabel} Genres
-  </h2>
+      <section>
+        <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
+          All {platformLabel} Games
+        </h2>
 
-<ul style={{ lineHeight: "32px" }}>
-  <li>
-    <Link href="/genre/rpg">
-      {platformLabel} RPG Games
-    </Link>
-  </li>
+        <GameGrid games={filtered.slice(0, 60)} />
 
-  <li>
-    <Link href="/genre/shooter">
-      {platformLabel} Shooter Games
-    </Link>
-  </li>
+        {filtered.length > 60 && (
+          <div style={{ marginTop: "24px" }}>
+            <Link
+              href={`/platform/${platformConfig.slug}/page/2`}
+              style={{
+                color: "#6aa6ff",
+                fontSize: "14px",
+                textDecoration: "none",
+                fontWeight: 600
+              }}
+            >
+              Browse more {platformLabel} games →
+            </Link>
+          </div>
+        )}
+      </section>
 
-  <li>
-    <Link href="/genre/strategy">
-      {platformLabel} Strategy Games
-    </Link>
-  </li>
+      <section style={{ marginTop: "60px" }}>
+        <h2
+          style={{
+            fontSize: "22px",
+            fontWeight: 700,
+            marginBottom: "16px"
+          }}
+        >
+          Popular {platformLabel} Genres
+        </h2>
 
-  <li>
-    <Link href="/genre/adventure">
-      {platformLabel} Adventure Games
-    </Link>
-  </li>
-
-  <li>
-    <Link href="/genre/indie">
-      {platformLabel} Indie Games
-    </Link>
-  </li>
-
-  <li>
-    <Link href="/genre/simulation">
-      {platformLabel} Simulation Games
-    </Link>
-  </li>
-</ul>
-
-</section>
-  </main>
-);
+        <ul style={{ lineHeight: "32px" }}>
+          <li>
+            <Link href="/genre/rpg">{platformLabel} RPG Games</Link>
+          </li>
+          <li>
+            <Link href="/genre/shooter">{platformLabel} Shooter Games</Link>
+          </li>
+          <li>
+            <Link href="/genre/strategy">{platformLabel} Strategy Games</Link>
+          </li>
+          <li>
+            <Link href="/genre/adventure">{platformLabel} Adventure Games</Link>
+          </li>
+          <li>
+            <Link href="/genre/indie">{platformLabel} Indie Games</Link>
+          </li>
+          <li>
+            <Link href="/genre/simulation">{platformLabel} Simulation Games</Link>
+          </li>
+        </ul>
+      </section>
+    </main>
+  );
 }

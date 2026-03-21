@@ -8,18 +8,6 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: "/game.html",
-        has: [
-          {
-            type: "query",
-            key: "slug",
-            value: "(.*)"
-          }
-        ],
-        destination: "/",
-        permanent: true
-      },
-      {
         source: "/pc-games",
         destination: "/platform/pc",
         permanent: true

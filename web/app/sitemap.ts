@@ -113,6 +113,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   });
 
+    const allGamesTotalPages = Math.ceil(games.length / PAGE_SIZE);
+
+  const allGamesPaginationPages = Array.from(
+    { length: Math.max(allGamesTotalPages - 1, 0) },
+    (_, i) => ({
+      url: `${SITE_URL}/all-games/page/${i + 2}`,
+      lastModified: now
+    })
+  );
+
   return [
     {
       url: SITE_URL,
@@ -124,6 +134,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...releasePages,
     ...genrePaginationPages,
     ...platformPaginationPages,
+    ...allGamesPaginationPages,
     ...gameUrls
   ];
 }

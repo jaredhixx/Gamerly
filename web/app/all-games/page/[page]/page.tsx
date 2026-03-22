@@ -1,13 +1,49 @@
-import { getDerivedGameData } from "../../../../lib/game-data";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import GameGrid from "../../../../components/game/GameGrid";
 import PageContainer from "../../../../components/layout/PageContainer";
 import SectionHeading from "../../../../components/ui/SectionHeading";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import { getDerivedGameData } from "../../../../lib/game-data";
+import { buildCanonicalUrl } from "../../../../lib/site";
 
 const PAGE_SIZE = 60;
 
-export default async function AllGamesPagination(props: any) {
+type AllGamesPaginationPageProps = {
+  params: Promise<{
+    page: string;
+  }>;
+};
+
+export async function generateMetadata(
+  props: AllGamesPaginationPageProps
+): Promise<Metadata> {
+  const params = await props.params;
+  const page = Number(params.page);
+
+  if (!page || page < 2) {
+    return {
+      title: "All Games",
+      description:
+        "Browse all video games on Gamerly across platforms and genres.",
+      alternates: {
+        canonical: buildCanonicalUrl("/all-games")
+      }
+    };
+  }
+
+  return {
+    title: `All Games - Page ${page}`,
+    description: `Browse page ${page} of all games on Gamerly across platforms and genres.`,
+    alternates: {
+      canonical: buildCanonicalUrl(`/all-games/page/${page}`)
+    }
+  };
+}
+
+export default async function AllGamesPagination(
+  props: AllGamesPaginationPageProps
+) {
   const params = await props.params;
   const page = Number(params.page);
 

@@ -1,10 +1,21 @@
-import { getDerivedGameData } from "../../lib/game-data";
+import type { Metadata } from "next";
+import Link from "next/link";
 import GameGrid from "../../components/game/GameGrid";
 import PageContainer from "../../components/layout/PageContainer";
 import SectionHeading from "../../components/ui/SectionHeading";
-import Link from "next/link";
+import { getDerivedGameData } from "../../lib/game-data";
+import { buildCanonicalUrl } from "../../lib/site";
 
 const PAGE_SIZE = 60;
+
+export const metadata: Metadata = {
+  title: "All Games",
+  description:
+    "Browse all video games on Gamerly, including new releases, upcoming games, and top-rated titles across platforms and genres.",
+  alternates: {
+    canonical: buildCanonicalUrl("/all-games")
+  }
+};
 
 export default async function AllGamesPage() {
   const { games } = await getDerivedGameData();

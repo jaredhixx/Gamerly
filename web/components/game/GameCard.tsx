@@ -39,6 +39,32 @@ function normalizeGenre(genre: string) {
   return map[genre] ?? genre;
 }
 
+function formatReleaseDateForDisplay(game: {
+  releaseDate?: string | null;
+  releaseDateDisplay?: string | null;
+}) {
+  if (game.releaseDateDisplay) {
+    return game.releaseDateDisplay;
+  }
+
+  if (!game.releaseDate) {
+    return null;
+  }
+
+  const date = new Date(game.releaseDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
 export default function GameCard({ game }: { game: GameWithLive }) {
 
   const router = useRouter();
@@ -149,19 +175,11 @@ export default function GameCard({ game }: { game: GameWithLive }) {
     {game.name}
   </h3>
 
-  {game.releaseDate && (
-    <span className="gameCardDate">
-      {new Date(
-        typeof game.releaseDate === "number"
-          ? game.releaseDate * 1000
-          : game.releaseDate
-      ).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric"
-      })}
-    </span>
-  )}
+{formatReleaseDateForDisplay(game) && (
+  <span className="gameCardDate">
+    {formatReleaseDateForDisplay(game)}
+  </span>
+)}
 
   {game.hypeScore && (
 <div className="gameCardHype">

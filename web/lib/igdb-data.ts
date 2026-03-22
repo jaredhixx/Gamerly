@@ -3,6 +3,7 @@ import path from "path";
 import "server-only";
 import { platformIdToSlug, type PlatformSlug } from "./platforms";
 import { genreNameToSlug, type GenreSlug } from "./genres";
+import type { ReleaseDatePrecision } from "./release-date";
 
 const CACHE_FILE = path.join(process.cwd(), "igdb-cache.json");
 
@@ -12,6 +13,12 @@ const IGDB_GAME_FIELDS = `
   storyline,
   first_release_date,
   release_dates.date,
+  release_dates.y,
+  release_dates.m,
+  release_dates.d,
+  release_dates.human,
+  release_dates.date_format,
+  release_dates.status,
   aggregated_rating,
   aggregated_rating_count,
   cover.url,
@@ -27,6 +34,8 @@ export type GamerlyGame = {
   name: string;
   slug: string;
   releaseDate: string | null;
+releaseDateDisplay: string | null;
+releaseDatePrecision: ReleaseDatePrecision;
   aggregated_rating: number | null;
   aggregated_rating_count: number | null;
   coverUrl: string | null;
@@ -184,6 +193,11 @@ function hydrateCachedGameShape(rawGame: any): GamerlyGame {
     name: rawGame.name,
     slug: rawGame.slug,
     releaseDate: rawGame.releaseDate ?? null,
+releaseDateDisplay:
+  rawGame.releaseDateDisplay ??
+  rawGame.releaseDisplayDate ??
+  null,
+releaseDatePrecision: rawGame.releaseDatePrecision ?? "unknown",
     aggregated_rating: rawGame.aggregated_rating ?? null,
     aggregated_rating_count: rawGame.aggregated_rating_count ?? null,
     coverUrl: rawGame.coverUrl ?? null,
@@ -281,42 +295,207 @@ function normalizeGenreSlugs(rawGenres: any[]): GenreSlug[] {
   return normalizeGenreSlugsFromNames(genreNames);
 }
 
-function getNormalizedReleaseDate(game: any): string | null {
-  const nowUnix = Math.floor(Date.now() / 1000);
+const RELEASE_DATE_PRECISION_RANK: Record<ReleaseDatePrecision, number> = {
+  unknown: 0,
+  tbd: 1,
+  year: 2,
+  quarter: 3,
+  "year-month": 4,
+  day: 5
+};
 
-  const releaseDates: number[] = [];
+function getDaysInMonthUTC(year: number, monthNumber: number) {
+  return new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+}
 
-  if (typeof game?.first_release_date === "number") {
-    releaseDates.push(game.first_release_date);
+function getReleasePrecisionFromDateFormat(
+  value: unknown
+): ReleaseDatePrecision {
+  if (typeof value !== "number") {
+    return "unknown";
   }
 
-  if (Array.isArray(game?.release_dates)) {
-    for (const releaseDate of game.release_dates) {
-      if (typeof releaseDate?.date === "number") {
-        releaseDates.push(releaseDate.date);
+  if (value === 0) {
+    return "day";
+  }
+
+  if (value === 1) {
+    return "year-month";
+  }
+
+  if (value === 2) {
+    return "year";
+  }
+
+  if (value === 3 || value === 4 || value === 5 || value === 6) {
+    return "quarter";
+  }
+
+  if (value === 7) {
+    return "tbd";
+  }
+
+  return "unknown";
+}
+
+function buildQuarterEndDateISO(year: number, quarterFormat: number) {
+  if (quarterFormat === 3) {
+    return new Date(Date.UTC(year, 2, 31, 23, 59, 59, 999)).toISOString();
+  }
+
+  if (quarterFormat === 4) {
+    return new Date(Date.UTC(year, 5, 30, 23, 59, 59, 999)).toISOString();
+  }
+
+  if (quarterFormat === 5) {
+    return new Date(Date.UTC(year, 8, 30, 23, 59, 59, 999)).toISOString();
+  }
+
+  if (quarterFormat === 6) {
+    return new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)).toISOString();
+  }
+
+  return null;
+}
+
+function buildQuarterDisplayLabel(year: number, quarterFormat: number) {
+  if (quarterFormat === 3) {
+    return `Q1 ${year}`;
+  }
+
+  if (quarterFormat === 4) {
+    return `Q2 ${year}`;
+  }
+
+  if (quarterFormat === 5) {
+    return `Q3 ${year}`;
+  }
+
+  if (quarterFormat === 6) {
+    return `Q4 ${year}`;
+  }
+
+  return String(year);
+}
+
+function getNormalizedReleaseInfo(game: any): {
+  releaseDate: string | null;
+  releaseDateDisplay: string | null;
+  releaseDatePrecision: ReleaseDatePrecision;
+} {
+  if (Array.isArray(game?.release_dates) && game.release_dates.length > 0) {
+    const validReleaseDates = game.release_dates
+      .filter((releaseDate: any) => typeof releaseDate?.date === "number")
+      .sort((a: any, b: any) => a.date - b.date);
+
+    for (const releaseDate of validReleaseDates) {
+      const year =
+        typeof releaseDate?.y === "number"
+          ? releaseDate.y
+          : typeof releaseDate?.date === "number"
+          ? new Date(releaseDate.date * 1000).getUTCFullYear()
+          : null;
+
+      const month =
+        typeof releaseDate?.m === "number" ? releaseDate.m : null;
+
+      const day =
+        typeof releaseDate?.d === "number" ? releaseDate.d : null;
+
+      const dateFormat =
+        typeof releaseDate?.date_format === "number"
+          ? releaseDate.date_format
+          : null;
+
+      const human =
+        typeof releaseDate?.human === "string" && releaseDate.human.trim().length > 0
+          ? releaseDate.human.trim()
+          : null;
+
+      const precision = getReleasePrecisionFromDateFormat(dateFormat);
+
+      if (precision === "tbd") {
+        continue;
+      }
+
+      if (precision === "day") {
+        return {
+          releaseDate: new Date(releaseDate.date * 1000).toISOString(),
+          releaseDateDisplay: human,
+          releaseDatePrecision: "day"
+        };
+      }
+
+      if (precision === "year-month" && year && month) {
+        const lastDayOfMonth = getDaysInMonthUTC(year, month);
+
+        return {
+          releaseDate: new Date(
+            Date.UTC(year, month - 1, lastDayOfMonth, 23, 59, 59, 999)
+          ).toISOString(),
+          releaseDateDisplay: human ?? `${new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString("en-US", {
+            timeZone: "UTC",
+            year: "numeric",
+            month: "long"
+          })}`,
+          releaseDatePrecision: "year-month"
+        };
+      }
+
+      if (precision === "year" && year) {
+        return {
+          releaseDate: new Date(
+            Date.UTC(year, 11, 31, 23, 59, 59, 999)
+          ).toISOString(),
+          releaseDateDisplay: human ?? String(year),
+          releaseDatePrecision: "year"
+        };
+      }
+
+      if (precision === "quarter" && year && dateFormat) {
+        const quarterEndDateISO = buildQuarterEndDateISO(year, dateFormat);
+
+        if (quarterEndDateISO) {
+          return {
+            releaseDate: quarterEndDateISO,
+            releaseDateDisplay: human ?? buildQuarterDisplayLabel(year, dateFormat),
+            releaseDatePrecision: "quarter"
+          };
+        }
+      }
+
+      if (year && month && day) {
+        return {
+          releaseDate: new Date(
+            Date.UTC(year, month - 1, day, 23, 59, 59, 999)
+          ).toISOString(),
+          releaseDateDisplay: human,
+          releaseDatePrecision: "day"
+        };
       }
     }
   }
 
-  if (releaseDates.length === 0) {
-    return null;
+  if (typeof game?.first_release_date === "number") {
+    const fallbackDate = new Date(game.first_release_date * 1000);
+
+    return {
+      releaseDate: fallbackDate.toISOString(),
+      releaseDateDisplay: fallbackDate.toLocaleDateString("en-US", {
+        timeZone: "UTC",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      }),
+      releaseDatePrecision: "day"
+    };
   }
 
-  const uniqueSortedReleaseDates = Array.from(new Set(releaseDates)).sort(
-    (a, b) => a - b
-  );
-
-  const upcomingReleaseDate = uniqueSortedReleaseDates.find(
-    (releaseDate) => releaseDate > nowUnix
-  );
-
-  if (typeof upcomingReleaseDate === "number") {
-    return new Date(upcomingReleaseDate * 1000).toISOString();
-  }
-
-  const earliestReleaseDate = uniqueSortedReleaseDates[0];
-
-  return new Date(earliestReleaseDate * 1000).toISOString();
+  return {
+    releaseDate: null,
+    releaseDateDisplay: null,
+    releaseDatePrecision: "unknown"
+  };
 }
 
 function normalizeGame(game: any): GamerlyGame {
@@ -339,11 +518,15 @@ function normalizeGame(game: any): GamerlyGame {
         .filter((value: unknown): value is string => typeof value === "string")
     : [];
 
+  const releaseInfo = getNormalizedReleaseInfo(game);
+
   return {
     id: game.id,
     name: game.name,
     slug: slugifyGameName(game.name),
-    releaseDate: getNormalizedReleaseDate(game),
+    releaseDate: releaseInfo.releaseDate,
+    releaseDateDisplay: releaseInfo.releaseDateDisplay,
+    releaseDatePrecision: releaseInfo.releaseDatePrecision,
     aggregated_rating: game.aggregated_rating ?? null,
     aggregated_rating_count: game.aggregated_rating_count ?? null,
     coverUrl: normalizeCover(game?.cover?.url),
@@ -367,11 +550,29 @@ function mergeStringArrays(a: string[], b: string[]) {
 }
 
 function mergeGames(existing: GamerlyGame, incoming: GamerlyGame): GamerlyGame {
+  const existingPrecisionRank =
+    RELEASE_DATE_PRECISION_RANK[existing.releaseDatePrecision] ?? 0;
+
+  const incomingPrecisionRank =
+    RELEASE_DATE_PRECISION_RANK[incoming.releaseDatePrecision] ?? 0;
+
+  const shouldUseIncomingRelease =
+    !existing.releaseDate ||
+    (Boolean(incoming.releaseDate) && incomingPrecisionRank > existingPrecisionRank);
+
   return {
     ...existing,
     name: existing.name || incoming.name,
     slug: existing.slug || incoming.slug,
-    releaseDate: existing.releaseDate ?? incoming.releaseDate ?? null,
+    releaseDate: shouldUseIncomingRelease
+      ? incoming.releaseDate ?? existing.releaseDate ?? null
+      : existing.releaseDate ?? incoming.releaseDate ?? null,
+    releaseDateDisplay: shouldUseIncomingRelease
+      ? incoming.releaseDateDisplay ?? existing.releaseDateDisplay ?? null
+      : existing.releaseDateDisplay ?? incoming.releaseDateDisplay ?? null,
+    releaseDatePrecision: shouldUseIncomingRelease
+      ? incoming.releaseDatePrecision
+      : existing.releaseDatePrecision,
     aggregated_rating:
       existing.aggregated_rating ?? incoming.aggregated_rating ?? null,
     aggregated_rating_count:

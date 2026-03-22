@@ -7,6 +7,33 @@ import GameGrid from "../../../components/game/GameGrid";
 import ScreenshotLightbox from "../../../components/game/ScreenshotLightbox";
 import ExpandableSummary from "../../../components/game/ExpandableSummary";
 
+
+function formatReleaseDateForDisplay(game: {
+  releaseDate: string | null;
+  releaseDateDisplay?: string | null;
+}) {
+  if (game.releaseDateDisplay) {
+    return game.releaseDateDisplay;
+  }
+
+  if (!game.releaseDate) {
+    return null;
+  }
+
+  const date = new Date(game.releaseDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+}
+
 export const revalidate = 3600;
 
 function getPlatformHref(platform: string) {
@@ -136,7 +163,7 @@ export default async function GamePage(props: any) {
   const id = Number(slugParts[0]);
 
   const game = await getGameById(id);
-  const allGames = (await fetchGames()).slice(0, 120);
+  const allGames = await fetchGames();
 
   if (!game) {
     notFound();
@@ -209,17 +236,7 @@ export default async function GamePage(props: any) {
           <div>
             <div style={{ marginBottom: "14px", fontSize: "15px", color: "#9aa3b2" }}>
               Release Date:{" "}
-              {game.releaseDate
-                ? new Date(
-                    typeof game.releaseDate === "number"
-                      ? game.releaseDate * 1000
-                      : game.releaseDate
-                  ).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric"
-                  })
-                : "TBA"}
+                            {formatReleaseDateForDisplay(game) ?? "TBA"}
             </div>
 
 <div className="gamePills">

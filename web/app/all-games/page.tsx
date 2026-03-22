@@ -1,4 +1,4 @@
-import { fetchGames } from "../../lib/igdb";
+import { getDerivedGameData } from "../../lib/game-data";
 import GameGrid from "../../components/game/GameGrid";
 import PageContainer from "../../components/layout/PageContainer";
 import SectionHeading from "../../components/ui/SectionHeading";
@@ -7,24 +7,19 @@ import Link from "next/link";
 const PAGE_SIZE = 60;
 
 export default async function AllGamesPage() {
-
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
   const firstPage = games.slice(0, PAGE_SIZE);
-
   const totalPages = Math.ceil(games.length / PAGE_SIZE);
 
   return (
     <PageContainer>
-
-<SectionHeading title="All Games" />
+      <SectionHeading title="All Games" />
 
       <GameGrid games={firstPage} />
 
       <div style={{ marginTop: "40px" }}>
-
         {Array.from({ length: totalPages - 1 }, (_, i) => {
-
           const page = i + 2;
 
           return (
@@ -39,11 +34,8 @@ export default async function AllGamesPage() {
               Page {page}
             </Link>
           );
-
         })}
-
       </div>
-
     </PageContainer>
   );
 }

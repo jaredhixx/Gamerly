@@ -1,11 +1,26 @@
 import fs from "fs";
 import path from "path";
 import "server-only";
-import { unstable_cache } from "next/cache";
 import { platformIdToSlug, type PlatformSlug } from "./platforms";
 import { genreNameToSlug, type GenreSlug } from "./genres";
 
 const CACHE_FILE = path.join(process.cwd(), "igdb-cache.json");
+
+const IGDB_GAME_FIELDS = `
+  name,
+  summary,
+  storyline,
+  first_release_date,
+  release_dates.date,
+  aggregated_rating,
+  aggregated_rating_count,
+  cover.url,
+  screenshots.url,
+  videos.video_id,
+  platforms.id,
+  platforms.name,
+  genres.name
+`;
 
 export type GamerlyGame = {
   id: number;
@@ -26,9 +41,9 @@ export type GamerlyGame = {
 
 function saveCache(games: GamerlyGame[]) {
   try {
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(games));
-  } catch (err) {
-    console.warn("Failed to write IGDB cache:", err);
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(games, null, 2));
+  } catch (error) {
+    console.warn("Failed to write IGDB cache:", error);
   }
 }
 
@@ -47,7 +62,11 @@ function normalizePlatformSlugsFromNames(platformNames: string[]): PlatformSlug[
       slugs.push("pc");
     }
 
-    if (name.includes("playstation") || name.includes("ps4") || name.includes("ps5")) {
+    if (
+      name.includes("playstation") ||
+      name.includes("ps4") ||
+      name.includes("ps5")
+    ) {
       slugs.push("playstation");
     }
 
@@ -59,7 +78,11 @@ function normalizePlatformSlugsFromNames(platformNames: string[]): PlatformSlug[
       slugs.push("switch");
     }
 
-    if (name.includes("ios") || name.includes("iphone") || name.includes("ipad")) {
+    if (
+      name.includes("ios") ||
+      name.includes("iphone") ||
+      name.includes("ipad")
+    ) {
       slugs.push("ios");
     }
 
@@ -83,7 +106,11 @@ function normalizeGenreSlugsFromNames(genreNames: string[]): GenreSlug[] {
       continue;
     }
 
-    if (normalizedName.includes("role playing") || normalizedName.includes("rpg")) {
+    if (
+      normalizedName.includes("role playing") ||
+      normalizedName.includes("role-playing") ||
+      normalizedName.includes("rpg")
+    ) {
       slugs.push("rpg");
     }
 
@@ -99,7 +126,11 @@ function normalizeGenreSlugsFromNames(genreNames: string[]): GenreSlug[] {
       slugs.push("strategy");
     }
 
-    if (normalizedName.includes("simulation")) {
+    if (
+      normalizedName.includes("simulation") ||
+      normalizedName.includes("simulator") ||
+      normalizedName.includes("sim")
+    ) {
       slugs.push("simulation");
     }
 
@@ -137,11 +168,15 @@ function hydrateCachedGameShape(rawGame: any): GamerlyGame {
     : [];
 
   const platformSlugs = Array.isArray(rawGame?.platformSlugs)
-    ? rawGame.platformSlugs.filter((value: unknown): value is PlatformSlug => typeof value === "string")
+    ? rawGame.platformSlugs.filter(
+        (value: unknown): value is PlatformSlug => typeof value === "string"
+      )
     : normalizePlatformSlugsFromNames(platforms);
 
   const genreSlugs = Array.isArray(rawGame?.genreSlugs)
-    ? rawGame.genreSlugs.filter((value: unknown): value is GenreSlug => typeof value === "string")
+    ? rawGame.genreSlugs.filter(
+        (value: unknown): value is GenreSlug => typeof value === "string"
+      )
     : normalizeGenreSlugsFromNames(genres);
 
   return {
@@ -166,19 +201,22 @@ function hydrateCachedGameShape(rawGame: any): GamerlyGame {
 
 function loadCache(): GamerlyGame[] {
   try {
-    if (fs.existsSync(CACHE_FILE)) {
-      const raw = fs.readFileSync(CACHE_FILE, "utf8");
-      const parsed = JSON.parse(raw);
-
-      if (Array.isArray(parsed)) {
-        return parsed.map(hydrateCachedGameShape);
-      }
+    if (!fs.existsSync(CACHE_FILE)) {
+      return [];
     }
-  } catch (err) {
-    console.warn("Failed to read IGDB cache:", err);
-  }
 
-  return [];
+    const raw = fs.readFileSync(CACHE_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.map(hydrateCachedGameShape);
+  } catch (error) {
+    console.warn("Failed to read IGDB cache:", error);
+    return [];
+  }
 }
 
 let cachedToken: string | null = null;
@@ -189,12 +227,18 @@ function unixSeconds(date: Date) {
 }
 
 function normalizeCover(url: string | undefined) {
-  if (!url) return null;
+  if (!url) {
+    return null;
+  }
+
   return `https:${url}`.replace("t_thumb", "t_1080p");
 }
 
 function normalizeScreenshot(url: string | undefined) {
-  if (!url) return null;
+  if (!url) {
+    return null;
+  }
+
   return `https:${url}`.replace("t_thumb", "t_1080p");
 }
 
@@ -213,6 +257,7 @@ function normalizePlatformSlugs(rawPlatforms: any[]): PlatformSlug[] {
   const slugs = rawPlatforms
     .map((platform) => {
       const id = platform?.id;
+
       if (typeof id !== "number") {
         return null;
       }
@@ -236,61 +281,111 @@ function normalizeGenreSlugs(rawGenres: any[]): GenreSlug[] {
   return normalizeGenreSlugsFromNames(genreNames);
 }
 
-function normalizeGame(g: any): GamerlyGame {
+function getNormalizedReleaseDate(game: any): string | null {
+  const nowUnix = Math.floor(Date.now() / 1000);
+
   const releaseDates: number[] = [];
 
-  if (g.first_release_date) {
-    releaseDates.push(g.first_release_date);
+  if (typeof game?.first_release_date === "number") {
+    releaseDates.push(game.first_release_date);
   }
 
-  if (Array.isArray(g.release_dates)) {
-    for (const rd of g.release_dates) {
-      if (rd?.date) {
-        releaseDates.push(rd.date);
+  if (Array.isArray(game?.release_dates)) {
+    for (const releaseDate of game.release_dates) {
+      if (typeof releaseDate?.date === "number") {
+        releaseDates.push(releaseDate.date);
       }
     }
   }
 
-  const earliestReleaseDate =
-    releaseDates.length > 0 ? Math.min(...releaseDates) : null;
+  if (releaseDates.length === 0) {
+    return null;
+  }
 
+  const uniqueSortedReleaseDates = Array.from(new Set(releaseDates)).sort(
+    (a, b) => a - b
+  );
+
+  const upcomingReleaseDate = uniqueSortedReleaseDates.find(
+    (releaseDate) => releaseDate > nowUnix
+  );
+
+  if (typeof upcomingReleaseDate === "number") {
+    return new Date(upcomingReleaseDate * 1000).toISOString();
+  }
+
+  const earliestReleaseDate = uniqueSortedReleaseDates[0];
+
+  return new Date(earliestReleaseDate * 1000).toISOString();
+}
+
+function normalizeGame(game: any): GamerlyGame {
   const trailer =
-    Array.isArray(g.videos) &&
-    g.videos.length > 0 &&
-    g.videos[0]?.video_id
-      ? `https://www.youtube.com/embed/${g.videos[0].video_id}`
+    Array.isArray(game?.videos) &&
+    game.videos.length > 0 &&
+    game.videos[0]?.video_id
+      ? `https://www.youtube.com/embed/${game.videos[0].video_id}`
       : null;
 
-  const platforms = Array.isArray(g.platforms)
-    ? g.platforms.map((p: any) => p.name).filter(Boolean)
+  const platforms = Array.isArray(game?.platforms)
+    ? game.platforms
+        .map((platform: any) => platform?.name)
+        .filter((value: unknown): value is string => typeof value === "string")
     : [];
 
-  const genres = Array.isArray(g.genres)
-    ? g.genres.map((gn: any) => gn.name).filter(Boolean)
+  const genres = Array.isArray(game?.genres)
+    ? game.genres
+        .map((genre: any) => genre?.name)
+        .filter((value: unknown): value is string => typeof value === "string")
     : [];
 
   return {
-    id: g.id,
-    name: g.name,
-    slug: slugifyGameName(g.name),
-    releaseDate: earliestReleaseDate
-      ? new Date(earliestReleaseDate * 1000).toISOString()
-      : null,
-    aggregated_rating: g.aggregated_rating ?? null,
-    aggregated_rating_count: g.aggregated_rating_count ?? null,
-    coverUrl: normalizeCover(g.cover?.url),
+    id: game.id,
+    name: game.name,
+    slug: slugifyGameName(game.name),
+    releaseDate: getNormalizedReleaseDate(game),
+    aggregated_rating: game.aggregated_rating ?? null,
+    aggregated_rating_count: game.aggregated_rating_count ?? null,
+    coverUrl: normalizeCover(game?.cover?.url),
     platforms,
-    platformSlugs: normalizePlatformSlugs(g.platforms),
+    platformSlugs: normalizePlatformSlugs(game?.platforms ?? []),
     genres,
-    genreSlugs: normalizeGenreSlugs(g.genres),
-    summary: g.summary || g.storyline || null,
-    screenshots: Array.isArray(g.screenshots)
-      ? g.screenshots
-          .map((s: any) => normalizeScreenshot(s.url))
-          .filter(Boolean)
+    genreSlugs: normalizeGenreSlugs(game?.genres ?? []),
+    summary: game.summary || game.storyline || null,
+    screenshots: Array.isArray(game?.screenshots)
+      ? game.screenshots
+          .map((screenshot: any) => normalizeScreenshot(screenshot?.url))
+          .filter((value: string | null): value is string => Boolean(value))
           .slice(0, 5)
       : [],
     trailer
+  };
+}
+
+function mergeStringArrays(a: string[], b: string[]) {
+  return Array.from(new Set([...a, ...b]));
+}
+
+function mergeGames(existing: GamerlyGame, incoming: GamerlyGame): GamerlyGame {
+  return {
+    ...existing,
+    name: existing.name || incoming.name,
+    slug: existing.slug || incoming.slug,
+    releaseDate: existing.releaseDate ?? incoming.releaseDate ?? null,
+    aggregated_rating:
+      existing.aggregated_rating ?? incoming.aggregated_rating ?? null,
+    aggregated_rating_count:
+      existing.aggregated_rating_count ?? incoming.aggregated_rating_count ?? null,
+    coverUrl: existing.coverUrl ?? incoming.coverUrl ?? null,
+    platforms: mergeStringArrays(existing.platforms, incoming.platforms),
+    platformSlugs: Array.from(
+      new Set([...existing.platformSlugs, ...incoming.platformSlugs])
+    ),
+    genres: mergeStringArrays(existing.genres, incoming.genres),
+    genreSlugs: Array.from(new Set([...existing.genreSlugs, ...incoming.genreSlugs])),
+    summary: existing.summary ?? incoming.summary ?? null,
+    screenshots: mergeStringArrays(existing.screenshots, incoming.screenshots).slice(0, 5),
+    trailer: existing.trailer ?? incoming.trailer ?? null
   };
 }
 
@@ -322,7 +417,7 @@ async function getTwitchToken(): Promise<string> {
     throw new Error(`IGDB OAuth failed: ${response.status}`);
   }
 
-    cachedToken = data.access_token;
+  cachedToken = data.access_token;
   tokenExpiry = now + data.expires_in * 1000;
 
   return data.access_token;
@@ -332,7 +427,7 @@ async function postIGDB(query: string, token: string) {
   const clientId = process.env.TWITCH_CLIENT_ID;
 
   if (!clientId) {
-    throw new Error("Missing IGDB_CLIENT_ID");
+    throw new Error("Missing IGDB client ID");
   }
 
   if (!token) {
@@ -346,10 +441,7 @@ async function postIGDB(query: string, token: string) {
       Authorization: `Bearer ${token}`,
       "Content-Type": "text/plain"
     },
-    body: query,
-    next: {
-      revalidate: 21600
-    }
+    body: query
   });
 
   const responseText = await response.text();
@@ -363,18 +455,14 @@ async function postIGDB(query: string, token: string) {
   return Array.isArray(data) ? data : [];
 }
 
-function buildRecentQuery({
-  pastDays = 120,
-  limit = 60,
-  offset = 0
-}: {
-  pastDays?: number;
-  limit?: number;
-  offset?: number;
-}) {
+async function sleep(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getEndOfTodayUTC() {
   const now = new Date();
 
-  const endOfTodayUTC = new Date(
+  return new Date(
     Date.UTC(
       now.getUTCFullYear(),
       now.getUTCMonth(),
@@ -384,181 +472,136 @@ function buildRecentQuery({
       59
     )
   );
+}
 
-  const past = new Date(now.getTime() - pastDays * 86400000);
+type CatalogWindow = {
+  label: string;
+  startUnix: number;
+  endUnix: number;
+  sortDirection: "asc" | "desc";
+  limit: number;
+};
 
+function buildCatalogQuery(window: CatalogWindow) {
   return `
-    fields
-      name,
-      summary,
-      storyline,
-      first_release_date,
-      release_dates.date,
-      aggregated_rating,
-      aggregated_rating_count,
-      cover.url,
-      screenshots.url,
-      videos.video_id,
-      platforms.id,
-      platforms.name,
-      genres.name;
+    fields ${IGDB_GAME_FIELDS};
     where
+      name != null &
+      cover != null &
       (
-        first_release_date >= ${unixSeconds(past)} &
-        first_release_date <= ${unixSeconds(endOfTodayUTC)}
-      ) |
-      (
-        release_dates.date >= ${unixSeconds(past)} &
-        release_dates.date <= ${unixSeconds(endOfTodayUTC)}
+        (first_release_date >= ${window.startUnix} & first_release_date <= ${window.endUnix}) |
+        (release_dates.date >= ${window.startUnix} & release_dates.date <= ${window.endUnix})
       );
-    sort first_release_date desc;
-    limit ${limit};
-    offset ${offset};
+    sort first_release_date ${window.sortDirection};
+    limit ${window.limit};
   `;
 }
 
-function buildUpcomingQuery({
-  futureDays = 540,
-  limit = 60,
-  offset = 0
-}: {
-  futureDays?: number;
-  limit?: number;
-  offset?: number;
-}) {
-  const now = new Date();
+function buildCatalogWindows(): CatalogWindow[] {
+  const endOfTodayUTC = getEndOfTodayUTC();
+  const todayUnix = unixSeconds(endOfTodayUTC);
+  const tomorrowUnix = todayUnix + 1;
 
-  const endOfTodayUTC = new Date(
-    Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-      23,
-      59,
-      59
-    )
-  );
-
-  const future = new Date(now.getTime() + futureDays * 86400000);
-
-  return `
-    fields
-      name,
-      summary,
-      storyline,
-      first_release_date,
-      release_dates.date,
-      aggregated_rating,
-      aggregated_rating_count,
-      cover.url,
-      screenshots.url,
-      videos.video_id,
-      platforms.id,
-      platforms.name,
-      genres.name;
-    where
-      (
-        first_release_date > ${unixSeconds(endOfTodayUTC)} &
-        first_release_date <= ${unixSeconds(future)}
-      ) |
-      (
-        release_dates.date > ${unixSeconds(endOfTodayUTC)} &
-        release_dates.date <= ${unixSeconds(future)}
-      );
-    sort first_release_date asc;
-    limit ${limit};
-    offset ${offset};
-  `;
+  return [
+    {
+      label: "future-near",
+      startUnix: tomorrowUnix,
+      endUnix: tomorrowUnix + 180 * 86400,
+      sortDirection: "asc",
+      limit: 500
+    },
+    {
+      label: "future-far",
+      startUnix: tomorrowUnix + 181 * 86400,
+      endUnix: tomorrowUnix + 365 * 86400,
+      sortDirection: "asc",
+      limit: 500
+    },
+    {
+      label: "past-recent",
+      startUnix: todayUnix - 365 * 86400,
+      endUnix: todayUnix,
+      sortDirection: "desc",
+      limit: 500
+    },
+    {
+      label: "past-mid",
+      startUnix: todayUnix - 1095 * 86400,
+      endUnix: todayUnix - 366 * 86400,
+      sortDirection: "desc",
+      limit: 500
+    },
+    {
+      label: "past-deep",
+      startUnix: todayUnix - 1825 * 86400,
+      endUnix: todayUnix - 1096 * 86400,
+      sortDirection: "desc",
+      limit: 500
+    }
+  ];
 }
 
-async function fetchPagedGames(mode: "recent" | "upcoming"): Promise<GamerlyGame[]> {
+async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
   const token = await getTwitchToken();
+  const windows = buildCatalogWindows();
+  const mergedById = new Map<number, GamerlyGame>();
 
-  const pageSize = 60;
-  const pages = 4;
-  const results: GamerlyGame[] = [];
-
-  for (let i = 0; i < pages; i++) {
-    const offset = i * pageSize;
-
+  for (const window of windows) {
     try {
-      const query =
-        mode === "recent"
-          ? buildRecentQuery({
-              pastDays: 120,
-              limit: pageSize,
-              offset
-            })
-          : buildUpcomingQuery({
-              futureDays: 540,
-              limit: pageSize,
-              offset
-            });
+      const rawGames = await postIGDB(buildCatalogQuery(window), token);
+      const normalizedGames = rawGames
+        .map(normalizeGame)
+        .filter((game) => game.id && game.name && game.releaseDate);
 
-      const page = await postIGDB(query, token);
-      const normalizedPage = page.map(normalizeGame);
+      for (const game of normalizedGames) {
+        const existing = mergedById.get(game.id);
 
-      results.push(...normalizedPage);
+        if (!existing) {
+          mergedById.set(game.id, game);
+          continue;
+        }
 
-      if (page.length < pageSize) {
-        break;
+        mergedById.set(game.id, mergeGames(existing, game));
       }
+
+      await sleep(300);
     } catch (error) {
-      console.warn(`IGDB ${mode} page fetch failed at offset ${offset}.`, error);
-      break;
+      console.warn(`IGDB catalog window failed: ${window.label}`, error);
+      await sleep(500);
     }
   }
 
-  return results;
+  const catalog = Array.from(mergedById.values())
+    .filter((game) => game.releaseDate && game.coverUrl)
+    .sort((a, b) => {
+      const aTime = new Date(a.releaseDate || "").getTime();
+      const bTime = new Date(b.releaseDate || "").getTime();
+      return bTime - aTime;
+    });
+
+  if (catalog.length === 0) {
+    throw new Error("IGDB shared catalog returned zero games");
+  }
+
+  return catalog;
 }
-
-async function fetchRecentGames(): Promise<GamerlyGame[]> {
-  return fetchPagedGames("recent");
-}
-
-async function fetchUpcomingGames(): Promise<GamerlyGame[]> {
-  return fetchPagedGames("upcoming");
-}
-
-const getRecentGamesCached = unstable_cache(fetchRecentGames, ["recent-games"], {
-  revalidate: 21600
-});
-
-const getUpcomingGamesCached = unstable_cache(fetchUpcomingGames, ["upcoming-games"], {
-  revalidate: 21600
-});
 
 export async function getAllGames(): Promise<GamerlyGame[]> {
+  const forceRefresh = process.env.IGDB_FORCE_REFRESH === "true";
+  const cachedGames = loadCache();
+
+  if (!forceRefresh && cachedGames.length > 0) {
+    return cachedGames;
+  }
+
   try {
-    const [recent, upcoming] = await Promise.all([
-      getRecentGamesCached(),
-      getUpcomingGamesCached()
-    ]);
-
-    const merged = [...recent, ...upcoming].filter(
-      (game) => game.releaseDate && game.coverUrl
-    );
-
-    const byId = new Map<number, GamerlyGame>();
-
-    for (const game of merged) {
-      byId.set(game.id, game);
-    }
-
-    const games = Array.from(byId.values());
-
-    if (games.length === 0) {
-      throw new Error("IGDB returned zero games after merge");
-    }
-
-    saveCache(games);
-    return games;
+    const liveGames = await fetchSharedCatalogFromIGDB();
+    saveCache(liveGames);
+    return liveGames;
   } catch (error) {
-    const fallbackGames = loadCache();
-
-    if (fallbackGames.length > 0) {
+    if (cachedGames.length > 0) {
       console.warn("Using igdb-cache.json fallback because live IGDB fetch failed.", error);
-      return fallbackGames;
+      return cachedGames;
     }
 
     console.error("IGDB failed and no local cache was available.", error);

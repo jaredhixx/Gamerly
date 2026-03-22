@@ -1,28 +1,19 @@
 import { Metadata } from "next";
 import GameGrid from "../../components/game/GameGrid";
-import { fetchGames } from "../../lib/igdb";
+import { getDerivedGameData } from "../../lib/game-data";
 
 export const metadata: Metadata = {
   title: "Upcoming PC Games",
   description:
-    "Discover upcoming PC games including release dates, screenshots, ratings, and platforms.",
+    "Discover upcoming PC games including release dates, screenshots, ratings, and platforms."
 };
 
-function isUpcoming(dateString: string | null) {
-  if (!dateString) return false;
-
-  const today = new Date();
-  const date = new Date(dateString);
-
-  return date > today;
-}
-
 export default async function UpcomingPCGamesPage() {
-  const games = await fetchGames();
+  const { upcomingGames } = await getDerivedGameData();
 
-  const pcUpcoming = games.filter((g: any) =>
-    g.platforms.some((p: string) => p.toLowerCase().includes("pc"))
-  ).filter((g: any) => isUpcoming(g.releaseDate));
+  const pcUpcoming = upcomingGames.filter((g) =>
+    g.platformSlugs?.includes("pc")
+  );
 
   return (
     <main>

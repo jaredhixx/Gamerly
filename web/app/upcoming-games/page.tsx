@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import GameGrid from "../../components/game/GameGrid";
-import { fetchGames } from "../../lib/igdb";
-
+import { getDerivedGameData } from "../../lib/game-data";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
@@ -13,26 +12,12 @@ export const metadata: Metadata = {
 };
 
 export default async function UpcomingGamesPage() {
-
-  const games = await fetchGames();
-
-  const now = new Date();
-
-  const upcoming = games.filter((g: any) => {
-    if (!g.releaseDate) return false;
-    return new Date(g.releaseDate) > now;
-  });
-
-  upcoming.sort((a: any, b: any) =>
-    new Date(a.releaseDate).getTime() -
-    new Date(b.releaseDate).getTime()
-  );
+  const { upcomingGames } = await getDerivedGameData();
 
   return (
     <main>
       <h1>Upcoming Video Games</h1>
-
-      <GameGrid games={upcoming.slice(0, 120)} />
+      <GameGrid games={upcomingGames.slice(0, 120)} />
     </main>
   );
 }

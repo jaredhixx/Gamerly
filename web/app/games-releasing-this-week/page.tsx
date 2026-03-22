@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import GameGrid from "../../components/game/GameGrid";
-import { fetchGames } from "../../lib/igdb";
-
+import { getDerivedGameData } from "../../lib/game-data";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
@@ -12,7 +11,7 @@ export const metadata: Metadata = {
   }
 };
 
-function isThisWeek(dateString: string | null) {
+function isThisWeek(dateString: string | null | undefined) {
   if (!dateString) return false;
 
   const today = new Date();
@@ -28,11 +27,9 @@ function isThisWeek(dateString: string | null) {
 }
 
 export default async function GamesReleasingThisWeekPage() {
-  const games = await fetchGames();
+  const { releasingThisWeek } = await getDerivedGameData();
 
-  const weekGames = games.filter((g: any) =>
-    isThisWeek(g.releaseDate)
-  );
+  const weekGames = releasingThisWeek.filter((g) => isThisWeek(g.releaseDate));
 
   return (
     <main>

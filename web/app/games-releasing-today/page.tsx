@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import GameGrid from "../../components/game/GameGrid";
 import { fetchGames } from "../../lib/igdb";
-
+import { getDerivedGameData } from "../../lib/game-data";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   }
 };
 
-function isToday(dateString: string | null) {
+function isToday(dateString: string | null | undefined) {
   if (!dateString) return false;
 
   const today = new Date();
@@ -25,29 +25,26 @@ function isToday(dateString: string | null) {
   );
 }
 
-function isTomorrow(dateString: string | null) {
-  if (!dateString) return false;
-
-  const tomorrow = new Date();
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-
-  const date = new Date(dateString);
-
-  return (
-    date.getUTCFullYear() === tomorrow.getUTCFullYear() &&
-    date.getUTCMonth() === tomorrow.getUTCMonth() &&
-    date.getUTCDate() === tomorrow.getUTCDate()
-  );
-}
-
 export default async function GamesReleasingTodayPage() {
+  const { releasingToday } = await getDerivedGameData();
   const games = await fetchGames();
 
-  const todayGames = games.filter((g: any) => isToday(g.releaseDate));
+  const tomorrowGames = games.filter((g) => {
+    if (!g.releaseDate) return false;
 
-  const tomorrowGames = games.filter((g: any) =>
-    isTomorrow(g.releaseDate)
-  );
+    const tomorrow = new Date();
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+
+    const date = new Date(g.releaseDate);
+
+    return (
+      date.getUTCFullYear() === tomorrow.getUTCFullYear() &&
+      date.getUTCMonth() === tomorrow.getUTCMonth() &&
+      date.getUTCDate() === tomorrow.getUTCDate()
+    );
+  });
+
+  const todayGames = releasingToday.filter((g) => isToday(g.releaseDate));
 
   return (
     <main>

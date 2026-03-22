@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import GameGrid from "../../components/game/GameGrid";
-import { fetchGames } from "../../lib/igdb";
+import { getDerivedGameData } from "../../lib/game-data";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
@@ -35,14 +35,14 @@ function buildMonthPath(date: Date) {
 }
 
 export default async function GamesThisMonthPage() {
-  const games = await fetchGames();
+  const { releasingThisMonth } = await getDerivedGameData();
 
   const now = new Date();
   const currentMonth = now.getUTCMonth();
   const currentYear = now.getUTCFullYear();
 
-  const thisMonth = games
-    .filter((g: any) => {
+  const thisMonth = releasingThisMonth
+    .filter((g) => {
       if (!g.releaseDate) return false;
 
       const release = new Date(g.releaseDate);
@@ -53,8 +53,8 @@ export default async function GamesThisMonthPage() {
       );
     })
     .sort(
-      (a: any, b: any) =>
-        new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
+      (a, b) =>
+        new Date(a.releaseDate || "").getTime() - new Date(b.releaseDate || "").getTime()
     );
 
   const nearbyMonths = Array.from({ length: 5 }, (_, index) => {

@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { fetchGames } from "../../lib/igdb";
+import { getDerivedGameData } from "../../lib/game-data";
 import GameGrid from "../../components/game/GameGrid";
 
 export const metadata: Metadata = {
@@ -10,44 +10,36 @@ export const metadata: Metadata = {
 };
 
 const genres = [
-  { name: "RPG Games", slug: "rpg", match: "rpg" },
-  { name: "Shooter Games", slug: "shooter", match: "shooter" },
-  { name: "Strategy Games", slug: "strategy", match: "strategy" },
-  { name: "Adventure Games", slug: "adventure", match: "adventure" },
-  { name: "Simulation Games", slug: "simulation", match: "simulation" },
-  { name: "Puzzle Games", slug: "puzzle", match: "puzzle" },
-  { name: "Indie Games", slug: "indie", match: "indie" },
-  { name: "Fighting Games", slug: "fighting", match: "fighting" },
-  { name: "Racing Games", slug: "racing", match: "racing" },
-  { name: "Sports Games", slug: "sport", match: "sport" }
+  { name: "RPG Games", slug: "rpg" },
+  { name: "Shooter Games", slug: "shooter" },
+  { name: "Strategy Games", slug: "strategy" },
+  { name: "Adventure Games", slug: "adventure" },
+  { name: "Simulation Games", slug: "simulation" },
+  { name: "Puzzle Games", slug: "puzzle" },
+  { name: "Indie Games", slug: "indie" },
+  { name: "Fighting Games", slug: "fighting" },
+  { name: "Racing Games", slug: "racing" },
+  { name: "Sports Games", slug: "sport" }
 ];
 
 export default async function GenresPage() {
-
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
-
       <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "30px" }}>
         Browse Video Games by Genre
       </h1>
 
       {genres.map((genre) => {
-
         const genreGames = games
-          .filter((g) =>
-            g.genres?.some((gen) =>
-              gen.toLowerCase().includes(genre.match)
-            )
-          )
+          .filter((g) => g.genreSlugs?.includes(genre.slug as any))
           .slice(0, 8);
 
         if (genreGames.length === 0) return null;
 
         return (
           <section key={genre.slug} style={{ marginBottom: "60px" }}>
-
             <h2 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "20px" }}>
               {genre.name}
             </h2>
@@ -66,12 +58,9 @@ export default async function GenresPage() {
                 Browse all {genre.name} →
               </Link>
             </div>
-
           </section>
         );
-
       })}
-
     </main>
   );
 }

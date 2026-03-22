@@ -1,30 +1,19 @@
 import { Metadata } from "next";
 import GameGrid from "../../components/game/GameGrid";
-import { fetchGames } from "../../lib/igdb";
+import { getDerivedGameData } from "../../lib/game-data";
 
 export const metadata: Metadata = {
   title: "Upcoming Xbox Games",
   description:
-    "Discover upcoming Xbox games including release dates, screenshots, ratings, and more.",
+    "Discover upcoming Xbox games including release dates, screenshots, ratings, and more."
 };
 
-function isUpcoming(dateString: string | null) {
-  if (!dateString) return false;
-
-  const today = new Date();
-  const date = new Date(dateString);
-
-  return date > today;
-}
-
 export default async function UpcomingXboxGamesPage() {
-  const games = await fetchGames();
+  const { upcomingGames } = await getDerivedGameData();
 
-  const xboxUpcoming = games.filter((g: any) =>
-    g.platforms.some((p: string) =>
-      p.toLowerCase().includes("xbox")
-    )
-  ).filter((g: any) => isUpcoming(g.releaseDate));
+  const xboxUpcoming = upcomingGames.filter((g) =>
+    g.platformSlugs?.includes("xbox")
+  );
 
   return (
     <main>

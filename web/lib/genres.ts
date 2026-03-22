@@ -22,6 +22,8 @@ export const genreNameToSlug: Record<string, GenreSlug> = {
   "adventure": "adventure",
   "strategy": "strategy",
   "simulation": "simulation",
+  "simulator": "simulation",
+  "sim": "simulation",
   "puzzle": "puzzle",
   "indie": "indie",
   "fighting": "fighting",

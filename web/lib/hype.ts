@@ -3,12 +3,14 @@ import { GamerlyGame } from "./igdb";
 /*
 Hype score system
 
-Signals used:
-- Rating
-- Rating count
-- Release proximity
-- Platform count
-- Twitch viewers
+Goals:
+- Prioritize legitimately notable games
+- Reward strong rating quality and rating volume
+- Reward near-future releases
+- Reward very recent releases
+- Reward multi-platform launches
+- Reward real Twitch activity
+- Avoid weak games floating to the top just because they exist soon
 */
 
 export function calculateHypeScore(
@@ -16,80 +18,94 @@ export function calculateHypeScore(
   twitchViewers: number = 0,
   twitchStreams: number = 0
 ) {
-
   let score = 0;
 
-  /* -------------------------
-     Rating score
-  --------------------------*/
-
-  if (game.aggregated_rating) {
-    score += game.aggregated_rating * 0.7;
-  }
+  const rating = game.aggregated_rating ?? 0;
+  const ratingCount = game.aggregated_rating_count ?? 0;
+  const platformCount = game.platforms?.length ?? 0;
 
   /* -------------------------
-     Popularity boost
+     Rating quality
   --------------------------*/
 
-  if (game.aggregated_rating_count) {
-    score += Math.log10(game.aggregated_rating_count + 1) * 7;
+  if (rating > 0) {
+    score += rating * 0.6;
   }
-
-  if (game.aggregated_rating_count) {
-  if (game.aggregated_rating_count > 500) {
-    score += 10;
-  }
-
-  if (game.aggregated_rating_count > 2000) {
-    score += 15;
-  }
-}
 
   /* -------------------------
-     Release proximity boost
+     Rating confidence
   --------------------------*/
 
-if (game.releaseDate) {
-
-  const now = new Date().getTime();
-  const release = new Date(game.releaseDate).getTime();
-
-  const diffDays = (release - now) / (1000 * 60 * 60 * 24);
-
-  /* Upcoming games */
-
-  if (diffDays > 0 && diffDays < 60) {
-    score += 40;
+  if (ratingCount > 0) {
+    score += Math.log10(ratingCount + 1) * 10;
   }
 
-  if (diffDays >= 60 && diffDays < 120) {
-    score += 20;
+  if (ratingCount >= 100) {
+    score += 8;
   }
 
-  /* Newly released games */
-
-  if (diffDays <= 0 && diffDays > -30) {
-    score += 30;
+  if (ratingCount >= 500) {
+    score += 12;
   }
 
-}
+  if (ratingCount >= 2000) {
+    score += 18;
+  }
 
   /* -------------------------
-     Platform boost
+     Release timing
   --------------------------*/
 
-  if (game.platforms) {
-    score += Math.min(game.platforms.length, 4) * 6
+  if (game.releaseDate) {
+    const now = new Date().getTime();
+    const release = new Date(game.releaseDate).getTime();
+    const diffDays = (release - now) / (1000 * 60 * 60 * 24);
+
+    /* Upcoming games */
+
+    if (diffDays > 0 && diffDays <= 30) {
+      score += 35;
+    } else if (diffDays > 30 && diffDays <= 90) {
+      score += 22;
+    } else if (diffDays > 90 && diffDays <= 180) {
+      score += 10;
+    }
+
+    /* Newly released games */
+
+    if (diffDays <= 0 && diffDays >= -14) {
+      score += 24;
+    } else if (diffDays < -14 && diffDays >= -45) {
+      score += 10;
+    }
   }
+
+  /* -------------------------
+     Platform breadth
+  --------------------------*/
+
+  score += Math.min(platformCount, 4) * 4;
 
   /* -------------------------
      Twitch activity
   --------------------------*/
 
-  if (twitchViewers || twitchStreams) {
-    score += Math.log(twitchViewers + twitchStreams * 50 + 1) * 6;
+  if (twitchViewers > 0 || twitchStreams > 0) {
+    score += Math.log10(twitchViewers + 1) * 12;
+    score += Math.log10(twitchStreams + 1) * 6;
+  }
+
+  /* -------------------------
+     Low-confidence penalty
+  --------------------------*/
+
+  if (ratingCount < 10 && twitchViewers < 100 && twitchStreams < 3) {
+    score -= 20;
+  }
+
+  if (ratingCount < 5 && rating < 70 && twitchViewers === 0) {
+    score -= 20;
   }
 
   return Math.round(score);
-
 }

@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { fetchGames } from "../../lib/igdb";
+import { getDerivedGameData } from "../../lib/game-data";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
@@ -27,15 +27,14 @@ const monthNames = [
 ];
 
 export default async function ReleasesHubPage() {
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
   const monthSet = new Set<string>();
 
-  games.forEach((g: any) => {
+  games.forEach((g) => {
     if (!g.releaseDate) return;
 
     const date = new Date(g.releaseDate);
-
     const year = date.getUTCFullYear();
     const monthSlug = monthNames[date.getUTCMonth()];
 

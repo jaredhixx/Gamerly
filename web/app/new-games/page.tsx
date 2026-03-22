@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import GameGrid from "../../components/game/GameGrid";
-import { fetchGames } from "../../lib/igdb";
-
+import { getDerivedGameData } from "../../lib/game-data";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
@@ -13,12 +12,11 @@ export const metadata: Metadata = {
 };
 
 export default async function NewGamesPage() {
-
-  const games = await fetchGames();
+  const { newGames } = await getDerivedGameData();
 
   const now = new Date();
 
-  const recent = games.filter((g: any) => {
+  const recent = newGames.filter((g) => {
     if (!g.releaseDate) return false;
 
     const release = new Date(g.releaseDate);
@@ -27,15 +25,9 @@ export default async function NewGamesPage() {
     return daysAgo >= 0 && daysAgo <= 30;
   });
 
-  recent.sort((a: any, b: any) =>
-    new Date(b.releaseDate).getTime() -
-    new Date(a.releaseDate).getTime()
-  );
-
   return (
     <main>
       <h1>New Video Games</h1>
-
       <GameGrid games={recent.slice(0, 120)} />
     </main>
   );

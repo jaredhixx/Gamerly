@@ -415,10 +415,26 @@ p + p {
   background: #0b1020;
 
   border: 1px solid rgba(110,168,255,0.15);
+
+  box-shadow:
+    0 18px 44px rgba(0,0,0,0.34),
+    0 0 0 1px rgba(110,168,255,0.04);
+
+  transition:
+    transform 180ms ease,
+    box-shadow 220ms ease,
+    border-color 180ms ease;
 }
 
 .heroCard:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+
+  border-color: rgba(110,168,255,0.32);
+
+  box-shadow:
+    0 28px 70px rgba(0,0,0,0.52),
+    0 0 0 1px rgba(110,168,255,0.12),
+    0 0 28px rgba(110,168,255,0.12);
 }
 
 .heroCard img {
@@ -557,7 +573,7 @@ p + p {
 
   box-shadow: 0 8px 20px rgba(0,0,0,0.28);
 
-  height: 110px;
+    min-height: 136px;
 
   transform: translateZ(0);
 
@@ -600,6 +616,8 @@ p + p {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 4px;
+  min-width: 0;
 }
 
 .heroSideLabel {
@@ -2214,9 +2232,16 @@ p + p {
   font-size: 13px;
   font-weight: 600;
   border-radius: 999px;
-  background: rgba(255, 0, 80, 0.15);
-  color: #ff4d6d;
-  backdrop-filter: blur(4px);
+
+  background: rgba(255, 0, 80, 0.14);
+  border: 1px solid rgba(255, 90, 130, 0.22);
+  color: #ff5c7a;
+
+  backdrop-filter: blur(6px);
+
+  box-shadow:
+    0 8px 18px rgba(0,0,0,0.28),
+    inset 0 0 0 1px rgba(255,255,255,0.02);
 }
 
 .gameCardLive {

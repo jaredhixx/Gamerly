@@ -10,9 +10,7 @@ import {
   calculateHypeRankingScore,
   selectHomepageFeaturedGame,
   selectHomepageHypeGames,
-  selectHomepagePcGames,
-  selectHomepageTopRatedGamesWithoutUsed,
-  selectHomepageUpcomingHero,
+  selectHomepageUpcomingHero
 } from "../lib/game-ranking";
 import GameCarousel from "../components/game/GameCarousel";
 import PageContainer from "../components/layout/PageContainer";
@@ -23,9 +21,10 @@ import PlatformStrip from "../components/layout/PlatformStrip";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "New and Upcoming Video Games",
+  title:
+    "Gamerly | New Video Games, Upcoming Releases, Hype Rankings, and Platform Guides",
   description:
-    "Discover new and upcoming video games by platform, genre, and release date on Gamerly.",
+    "Discover new video games, upcoming releases, live Twitch trends, and hype rankings across PC, PlayStation, Xbox, and Nintendo Switch on Gamerly.",
   alternates: {
     canonical: "https://www.gamerly.net/"
   }
@@ -34,11 +33,6 @@ export const metadata: Metadata = {
 function isUpcoming(date?: string | null) {
   if (!date) return false;
   return new Date(date) > new Date();
-}
-
-function isReleased(date?: string | null) {
-  if (!date) return false;
-  return new Date(date) <= new Date();
 }
 
 function normalizeTwitchName(name?: string | null): string {
@@ -153,15 +147,6 @@ export default async function Home() {
 
   const hypeGames = selectHomepageHypeGames(scoredGames);
 
-  const newGames = [...games]
-    .filter((g) => isReleased(g.releaseDate))
-    .sort(
-      (a, b) =>
-        new Date(b.releaseDate || "").getTime() -
-        new Date(a.releaseDate || "").getTime()
-    )
-    .slice(0, 24);
-
   const upcomingGames = [...games]
     .filter((g) => isUpcoming(g.releaseDate))
     .sort(
@@ -171,49 +156,73 @@ export default async function Home() {
     )
     .slice(0, 24);
 
-  const topRatedGames = selectHomepageTopRatedGamesWithoutUsed(scoredGames);
-  const pcGames = selectHomepagePcGames(scoredGames);
-
   const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
   const featuredViewerCount = featuredGame?.twitchViewers ?? 0;
 
   const upcomingHero =
     selectHomepageUpcomingHero(scoredGames) || scoredGames[1] || scoredGames[0];
 
+  const hasHypeGames = hypeGames.length > 0;
+  const hasLiveGames = liveGames.length > 0;
+  const hasUpcomingGames = upcomingGames.length > 0;
+
   return (
     <main style={{ paddingTop: "32px", paddingBottom: "64px" }}>
       <PageContainer>
+        <section
+          style={{
+            marginBottom: "12px"
+          }}
+        >
+          <h1
+            style={{
+              margin: 0,
+              fontSize: "0.95rem",
+              lineHeight: "1.2",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "#9aa3b2"
+            }}
+          >
+            Best New and Upcoming Games
+          </h1>
+        </section>
+
         <FeaturedHero
           featured={featuredGame}
           upcoming={upcomingHero}
           viewerCount={featuredViewerCount}
         />
 
-        <SectionBlock>
-          <SectionHeading
-            title="🔥 Most Hyped Games"
-            subtitle="Games building the most excitement across ratings, releases, and player interest."
-          />
+        {hasHypeGames ? (
+          <SectionBlock>
+            <SectionHeading
+title="🔥 Trending Games Right Now"
+subtitle="The games gaining the most momentum across players, streams, and releases."
+            />
 
-          <GameCarousel games={hypeGames} />
+            <GameCarousel games={hypeGames} />
 
-          <div className="sectionMoreLink">
-            <Link href="/hype">Browse all hyped games →</Link>
-          </div>
-        </SectionBlock>
+            <div className="sectionMoreLink">
+              <Link href="/hype">Browse all hyped games →</Link>
+            </div>
+          </SectionBlock>
+        ) : null}
 
-        <SectionBlock>
-          <SectionHeading
-            title="🔴 Live Games on Twitch"
-            subtitle="Games currently attracting the most viewers on Twitch."
-          />
+        {hasLiveGames ? (
+          <SectionBlock>
+            <SectionHeading
+title="🎥 Most Watched on Twitch"
+subtitle="Games dominating live viewership right now."
+            />
 
-          <GameCarousel games={liveGames} />
+            <GameCarousel games={liveGames} />
 
-          <div className="sectionMoreLink">
-            <Link href="/live-games">View all live games →</Link>
-          </div>
-        </SectionBlock>
+            <div className="sectionMoreLink">
+              <Link href="/live-games">View all live games →</Link>
+            </div>
+          </SectionBlock>
+        ) : null}
 
         <div hidden aria-hidden="true" data-ad-slot="home-top-leaderboard" />
 
@@ -246,29 +255,19 @@ export default async function Home() {
           data-ad-slot="home-between-trending-and-new"
         />
 
-        <SectionBlock>
-          <SectionHeading
-            title="New Games"
-            subtitle="Recently released video games across all platforms."
-          />
-          <GameCarousel games={newGames} />
+        {hasUpcomingGames ? (
+          <SectionBlock>
+            <SectionHeading
+title="📅 Upcoming Releases"
+subtitle="The most anticipated games releasing soon."
+            />
+            <GameCarousel games={upcomingGames} />
 
-          <div className="sectionMoreLink">
-            <Link href="/new-games">View all new games →</Link>
-          </div>
-        </SectionBlock>
-
-        <SectionBlock>
-          <SectionHeading
-            title="Upcoming Games"
-            subtitle="Video games releasing soon."
-          />
-          <GameCarousel games={upcomingGames} />
-
-          <div className="sectionMoreLink">
-            <Link href="/upcoming-games">View all upcoming games →</Link>
-          </div>
-        </SectionBlock>
+            <div className="sectionMoreLink">
+              <Link href="/upcoming-games">View all upcoming games →</Link>
+            </div>
+          </SectionBlock>
+        ) : null}
 
         <div
           hidden
@@ -282,26 +281,6 @@ export default async function Home() {
             subtitle="Start with your preferred platform and discover what is worth playing next."
           />
           <PlatformStrip />
-        </SectionBlock>
-
-        <SectionBlock>
-          <SectionHeading
-            title="Top Rated Games"
-            subtitle="Highly rated games players love."
-          />
-          <GameCarousel games={topRatedGames} />
-        </SectionBlock>
-
-        <SectionBlock>
-          <SectionHeading
-            title="PC Games"
-            subtitle="Popular games available on PC."
-          />
-          <GameCarousel games={pcGames} />
-
-          <div className="sectionMoreLink">
-            <Link href="/platform/pc">Browse all PC games →</Link>
-          </div>
         </SectionBlock>
 
         <SectionBlock>
@@ -337,10 +316,10 @@ export default async function Home() {
             lineHeight: "1.6"
           }}
         >
-          Gamerly helps players discover new and upcoming video games across PC,
-          PlayStation, Xbox, and Nintendo Switch. Browse new releases, explore
-          upcoming titles, find top rated games, and discover games by platform
-          and genre.
+          Gamerly is a discovery site for new and upcoming video games across
+          PC, PlayStation, Xbox, and Nintendo Switch. Explore upcoming releases,
+          check live Twitch interest, browse by platform and genre, and find the
+          games worth paying attention to next.
         </p>
 
         <div hidden aria-hidden="true" data-ad-slot="home-bottom-anchor" />

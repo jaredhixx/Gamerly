@@ -62,7 +62,21 @@ export default function FeaturedHero({
           )}
 
           <div className="heroContent">
-            <div className="heroLabel">Featured Game</div>
+<div
+  className="heroLabel"
+  style={{
+    display: "inline-block",
+    padding: "6px 10px",
+    borderRadius: "999px",
+    background: "rgba(0, 0, 0, 0.6)",
+    backdropFilter: "blur(6px)",
+    fontWeight: 600
+  }}
+>
+  {viewerCount && viewerCount > 0
+    ? "#1 Trending Game Right Now"
+    : "Featured Pick"}
+</div>
 
             {viewerCount && viewerCount > 0 && (
               <div className="heroLiveBadge">

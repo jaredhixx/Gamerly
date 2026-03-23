@@ -1,8 +1,11 @@
-export const revalidate = 21600;
+export const revalidate = 300;
 
 import type { Metadata } from "next";
 import { fetchGames } from "../lib/igdb";
-import { fetchTwitchStreams } from "../lib/twitch";
+import {
+  fetchExactTwitchTotalsForGameNames,
+  fetchTwitchStreams
+} from "../lib/twitch";
 import {
   calculateHypeRankingScore,
   selectHomepageFeaturedGame,
@@ -38,29 +41,56 @@ function isReleased(date?: string | null) {
   return new Date(date) <= new Date();
 }
 
+function normalizeTwitchName(name?: string | null): string {
+  if (!name) {
+    return "";
+  }
+
+  return name
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function buildRoughTwitchMap(
+  streams: Array<{
+    game_name: string;
+    viewer_count: number;
+  }>
+): Record<string, { viewers: number; streams: number }> {
+  const twitchMap: Record<string, { viewers: number; streams: number }> = {};
+
+  for (const stream of streams) {
+    const key = normalizeTwitchName(stream.game_name);
+
+    if (!key) {
+      continue;
+    }
+
+    if (!twitchMap[key]) {
+      twitchMap[key] = { viewers: 0, streams: 0 };
+    }
+
+    twitchMap[key].viewers += stream.viewer_count;
+    twitchMap[key].streams += 1;
+  }
+
+  return twitchMap;
+}
+
 export default async function Home() {
   const games = await fetchGames();
   const streams = await fetchTwitchStreams();
 
-  const twitchMap: Record<string, { viewers: number; streams: number }> = {};
+  const roughTwitchMap = buildRoughTwitchMap(streams);
 
-  for (const stream of streams) {
-    const name = stream.game_name?.trim().toLowerCase();
-    if (!name) continue;
-
-    if (!twitchMap[name]) {
-      twitchMap[name] = { viewers: 0, streams: 0 };
-    }
-
-    twitchMap[name].viewers += stream.viewer_count;
-    twitchMap[name].streams += 1;
-  }
-
-  const scoredGames = games.map((game) => {
-    const twitch = twitchMap[game.name?.trim().toLowerCase()] || {
-      viewers: 0,
-      streams: 0
-    };
+  const roughScoredGames = games.map((game) => {
+    const twitch =
+      roughTwitchMap[normalizeTwitchName(game.name)] || {
+        viewers: 0,
+        streams: 0
+      };
 
     const hypeScore = calculateHypeRankingScore({
       ...game,
@@ -72,6 +102,46 @@ export default async function Home() {
       ...game,
       twitchViewers: twitch.viewers,
       twitchStreams: twitch.streams,
+      hypeScore
+    };
+  });
+
+  const roughFeaturedGame =
+    selectHomepageFeaturedGame(roughScoredGames) || roughScoredGames[0];
+
+  const roughLiveGames = [...roughScoredGames]
+    .filter((game) => (game.twitchViewers ?? 0) > 0)
+    .sort((a, b) => (b.twitchViewers ?? 0) - (a.twitchViewers ?? 0))
+    .slice(0, 20);
+
+  const exactTargetNames = [
+    ...new Set(
+      [roughFeaturedGame?.name, ...roughLiveGames.slice(0, 8).map((game) => game.name)]
+        .filter((name): name is string => Boolean(name))
+    )
+  ];
+
+  const exactTwitchTotals = await fetchExactTwitchTotalsForGameNames(
+    exactTargetNames
+  );
+
+  const scoredGames = roughScoredGames.map((game) => {
+    const exact = game.name ? exactTwitchTotals[game.name] : undefined;
+
+    if (!exact || exact.viewers <= 0) {
+      return game;
+    }
+
+    const hypeScore = calculateHypeRankingScore({
+      ...game,
+      twitchViewers: exact.viewers,
+      twitchStreams: exact.streams
+    });
+
+    return {
+      ...game,
+      twitchViewers: exact.viewers,
+      twitchStreams: exact.streams,
       hypeScore
     };
   });
@@ -258,7 +328,7 @@ export default async function Home() {
           </div>
         </SectionBlock>
 
-                <p
+        <p
           style={{
             marginTop: "48px",
             marginBottom: "6px",

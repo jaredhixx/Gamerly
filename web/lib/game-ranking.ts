@@ -130,6 +130,93 @@ function excludeGamesById<T extends RankedGame>(
   });
 }
 
+function calculateFeaturedHeroScore(game: RankedGame): number {
+  if (!hasCover(game)) {
+    return -9999;
+  }
+
+  if (!hasHomepageConfidence(game)) {
+    return -9999;
+  }
+
+  let score = 0;
+
+  const twitchViewers = game.twitchViewers ?? 0;
+  const twitchStreams = game.twitchStreams ?? 0;
+  const rating = game.aggregated_rating ?? 0;
+  const ratingCount = game.aggregated_rating_count ?? 0;
+  const platformCount = game.platforms?.length ?? 0;
+  const diffDays = getDaysFromNow(game.releaseDate);
+
+  if (rating > 0) {
+    score += rating * 0.55;
+  }
+
+  if (ratingCount > 0) {
+    score += Math.log10(ratingCount + 1) * 18;
+  }
+
+  if (twitchViewers > 0) {
+    score += Math.log10(twitchViewers + 1) * 12;
+  }
+
+  if (twitchStreams > 0) {
+    score += Math.log10(twitchStreams + 1) * 5;
+  }
+
+  score += Math.min(platformCount, 4) * 3;
+
+  if (hasExactOrMonthlyDate(game)) {
+    score += 8;
+  }
+
+  if (diffDays !== null) {
+    if (diffDays > 0 && diffDays <= 30) {
+      score += 36;
+    } else if (diffDays > 30 && diffDays <= 90) {
+      score += 26;
+    } else if (diffDays > 90 && diffDays <= 180) {
+      score += 14;
+    } else if (diffDays <= 0 && diffDays >= -30) {
+      score += 30;
+    } else if (diffDays < -30 && diffDays >= -90) {
+      score += 18;
+    } else if (diffDays < -90 && diffDays >= -180) {
+      score += 8;
+    } else {
+      score -= 20;
+    }
+  } else {
+    score -= 20;
+  }
+
+  if (rating >= 80) {
+    score += 8;
+  }
+
+  if (ratingCount >= 20) {
+    score += 8;
+  }
+
+  if (ratingCount >= 100) {
+    score += 10;
+  }
+
+  if (twitchViewers >= 250) {
+    score += 6;
+  }
+
+  if (ratingCount < 5 && twitchViewers < 100) {
+    score -= 20;
+  }
+
+  if (ratingCount === 0 && twitchViewers === 0) {
+    score -= 35;
+  }
+
+  return Math.round(score);
+}
+
 export function calculateMomentumScore(game: RankedGame): number {
   let score = 0;
 
@@ -583,7 +670,62 @@ export function selectHomepageTopRatedGamesWithoutUsed<T extends RankedGame>(
 export function selectHomepageFeaturedGame<T extends RankedGame>(
   games: T[]
 ): T | undefined {
-  return selectHomepageHypeGames(games)[0] ?? games[0];
+  return [...games]
+    .filter((game) => {
+      const diffDays = getDaysFromNow(game.releaseDate);
+
+      if (!hasCover(game)) {
+        return false;
+      }
+
+      if (!hasHomepageConfidence(game)) {
+        return false;
+      }
+
+      if (diffDays === null) {
+        return false;
+      }
+
+      if (diffDays < -180 || diffDays > 180) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      const scoreA = calculateFeaturedHeroScore(a);
+      const scoreB = calculateFeaturedHeroScore(b);
+
+      if (scoreB !== scoreA) {
+        return scoreB - scoreA;
+      }
+
+      const aCount = a.aggregated_rating_count ?? 0;
+      const bCount = b.aggregated_rating_count ?? 0;
+
+      if (bCount !== aCount) {
+        return bCount - aCount;
+      }
+
+      const aRating = a.aggregated_rating ?? 0;
+      const bRating = b.aggregated_rating ?? 0;
+
+      if (bRating !== aRating) {
+        return bRating - aRating;
+      }
+
+      const aViewers = a.twitchViewers ?? 0;
+      const bViewers = b.twitchViewers ?? 0;
+
+      if (bViewers !== aViewers) {
+        return bViewers - aViewers;
+      }
+
+      const aDiffDays = Math.abs(getDaysFromNow(a.releaseDate) ?? 9999);
+      const bDiffDays = Math.abs(getDaysFromNow(b.releaseDate) ?? 9999);
+
+      return aDiffDays - bDiffDays;
+    })[0] ?? selectHomepageHypeGames(games)[0] ?? games[0];
 }
 
 export function selectHomepageUpcomingHero<T extends RankedGame>(

@@ -3,7 +3,14 @@ export const revalidate = 21600;
 import type { Metadata } from "next";
 import { fetchGames } from "../lib/igdb";
 import { fetchTwitchStreams } from "../lib/twitch";
-import { calculateHypeScore } from "../lib/hype";
+import {
+  calculateHypeRankingScore,
+  selectHomepageFeaturedGame,
+  selectHomepageHypeGames,
+  selectHomepagePcGames,
+  selectHomepageTopRatedGamesWithoutUsed,
+  selectHomepageUpcomingHero,
+} from "../lib/game-ranking";
 import GameCarousel from "../components/game/GameCarousel";
 import PageContainer from "../components/layout/PageContainer";
 import SectionHeading from "../components/ui/SectionHeading";
@@ -49,34 +56,32 @@ export default async function Home() {
     twitchMap[name].streams += 1;
   }
 
-  const scoredGames = games
-    .map((game) => {
-      const twitch = twitchMap[game.name?.trim().toLowerCase()] || {
-        viewers: 0,
-        streams: 0
-      };
+  const scoredGames = games.map((game) => {
+    const twitch = twitchMap[game.name?.trim().toLowerCase()] || {
+      viewers: 0,
+      streams: 0
+    };
 
-      const hypeScore = calculateHypeScore(
-        game,
-        twitch.viewers,
-        twitch.streams
-      );
+    const hypeScore = calculateHypeRankingScore({
+      ...game,
+      twitchViewers: twitch.viewers,
+      twitchStreams: twitch.streams
+    });
 
-      return {
-        ...game,
-        twitchViewers: twitch.viewers,
-        twitchStreams: twitch.streams,
-        hypeScore
-      };
-    })
-    .sort((a, b) => (b.hypeScore ?? 0) - (a.hypeScore ?? 0));
+    return {
+      ...game,
+      twitchViewers: twitch.viewers,
+      twitchStreams: twitch.streams,
+      hypeScore
+    };
+  });
 
   const liveGames = [...scoredGames]
     .filter((game) => (game.twitchViewers ?? 0) > 0)
     .sort((a, b) => (b.twitchViewers ?? 0) - (a.twitchViewers ?? 0))
     .slice(0, 20);
 
-  const hypeGames = scoredGames.slice(0, 20);
+  const hypeGames = selectHomepageHypeGames(scoredGames);
 
   const newGames = [...games]
     .filter((g) => isReleased(g.releaseDate))
@@ -96,51 +101,14 @@ export default async function Home() {
     )
     .slice(0, 24);
 
-  const trendingGames = [...games]
-    .filter((g) => (g.aggregated_rating_count ?? 0) > 0)
-    .sort(
-      (a, b) =>
-        (b.aggregated_rating_count ?? 0) - (a.aggregated_rating_count ?? 0)
-    )
-    .slice(0, 24);
+  const topRatedGames = selectHomepageTopRatedGamesWithoutUsed(scoredGames);
+  const pcGames = selectHomepagePcGames(scoredGames);
 
-  const topRatedGames = [...games]
-    .filter(
-      (g) =>
-        (g.aggregated_rating ?? 0) >= 70 &&
-        (g.aggregated_rating_count ?? 0) >= 20
-    )
-    .sort((a, b) => {
-      const ratingDiff =
-        (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0);
-
-      if (ratingDiff !== 0) {
-        return ratingDiff;
-      }
-
-      return (b.aggregated_rating_count ?? 0) - (a.aggregated_rating_count ?? 0);
-    })
-    .slice(0, 20);
-
-  const pcGames = [...games]
-    .filter((g) => g.platformSlugs?.includes("pc"))
-    .slice(0, 8);
-
-  const featuredGame = hypeGames[0] || games[0];
+  const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
   const featuredViewerCount = featuredGame?.twitchViewers ?? 0;
 
   const upcomingHero =
-    [...upcomingGames].sort(
-      (a, b) =>
-        new Date(a.releaseDate || "").getTime() -
-        new Date(b.releaseDate || "").getTime()
-    )[0] || games[1];
-
-  const trendingHero =
-    [...trendingGames].sort(
-      (a, b) =>
-        (b.aggregated_rating_count ?? 0) - (a.aggregated_rating_count ?? 0)
-    )[0] || games[2];
+    selectHomepageUpcomingHero(scoredGames) || scoredGames[1] || scoredGames[0];
 
   return (
     <main style={{ paddingTop: "32px", paddingBottom: "64px" }}>
@@ -148,7 +116,6 @@ export default async function Home() {
         <FeaturedHero
           featured={featuredGame}
           upcoming={upcomingHero}
-          trending={trendingHero}
           viewerCount={featuredViewerCount}
         />
 
@@ -175,18 +142,6 @@ export default async function Home() {
 
           <div className="sectionMoreLink">
             <Link href="/live-games">View all live games →</Link>
-          </div>
-        </SectionBlock>
-
-        <SectionBlock>
-          <SectionHeading
-            title="Trending Games"
-            subtitle="Popular games players are discovering right now."
-          />
-          <GameCarousel games={trendingGames} />
-
-          <div className="sectionMoreLink">
-            <Link href="/all-games">Browse more games →</Link>
           </div>
         </SectionBlock>
 
@@ -303,7 +258,7 @@ export default async function Home() {
           </div>
         </SectionBlock>
 
-        <p
+                <p
           style={{
             marginTop: "48px",
             marginBottom: "6px",
@@ -314,15 +269,11 @@ export default async function Home() {
         >
           Gamerly helps players discover new and upcoming video games across PC,
           PlayStation, Xbox, and Nintendo Switch. Browse new releases, explore
-          upcoming titles, find top rated games, and discover what is trending
-          across genres and platforms.
+          upcoming titles, find top rated games, and discover games by platform
+          and genre.
         </p>
 
-        <div
-          hidden
-          aria-hidden="true"
-          data-ad-slot="home-bottom-anchor"
-        />
+        <div hidden aria-hidden="true" data-ad-slot="home-bottom-anchor" />
       </PageContainer>
     </main>
   );

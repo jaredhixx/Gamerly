@@ -7,6 +7,15 @@ import type { ReleaseDatePrecision } from "./release-date";
 
 const CACHE_FILE = path.join(process.cwd(), "igdb-cache.json");
 
+const CACHE_STALE_WARNING_HOURS = 24;
+const CACHE_STALE_ERROR_HOURS = 72;
+const MIN_REASONABLE_CACHE_SIZE = 100;
+
+type IGDBCacheFile = {
+  lastUpdated: string;
+  games: GamerlyGame[];
+};
+
 const IGDB_GAME_FIELDS = `
   name,
   summary,
@@ -50,7 +59,15 @@ releaseDatePrecision: ReleaseDatePrecision;
 
 function saveCache(games: GamerlyGame[]) {
   try {
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(games, null, 2));
+    const payload: IGDBCacheFile = {
+      lastUpdated: new Date().toISOString(),
+      games
+    };
+
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(payload, null, 2));
+    console.log(
+      `[IGDB] Cache saved successfully. games=${games.length} file=${CACHE_FILE}`
+    );
   } catch (error) {
     console.warn("Failed to write IGDB cache:", error);
   }
@@ -213,24 +230,127 @@ releaseDatePrecision: rawGame.releaseDatePrecision ?? "unknown",
   };
 }
 
-function loadCache(): GamerlyGame[] {
+function loadCache(): {
+  games: GamerlyGame[];
+  lastUpdated: string | null;
+  isLegacyFormat: boolean;
+} {
   try {
     if (!fs.existsSync(CACHE_FILE)) {
-      return [];
+      console.warn("[IGDB] Cache file not found.");
+      return {
+        games: [],
+        lastUpdated: null,
+        isLegacyFormat: false
+      };
     }
 
     const raw = fs.readFileSync(CACHE_FILE, "utf8");
     const parsed = JSON.parse(raw);
 
-    if (!Array.isArray(parsed)) {
-      return [];
+    if (Array.isArray(parsed)) {
+      const games = parsed.map(hydrateCachedGameShape);
+
+      console.warn(
+        `[IGDB] Loaded legacy cache format. games=${games.length} file=${CACHE_FILE}`
+      );
+
+      return {
+        games,
+        lastUpdated: null,
+        isLegacyFormat: true
+      };
     }
 
-    return parsed.map(hydrateCachedGameShape);
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      Array.isArray(parsed.games)
+    ) {
+      const games = parsed.games.map(hydrateCachedGameShape);
+      const lastUpdated =
+        typeof parsed.lastUpdated === "string" ? parsed.lastUpdated : null;
+
+      return {
+        games,
+        lastUpdated,
+        isLegacyFormat: false
+      };
+    }
+
+    console.warn("[IGDB] Cache file exists but format is invalid.");
+    return {
+      games: [],
+      lastUpdated: null,
+      isLegacyFormat: false
+    };
   } catch (error) {
     console.warn("Failed to read IGDB cache:", error);
-    return [];
+    return {
+      games: [],
+      lastUpdated: null,
+      isLegacyFormat: false
+    };
   }
+}
+
+function getCacheAgeHours(lastUpdated: string | null): number | null {
+  if (!lastUpdated) {
+    return null;
+  }
+
+  const timestamp = new Date(lastUpdated).getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+
+  return (Date.now() - timestamp) / (1000 * 60 * 60);
+}
+
+function logCacheHealth(
+  games: GamerlyGame[],
+  lastUpdated: string | null,
+  isLegacyFormat: boolean
+) {
+  const ageHours = getCacheAgeHours(lastUpdated);
+
+  if (games.length === 0) {
+    console.warn("[IGDB] Cache is empty.");
+    return;
+  }
+
+  if (isLegacyFormat) {
+    console.warn(
+      `[IGDB] Cache is using legacy array format. games=${games.length}`
+    );
+    return;
+  }
+
+  if (!lastUpdated) {
+    console.warn(
+      `[IGDB] Cache metadata is missing lastUpdated. games=${games.length}`
+    );
+    return;
+  }
+
+  if (ageHours !== null && ageHours >= CACHE_STALE_ERROR_HOURS) {
+    console.warn(
+      `[IGDB] Cache is very stale. ageHours=${ageHours.toFixed(1)} games=${games.length} lastUpdated=${lastUpdated}`
+    );
+    return;
+  }
+
+  if (ageHours !== null && ageHours >= CACHE_STALE_WARNING_HOURS) {
+    console.warn(
+      `[IGDB] Cache is getting stale. ageHours=${ageHours.toFixed(1)} games=${games.length} lastUpdated=${lastUpdated}`
+    );
+    return;
+  }
+
+  console.log(
+    `[IGDB] Cache loaded. ageHours=${ageHours?.toFixed(1) ?? "unknown"} games=${games.length} lastUpdated=${lastUpdated}`
+  );
 }
 
 let cachedToken: string | null = null;
@@ -789,19 +909,51 @@ async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
 
 export async function getAllGames(): Promise<GamerlyGame[]> {
   const forceRefresh = process.env.IGDB_FORCE_REFRESH === "true";
-  const cachedGames = loadCache();
+  const cache = loadCache();
+  const cachedGames = cache.games;
 
-  if (!forceRefresh && cachedGames.length > 0) {
+  logCacheHealth(cachedGames, cache.lastUpdated, cache.isLegacyFormat);
+
+  const cacheLooksUsable =
+    cachedGames.length >= MIN_REASONABLE_CACHE_SIZE;
+
+  if (!forceRefresh && cacheLooksUsable) {
+    console.log(
+      `[IGDB] Returning cached catalog. games=${cachedGames.length} forceRefresh=false`
+    );
     return cachedGames;
+  }
+
+  if (!forceRefresh && cachedGames.length > 0 && !cacheLooksUsable) {
+    console.warn(
+      `[IGDB] Cache exists but looks suspiciously small. games=${cachedGames.length}. Attempting live refresh instead of trusting cache immediately.`
+    );
+  }
+
+  if (forceRefresh) {
+    console.log("[IGDB] IGDB_FORCE_REFRESH=true. Attempting live catalog refresh.");
   }
 
   try {
     const liveGames = await fetchSharedCatalogFromIGDB();
+
+    if (liveGames.length === 0) {
+      throw new Error("Live IGDB catalog returned zero games");
+    }
+
     saveCache(liveGames);
+
+    console.log(
+      `[IGDB] Returning live catalog. games=${liveGames.length}`
+    );
+
     return liveGames;
   } catch (error) {
     if (cachedGames.length > 0) {
-      console.warn("Using igdb-cache.json fallback because live IGDB fetch failed.", error);
+      console.warn(
+        `[IGDB] Live IGDB fetch failed. Falling back to cache. games=${cachedGames.length} lastUpdated=${cache.lastUpdated ?? "unknown"}`,
+        error
+      );
       return cachedGames;
     }
 

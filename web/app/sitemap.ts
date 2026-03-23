@@ -7,6 +7,7 @@ import { genres } from "../lib/genres";
 export const revalidate = 21600;
 
 const PAGE_SIZE = 60;
+const NEW_GAMES_WINDOW_DAYS = 30;
 
 const genreSlugs = Object.keys(genres);
 
@@ -24,6 +25,42 @@ const monthNames = [
   "november",
   "december"
 ];
+
+function isFuture(date?: string | null) {
+  if (!date) {
+    return false;
+  }
+
+  return new Date(date) > new Date();
+}
+
+function isPast(date?: string | null) {
+  if (!date) {
+    return false;
+  }
+
+  return new Date(date) <= new Date();
+}
+
+function getRecentNewGamesCount(
+  games: Array<{
+    releaseDate?: string | null;
+  }>
+) {
+  const now = new Date();
+
+  return games.filter((game) => {
+    if (!game.releaseDate) {
+      return false;
+    }
+
+    const release = new Date(game.releaseDate);
+    const daysAgo =
+      (now.getTime() - release.getTime()) / (1000 * 60 * 60 * 24);
+
+    return daysAgo >= 0 && daysAgo <= NEW_GAMES_WINDOW_DAYS;
+  }).length;
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -66,7 +103,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const releaseMonthSet = new Set<string>();
 
   games.forEach((game) => {
-    if (!game.releaseDate) return;
+    if (!game.releaseDate) {
+      return;
+    }
 
     const date = new Date(game.releaseDate);
     const year = date.getUTCFullYear();
@@ -88,37 +127,60 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
 
   const genrePaginationPages = genreSlugs.flatMap((genre) => {
-    const filtered = games.filter((g: any) =>
-      g.genreSlugs?.includes(genre as any)
+    const filtered = games.filter((game: any) =>
+      game.genreSlugs?.includes(genre as any)
     );
 
     const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
 
-    return Array.from({ length: Math.max(totalPages - 1, 0) }, (_, i) => ({
-      url: `${SITE_URL}/genre/${genre}/page/${i + 2}`,
+    return Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => ({
+      url: `${SITE_URL}/genre/${genre}/page/${index + 2}`,
       lastModified: now
     }));
   });
 
   const platformPaginationPages = Object.keys(platforms).flatMap((platform) => {
-    const filtered = games.filter((g: any) =>
-      g.platformSlugs?.includes(platform as any)
+    const filtered = games.filter((game: any) =>
+      game.platformSlugs?.includes(platform as any)
     );
 
     const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
 
-    return Array.from({ length: Math.max(totalPages - 1, 0) }, (_, i) => ({
-      url: `${SITE_URL}/platform/${platform}/page/${i + 2}`,
+    return Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => ({
+      url: `${SITE_URL}/platform/${platform}/page/${index + 2}`,
       lastModified: now
     }));
   });
 
-    const allGamesTotalPages = Math.ceil(games.length / PAGE_SIZE);
+  const allGamesTotalPages = Math.ceil(games.length / PAGE_SIZE);
 
   const allGamesPaginationPages = Array.from(
     { length: Math.max(allGamesTotalPages - 1, 0) },
-    (_, i) => ({
-      url: `${SITE_URL}/all-games/page/${i + 2}`,
+    (_, index) => ({
+      url: `${SITE_URL}/all-games/page/${index + 2}`,
+      lastModified: now
+    })
+  );
+
+  const newGames = games.filter((game) => isPast(game.releaseDate));
+  const recentNewGamesCount = getRecentNewGamesCount(newGames);
+  const newGamesTotalPages = Math.ceil(recentNewGamesCount / PAGE_SIZE);
+
+  const newGamesPaginationPages = Array.from(
+    { length: Math.max(newGamesTotalPages - 1, 0) },
+    (_, index) => ({
+      url: `${SITE_URL}/new-games/page/${index + 2}`,
+      lastModified: now
+    })
+  );
+
+  const upcomingGames = games.filter((game) => isFuture(game.releaseDate));
+  const upcomingGamesTotalPages = Math.ceil(upcomingGames.length / PAGE_SIZE);
+
+  const upcomingGamesPaginationPages = Array.from(
+    { length: Math.max(upcomingGamesTotalPages - 1, 0) },
+    (_, index) => ({
+      url: `${SITE_URL}/upcoming-games/page/${index + 2}`,
       lastModified: now
     })
   );
@@ -135,6 +197,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...genrePaginationPages,
     ...platformPaginationPages,
     ...allGamesPaginationPages,
+    ...newGamesPaginationPages,
+    ...upcomingGamesPaginationPages,
     ...gameUrls
   ];
 }

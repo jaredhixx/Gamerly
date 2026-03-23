@@ -59,7 +59,7 @@ export default async function HypePage() {
   return (
     <PageContainer>
       <SectionHeading
-        title="🔥 Gamerly Hype Index"
+        title="Gamerly Hype Index"
         subtitle="A cleaner hype page split into what is hot right now and what players are most likely anticipating next."
       />
 

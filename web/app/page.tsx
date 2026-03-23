@@ -145,16 +145,31 @@ export default async function Home() {
     .sort((a, b) => (b.twitchViewers ?? 0) - (a.twitchViewers ?? 0))
     .slice(0, 20);
 
-  const hypeGames = selectHomepageHypeGames(scoredGames);
+  const liveGameIds = new Set(liveGames.map((game) => game.id));
 
-  const upcomingGames = [...games]
-    .filter((g) => isUpcoming(g.releaseDate))
-    .sort(
-      (a, b) =>
-        new Date(a.releaseDate || "").getTime() -
-        new Date(b.releaseDate || "").getTime()
-    )
-    .slice(0, 24);
+const hypeGames = selectHomepageHypeGames(scoredGames).filter(
+  (game) => !liveGameIds.has(game.id)
+);
+
+const now = new Date().getTime();
+const thirtyDaysFromNow = now + 1000 * 60 * 60 * 24 * 30;
+
+const upcomingGames = [...games]
+  .filter((g) => {
+    if (!g.releaseDate) return false;
+
+    const releaseTime = new Date(g.releaseDate).getTime();
+
+    if (Number.isNaN(releaseTime)) return false;
+
+    return releaseTime > now && releaseTime <= thirtyDaysFromNow;
+  })
+  .sort(
+    (a, b) =>
+      new Date(a.releaseDate || "").getTime() -
+      new Date(b.releaseDate || "").getTime()
+  )
+  .slice(0, 24);
 
   const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
   const featuredViewerCount = featuredGame?.twitchViewers ?? 0;
@@ -188,17 +203,17 @@ export default async function Home() {
           </h1>
         </section>
 
-        <FeaturedHero
-          featured={featuredGame}
-          upcoming={upcomingHero}
-          viewerCount={featuredViewerCount}
-        />
+<FeaturedHero
+  featured={featuredGame}
+  upcoming={upcomingHero}
+  viewerCount={featuredViewerCount}
+/>
 
         {hasHypeGames ? (
           <SectionBlock>
             <SectionHeading
-title="🔥 Trending Games Right Now"
-subtitle="The games gaining the most momentum across players, streams, and releases."
+title="Most Anticipated Games"
+subtitle="The upcoming games generating the most excitement right now."
             />
 
             <GameCarousel games={hypeGames} />
@@ -212,8 +227,8 @@ subtitle="The games gaining the most momentum across players, streams, and relea
         {hasLiveGames ? (
           <SectionBlock>
             <SectionHeading
-title="🎥 Most Watched on Twitch"
-subtitle="Games dominating live viewership right now."
+title="Trending Now"
+subtitle="The games drawing the most live attention right now."
             />
 
             <GameCarousel games={liveGames} />
@@ -258,8 +273,8 @@ subtitle="Games dominating live viewership right now."
         {hasUpcomingGames ? (
           <SectionBlock>
             <SectionHeading
-title="📅 Upcoming Releases"
-subtitle="The most anticipated games releasing soon."
+title="Releasing Soon"
+subtitle="Upcoming games arriving in the next 30 days."
             />
             <GameCarousel games={upcomingGames} />
 

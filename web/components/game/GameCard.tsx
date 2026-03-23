@@ -70,6 +70,29 @@ function formatViewerCount(viewers: number) {
   return String(viewers);
 }
 
+function getDaysUntilRelease(date?: string | null): number | null {
+  if (!date) return null;
+
+  const now = new Date().getTime();
+  const release = new Date(date).getTime();
+
+  if (Number.isNaN(release)) return null;
+
+  const diff = release - now;
+
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function getHypeLabel(score?: number | null): string | null {
+  if (!score) return null;
+
+if (score >= 85) return "Highly Anticipated";
+if (score >= 70) return "Trending";
+if (score >= 50) return "Worth Watching";
+
+  return null;
+}
+
 export default function GameCard({ game }: { game: GameWithLive }) {
   const router = useRouter();
   const gameUrl = buildGamePath(game.id, game.slug);
@@ -178,17 +201,45 @@ export default function GameCard({ game }: { game: GameWithLive }) {
             </span>
           )}
 
-          {game.hypeScore && (
-            <div className="gameCardHype">
-              <span className="hypeIcon"></span>
-              <span className="hypeLabel">HYPE</span>
-              <span className="hypeScore">{game.hypeScore}</span>
-            </div>
-          )}
+          {(() => {
+  const days = getDaysUntilRelease(game.releaseDate);
+
+  if (days === null) return null;
+
+  if (days > 0 && days <= 30) {
+    return (
+      <div className="gameCardContext">
+        Releases in {days} day{days === 1 ? "" : "s"}
+      </div>
+    );
+  }
+
+  if (days === 0) {
+    return (
+      <div className="gameCardContext">
+        Releases today
+      </div>
+    );
+  }
+
+  return null;
+})()}
+
+{(() => {
+  const label = getHypeLabel(game.hypeScore);
+
+  if (!label) return null;
+
+  return (
+    <div className="gameCardContext">
+      {label}
+    </div>
+  );
+})()}
 
           {hasLiveViewers && (
   <div className="gameCardLive">
-    🔴 {formatViewerCount(game.twitchViewers!)} watching
+    {formatViewerCount(game.twitchViewers!)} watching
   </div>
 )}
         </div>

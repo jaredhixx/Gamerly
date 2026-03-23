@@ -9,7 +9,7 @@ const primaryLinks = [
   { href: "/upcoming-games", label: "Upcoming" },
   { href: "/games-releasing-this-month", label: "This Month" },
   { href: "/top-rated", label: "Top Rated" },
-  { href: "/hype", label: "🔥 Hype" }
+  { href: "/hype", label: "Hype" }
 ];
 
 const platforms = [

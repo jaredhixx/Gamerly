@@ -36,6 +36,22 @@ function formatReleaseDateForDisplay(game: {
 
 export const revalidate = 3600;
 
+function getPlatformHrefFromSlug(platformSlug?: string | null) {
+  if (!platformSlug) {
+    return null;
+  }
+
+  return `/platform/${platformSlug}`;
+}
+
+function getGenreHrefFromSlug(genreSlug?: string | null) {
+  if (!genreSlug) {
+    return null;
+  }
+
+  return `/genre/${genreSlug}`;
+}
+
 function getPlatformHref(platform: string) {
   const value = platform.toLowerCase();
 
@@ -241,41 +257,45 @@ export default async function GamePage(props: any) {
 
 <div className="gamePills">
 
-  {game.platforms?.slice(0,3).map((platform: string) => {
-    const href = getPlatformHref(platform);
+{game.platforms?.slice(0, 3).map((platform: string, index: number) => {
+  const platformSlug = game.platformSlugs?.[index];
+  const href =
+    getPlatformHrefFromSlug(platformSlug) || getPlatformHref(platform);
 
-    if (!href) {
-      return (
-        <span key={platform} className="gamePill">
-          {platform}
-        </span>
-      );
-    }
-
+  if (!href) {
     return (
-      <Link key={platform} href={href} className="gamePill">
+      <span key={platform} className="gamePill">
         {platform}
-      </Link>
+      </span>
     );
-  })}
+  }
 
-  {game.genres?.slice(0,2).map((genre: string) => {
-    const href = getGenreHref(genre);
+  return (
+    <Link key={platform} href={href} className="gamePill">
+      {platform}
+    </Link>
+  );
+})}
 
-    if (!href) {
-      return (
-        <span key={genre} className="gamePill">
-          {genre}
-        </span>
-      );
-    }
+{game.genres?.slice(0, 2).map((genre: string, index: number) => {
+  const genreSlug = game.genreSlugs?.[index];
+  const href =
+    getGenreHrefFromSlug(genreSlug) || getGenreHref(genre);
 
+  if (!href) {
     return (
-      <Link key={genre} href={href} className="gamePill">
+      <span key={genre} className="gamePill">
         {genre}
-      </Link>
+      </span>
     );
-  })}
+  }
+
+  return (
+    <Link key={genre} href={href} className="gamePill">
+      {genre}
+    </Link>
+  );
+})}
 
 </div>
 
@@ -343,12 +363,16 @@ export default async function GamePage(props: any) {
             />
 
 <div style={{ marginTop: "16px" }}>
-  <Link
-    href={getGenreHref(game.genres[0]) || "/genre"}
-    className="sectionMoreLink"
-  >
-    Browse all {game.genres[0]} games →
-  </Link>
+<Link
+  href={
+    getGenreHrefFromSlug(game.genreSlugs?.[0]) ||
+    getGenreHref(game.genres[0]) ||
+    "/genres"
+  }
+  className="sectionMoreLink"
+>
+  Browse all {game.genres[0]} games →
+</Link>
 </div>
 
           </section>
@@ -378,12 +402,16 @@ export default async function GamePage(props: any) {
             />
 
 <div style={{ marginTop: "16px" }}>
-  <Link
-    href={getPlatformHref(game.platforms[0]) || "/platform"}
-    className="sectionMoreLink"
-  >
-    Browse all {game.platforms[0]} games →
-  </Link>
+<Link
+  href={
+    getPlatformHrefFromSlug(game.platformSlugs?.[0]) ||
+    getPlatformHref(game.platforms[0]) ||
+    "/platforms"
+  }
+  className="sectionMoreLink"
+>
+  Browse all {game.platforms[0]} games →
+</Link>
 </div>
 
           </section>

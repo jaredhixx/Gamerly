@@ -22,12 +22,17 @@ import PlatformStrip from "../components/layout/PlatformStrip";
 
 export const metadata: Metadata = {
   title:
-    "Gamerly | New Video Games, Upcoming Releases, Hype Rankings, and Platform Guides",
+    "Gamerly | Discover New Games, Upcoming Releases, Hype Rankings, and Platform Guides",
   description:
-    "Discover new video games, upcoming releases, hype rankings, platform guides, and live player interest across PC, PlayStation, Xbox, and Nintendo Switch.",
+    "Discover the video games actually worth your time with hype rankings, upcoming releases, platform guides, and curated discovery across PC, PlayStation, Xbox, and Nintendo Switch.",
   alternates: {
     canonical: "https://www.gamerly.net/"
   }
+};
+
+type TwitchStream = {
+  game_name: string;
+  viewer_count: number;
 };
 
 function normalizeTwitchName(name?: string | null): string {
@@ -43,10 +48,7 @@ function normalizeTwitchName(name?: string | null): string {
 }
 
 function buildRoughTwitchMap(
-  streams: Array<{
-    game_name: string;
-    viewer_count: number;
-  }>
+  streams: TwitchStream[]
 ): Record<string, { viewers: number; streams: number }> {
   const twitchMap: Record<string, { viewers: number; streams: number }> = {};
 
@@ -68,8 +70,36 @@ function buildRoughTwitchMap(
   return twitchMap;
 }
 
-function formatCount(value: number) {
+function formatCount(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
+}
+
+function buildUpcomingWindowGames(
+  games: Awaited<ReturnType<typeof fetchGames>>,
+  now: number,
+  daysAhead: number
+) {
+  const endTime = now + 1000 * 60 * 60 * 24 * daysAhead;
+
+  return [...games]
+    .filter((game) => {
+      if (!game.releaseDate) {
+        return false;
+      }
+
+      const releaseTime = new Date(game.releaseDate).getTime();
+
+      if (Number.isNaN(releaseTime)) {
+        return false;
+      }
+
+      return releaseTime > now && releaseTime <= endTime;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.releaseDate || "").getTime() -
+        new Date(b.releaseDate || "").getTime()
+    );
 }
 
 export default async function Home() {
@@ -102,15 +132,13 @@ export default async function Home() {
   const roughFeaturedGame =
     selectHomepageFeaturedGame(roughScoredGames) || roughScoredGames[0];
 
-  const roughLiveGames = [...roughScoredGames]
-    .filter((game) => (game.twitchViewers ?? 0) > 0)
-    .sort((a, b) => (b.twitchViewers ?? 0) - (a.twitchViewers ?? 0))
-    .slice(0, 20);
+  const roughHypeGames = selectHomepageHypeGames(roughScoredGames).slice(0, 12);
 
   const exactTargetNames = [
     ...new Set(
-      [roughFeaturedGame?.name, ...roughLiveGames.slice(0, 8).map((game) => game.name)]
-        .filter((name): name is string => Boolean(name))
+      [roughFeaturedGame?.name, ...roughHypeGames.map((game) => game.name)].filter(
+        (name): name is string => Boolean(name)
+      )
     )
   ];
 
@@ -139,131 +167,70 @@ export default async function Home() {
     };
   });
 
-  const liveGames = [...scoredGames]
-    .filter((game) => (game.twitchViewers ?? 0) > 0)
-    .sort((a, b) => (b.twitchViewers ?? 0) - (a.twitchViewers ?? 0))
-    .slice(0, 20);
-
-  const liveGameIds = new Set(liveGames.map((game) => game.id));
-
-  const hypeGames = selectHomepageHypeGames(scoredGames)
-    .filter((game) => !liveGameIds.has(game.id))
-    .slice(0, 24);
-
-  const now = new Date().getTime();
-  const fourteenDaysFromNow = now + 1000 * 60 * 60 * 24 * 14;
-  const thirtyDaysFromNow = now + 1000 * 60 * 60 * 24 * 30;
-
-  const upcomingGames = [...games]
-    .filter((game) => {
-      if (!game.releaseDate) {
-        return false;
-      }
-
-      const releaseTime = new Date(game.releaseDate).getTime();
-
-      if (Number.isNaN(releaseTime)) {
-        return false;
-      }
-
-      return releaseTime > now && releaseTime <= thirtyDaysFromNow;
-    })
-    .sort(
-      (a, b) =>
-        new Date(a.releaseDate || "").getTime() -
-        new Date(b.releaseDate || "").getTime()
-    )
-    .slice(0, 24);
-
-  const releasingSoonGames = upcomingGames.filter((game) => {
-    if (!game.releaseDate) {
-      return false;
-    }
-
-    const releaseTime = new Date(game.releaseDate).getTime();
-
-    if (Number.isNaN(releaseTime)) {
-      return false;
-    }
-
-    return releaseTime <= fourteenDaysFromNow;
-  });
-
   const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
   const featuredViewerCount = featuredGame?.twitchViewers ?? 0;
+
+  const hypeGames = selectHomepageHypeGames(scoredGames).slice(0, 24);
 
   const upcomingHero =
     selectHomepageUpcomingHero(scoredGames) || scoredGames[1] || scoredGames[0];
 
+  const now = new Date().getTime();
+  const upcomingGames = buildUpcomingWindowGames(games, now, 30).slice(0, 24);
+  const releasingSoonGames = buildUpcomingWindowGames(games, now, 14).slice(0, 24);
+
   const hasHypeGames = hypeGames.length > 0;
-  const hasLiveGames = liveGames.length > 0;
   const hasUpcomingGames = upcomingGames.length > 0;
   const hasReleasingSoonGames = releasingSoonGames.length > 0;
 
   const totalGamesCount = games.length;
-  const liveGamesCount = liveGames.length;
-  const upcomingThirtyDayCount = upcomingGames.length;
+  const trackedLiveSignalCount = scoredGames.filter(
+    (game) => (game.twitchViewers ?? 0) > 0
+  ).length;
+  const upcomingThirtyDayCount = buildUpcomingWindowGames(games, now, 30).length;
 
-  const startHereCards = [
+  const intentCards = [
     {
-      title: "Track what is getting real attention",
+      title: "Most Hyped Games",
       description:
-        "Use the live and hype sections to see which games are pulling players in right now instead of relying on announcement noise.",
+        "Go straight to the strongest momentum on the site when you want to know which games matter most right now.",
       href: "/hype",
       linkLabel: "Open hype rankings"
     },
     {
-      title: "Find the next release worth caring about",
+      title: "Releasing Soon",
       description:
-        "Jump straight into the near-term release window to avoid wading through distant launch dates that do not matter yet.",
+        "See what is actually close to launch so you can decide what to play next without digging through distant dates.",
       href: "/upcoming-games",
       linkLabel: "Browse upcoming games"
     },
     {
-      title: "Start from your platform, not from raw data",
+      title: "New Releases",
       description:
-        "Browse by PC, PlayStation, Xbox, or Nintendo Switch to narrow the site into a useful discovery path immediately.",
+        "Catch up on the newest games already out across supported platforms.",
+      href: "/new-games",
+      linkLabel: "View new releases"
+    },
+    {
+      title: "Release Calendar",
+      description:
+        "Plan ahead by month when you want a broader view than a single homepage snapshot.",
+      href: "/releases",
+      linkLabel: "Open release calendar"
+    },
+    {
+      title: "Start With PC",
+      description:
+        "Jump into one of the strongest discovery paths on the site by narrowing the catalog around your platform first.",
       href: "/platform/pc",
-      linkLabel: "Start with platform guides"
-    }
-  ];
-
-  const browseCards = [
-    {
-      title: "New releases",
-      description:
-        "Recently released games across all supported platforms.",
-      href: "/new-games"
+      linkLabel: "Browse PC games"
     },
     {
-      title: "Upcoming releases",
+      title: "Explore Everything",
       description:
-        "Games scheduled to launch soon, with the short window prioritized on the homepage.",
-      href: "/upcoming-games"
-    },
-    {
-      title: "Release calendar",
-      description:
-        "A broader calendar view for users who want to plan ahead by month.",
-      href: "/releases"
-    },
-    {
-      title: "Games this month",
-      description:
-        "A fast path for users who only care about what is arriving soon.",
-      href: "/games-releasing-this-month"
-    },
-    {
-      title: "All games",
-      description:
-        "The full searchable discovery layer for deeper browsing.",
-      href: "/all-games"
-    },
-    {
-      title: "PC games",
-      description:
-        "One of the strongest discovery hubs for long-tail search growth.",
-      href: "/platform/pc"
+        "Open the full index when you want the widest possible view of Gamerly instead of a curated front page.",
+      href: "/all-games",
+      linkLabel: "Browse all games"
     }
   ];
 
@@ -281,102 +248,239 @@ export default async function Home() {
   ];
 
   return (
-    <main style={{ paddingTop: "4px", paddingBottom: "64px" }}>
+    <main style={{ paddingTop: "8px", paddingBottom: "72px" }}>
       <PageContainer>
         <section
-  style={{
-    marginBottom: "20px",
-    display: "grid",
-    gap: "16px"
-  }}
->
-  <div style={{ maxWidth: "760px" }}>
-    <h1
-      style={{
-        margin: 0,
-        fontSize: "clamp(1.8rem, 4vw, 3rem)",
-        lineHeight: 1.1,
-        letterSpacing: "-0.02em",
-        color: "#f5f7fb"
-      }}
-    >
-      Find the games actually worth your time right now.
-    </h1>
+          style={{
+            display: "grid",
+            gap: "18px",
+            marginBottom: "18px"
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              width: "fit-content",
+              maxWidth: "100%",
+              padding: "8px 12px",
+              borderRadius: "999px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))",
+              color: "#c7d0e0",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              letterSpacing: "0.01em"
+            }}
+          >
+            Curated game discovery built to cut through noise
+          </div>
 
-    <p
-      style={{
-        marginTop: "10px",
-        marginBottom: 0,
-        color: "#a7b1c6",
-        fontSize: "1rem",
-        lineHeight: 1.6
-      }}
-    >
-      Ranked using real player activity, hype signals, and release timing so you can decide what to play next.
-    </p>
-  </div>
+          <div
+            style={{
+              display: "grid",
+              gap: "14px",
+              maxWidth: "900px"
+            }}
+          >
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "clamp(2.4rem, 5.4vw, 5rem)",
+                lineHeight: 0.98,
+                letterSpacing: "-0.05em",
+                color: "#f5f7fb",
+                maxWidth: "900px"
+              }}
+            >
+              The fastest way to know what games matter right now.
+            </h1>
 
-  <div
-    style={{
-      display: "flex",
-      flexWrap: "wrap",
-      gap: "10px",
-      marginTop: "6px"
-    }}
-  >
-    <Link
-      href="/hype"
-      style={{
-        padding: "10px 14px",
-        borderRadius: "10px",
-        background: "#6EA8FF",
-        color: "#0B1020",
-        fontWeight: 600,
-        textDecoration: "none"
-      }}
-    >
-      See What’s Trending →
-    </Link>
+            <p
+              style={{
+                margin: 0,
+                color: "#a7b1c6",
+                fontSize: "1.08rem",
+                lineHeight: 1.7,
+                maxWidth: "760px"
+              }}
+            >
+              Gamerly helps you stop guessing what to play next by combining live
+              player activity, hype signals, and release timing across PC,
+              PlayStation, Xbox, and Nintendo Switch.
+            </p>
+          </div>
 
-    <Link
-      href="/upcoming-games"
-      style={{
-        padding: "10px 14px",
-        borderRadius: "10px",
-        border: "1px solid rgba(255,255,255,0.1)",
-        color: "#f5f7fb",
-        textDecoration: "none"
-      }}
-    >
-      What’s Releasing Soon →
-    </Link>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "10px"
+            }}
+          >
+            <Link
+              href="/hype"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                background: "#6EA8FF",
+                color: "#0B1020",
+                fontWeight: 800,
+                textDecoration: "none",
+                boxShadow: "0 10px 30px rgba(110,168,255,0.22)"
+              }}
+            >
+              Explore Hype Rankings →
+            </Link>
 
-    <Link
-      href="/platform/pc"
-      style={{
-        padding: "10px 14px",
-        borderRadius: "10px",
-        border: "1px solid rgba(255,255,255,0.1)",
-        color: "#f5f7fb",
-        textDecoration: "none"
-      }}
-    >
-      Start With Your Platform →
-    </Link>
-  </div>
-</section>
+            <Link
+              href="/upcoming-games"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.03)",
+                color: "#f5f7fb",
+                fontWeight: 700,
+                textDecoration: "none"
+              }}
+            >
+              See What Is Releasing Soon →
+            </Link>
 
-<div
-  style={{
-    marginTop: "4px",
-    marginBottom: "10px",
-    color: "#9aa3b2",
-    fontSize: "0.85rem"
-  }}
->
-  Top game right now based on player activity, hype, and live momentum
-</div>
+            <Link
+              href="/platform/pc"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.03)",
+                color: "#f5f7fb",
+                fontWeight: 700,
+                textDecoration: "none"
+              }}
+            >
+              Start With Your Platform →
+            </Link>
+          </div>
 
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: "12px"
+            }}
+          >
+            <div
+              style={{
+                padding: "14px 16px",
+                borderRadius: "16px",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025))"
+              }}
+            >
+              <div
+                style={{
+                  color: "#f5f7fb",
+                  fontSize: "1.2rem",
+                  fontWeight: 800
+                }}
+              >
+                {formatCount(totalGamesCount)}+
+              </div>
+              <div
+                style={{
+                  marginTop: "4px",
+                  color: "#a7b1c6",
+                  lineHeight: 1.5
+                }}
+              >
+                games tracked across the discovery index
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: "14px 16px",
+                borderRadius: "16px",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025))"
+              }}
+            >
+              <div
+                style={{
+                  color: "#f5f7fb",
+                  fontSize: "1.2rem",
+                  fontWeight: 800
+                }}
+              >
+                {formatCount(upcomingThirtyDayCount)}
+              </div>
+              <div
+                style={{
+                  marginTop: "4px",
+                  color: "#a7b1c6",
+                  lineHeight: 1.5
+                }}
+              >
+                launches scheduled in the next 30 days
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: "14px 16px",
+                borderRadius: "16px",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025))"
+              }}
+            >
+              <div
+                style={{
+                  color: "#f5f7fb",
+                  fontSize: "1.2rem",
+                  fontWeight: 800
+                }}
+              >
+                {formatCount(trackedLiveSignalCount)}
+              </div>
+              <div
+                style={{
+                  marginTop: "4px",
+                  color: "#a7b1c6",
+                  lineHeight: 1.5
+                }}
+              >
+                games showing live momentum signals
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: "-2px",
+              color: "#9aa3b2",
+              fontSize: "0.86rem",
+              lineHeight: 1.6
+            }}
+          >
+            Featured selection is based on momentum, release timing, and player
+            attention instead of raw release lists alone.
+          </div>
+        </section>
 
         <FeaturedHero
           featured={featuredGame}
@@ -384,28 +488,139 @@ export default async function Home() {
           viewerCount={featuredViewerCount}
         />
 
-        {hasHypeGames ? (
-          <SectionBlock>
-            <SectionHeading
-              title="Most Anticipated Games"
-              subtitle="These are the upcoming games building the strongest mix of player interest, rating strength, release proximity, and live momentum."
-            />
-
-            <GameCarousel games={hypeGames} />
-
-            <div className="sectionMoreLink">
-              <Link href="/hype">Browse all hyped games →</Link>
-            </div>
-          </SectionBlock>
-        ) : null}
-
         <div hidden aria-hidden="true" data-ad-slot="home-top-leaderboard" />
+
+{hasHypeGames ? (
+  <SectionBlock>
+    <SectionHeading
+      title="Most Hyped Games"
+      subtitle="These are the games building the strongest mix of player attention, release proximity, rating strength, and momentum."
+    />
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1.35fr 1fr 1fr",
+        gap: "14px",
+        marginBottom: "18px"
+      }}
+    >
+      <div
+        style={{
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: "18px",
+          background:
+            "linear-gradient(180deg, rgba(110,168,255,0.12), rgba(255,255,255,0.03))",
+          padding: "18px"
+        }}
+      >
+        <div
+          style={{
+            color: "#8bb9ff",
+            fontWeight: 800,
+            marginBottom: "6px",
+            letterSpacing: "0.02em",
+            fontSize: "0.84rem"
+          }}
+        >
+          WHY THIS MATTERS
+        </div>
+
+        <div
+          style={{
+            color: "#f5f7fb",
+            fontWeight: 700,
+            lineHeight: 1.5,
+            fontSize: "1.05rem"
+          }}
+        >
+          This is the fastest way to know which games actually matter right now.
+        </div>
+
+        <div
+          style={{
+            marginTop: "8px",
+            color: "#a7b1c6",
+            lineHeight: 1.6
+          }}
+        >
+          It cuts through generic release lists and surfaces real momentum using
+          live player activity, release timing, and broader attention signals.
+        </div>
+      </div>
+
+      <div
+        style={{
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "16px",
+          background: "rgba(255,255,255,0.03)",
+          padding: "16px"
+        }}
+      >
+        <div
+          style={{
+            color: "#f5f7fb",
+            fontWeight: 700,
+            marginBottom: "6px"
+          }}
+        >
+          What drives rank
+        </div>
+
+        <div
+          style={{
+            color: "#a7b1c6",
+            lineHeight: 1.6
+          }}
+        >
+          Live activity, release timing, rating strength, and broader attention
+          signals are combined instead of relying on one weak metric.
+        </div>
+      </div>
+
+      <div
+        style={{
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "16px",
+          background: "rgba(255,255,255,0.03)",
+          padding: "16px"
+        }}
+      >
+        <div
+          style={{
+            color: "#f5f7fb",
+            fontWeight: 700,
+            marginBottom: "6px"
+          }}
+        >
+          When to use it
+        </div>
+
+        <div
+          style={{
+            color: "#a7b1c6",
+            lineHeight: 1.6
+          }}
+        >
+          Use this when you want one fast answer: what games are worth paying
+          attention to right now.
+        </div>
+      </div>
+    </div>
+
+    <GameCarousel games={hypeGames} />
+
+    <div className="sectionMoreLink">
+      <Link href="/hype">Browse all hype rankings →</Link>
+    </div>
+  </SectionBlock>
+) : null}
 
         {hasReleasingSoonGames ? (
           <SectionBlock>
             <SectionHeading
               title="Releasing Soon"
-              subtitle="The most immediate launch window on the site. These games are scheduled to arrive within the next 14 days."
+              subtitle="These are the launches closest to release when you are deciding what to play next, not just what to watch."
             />
 
             <GameCarousel games={releasingSoonGames} />
@@ -418,7 +633,7 @@ export default async function Home() {
           <SectionBlock>
             <SectionHeading
               title="Upcoming Releases"
-              subtitle="The next wave of games scheduled to launch within the next 30 days."
+              subtitle="The next wave of scheduled launches across Gamerly in the next 30 days."
             />
 
             <GameCarousel games={upcomingGames} />
@@ -431,35 +646,37 @@ export default async function Home() {
 
         <SectionBlock>
           <SectionHeading
-            title="Browse Gamerly by Intent"
-            subtitle="These links are organized around what users usually want to do next, not around filler homepage sections."
+            title="Choose Your Discovery Path"
+            subtitle="Start from the intent that matches what you want to do next instead of bouncing between generic homepage sections."
           />
 
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
               gap: "16px"
             }}
           >
-            {browseCards.map((card) => (
+            {intentCards.map((card) => (
               <Link
                 key={card.title}
                 href={card.href}
                 style={{
                   display: "block",
                   border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "16px",
-                  background: "rgba(255,255,255,0.03)",
+                  borderRadius: "18px",
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.025))",
                   padding: "18px",
-                  textDecoration: "none"
+                  textDecoration: "none",
+                  transition: "transform 160ms ease, border-color 160ms ease"
                 }}
               >
                 <div
                   style={{
                     color: "#f5f7fb",
-                    fontSize: "1.02rem",
-                    fontWeight: 700,
+                    fontSize: "1.04rem",
+                    fontWeight: 800,
                     lineHeight: 1.35
                   }}
                 >
@@ -470,13 +687,21 @@ export default async function Home() {
                   style={{
                     marginTop: "8px",
                     color: "#a7b1c6",
-                    lineHeight: 1.6
+                    lineHeight: 1.65
                   }}
                 >
                   {card.description}
                 </div>
 
-                <div style={{ marginTop: "14px" }}>{card.title} →</div>
+                <div
+                  style={{
+                    marginTop: "14px",
+                    color: "#8bb9ff",
+                    fontWeight: 700
+                  }}
+                >
+                  {card.linkLabel} →
+                </div>
               </Link>
             ))}
           </div>
@@ -491,7 +716,7 @@ export default async function Home() {
         <SectionBlock>
           <SectionHeading
             title="Browse by Platform"
-            subtitle="Start from the hardware you actually play on and narrow the site into a more useful discovery path immediately."
+            subtitle="Start from the system you actually play on so the site becomes useful immediately."
           />
           <PlatformStrip />
         </SectionBlock>
@@ -499,7 +724,7 @@ export default async function Home() {
         <SectionBlock>
           <SectionHeading
             title="Browse by Genre"
-            subtitle="Jump straight into high-intent genre paths that can scale into stronger discovery hubs over time."
+            subtitle="Jump straight into the type of game you want when you know the lane, but not the title."
           />
 
           <div className="genreGrid">
@@ -514,8 +739,7 @@ export default async function Home() {
             <Link href="/platform/switch">Nintendo Switch Games</Link>
           </div>
         </SectionBlock>
-
-       </PageContainer>
+      </PageContainer>
     </main>
   );
 }

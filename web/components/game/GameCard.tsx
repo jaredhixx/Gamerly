@@ -201,46 +201,52 @@ export default function GameCard({ game }: { game: GameWithLive }) {
             </span>
           )}
 
-          {(() => {
-  const days = getDaysUntilRelease(game.releaseDate);
-
-  if (days === null) return null;
-
-  if (days > 0 && days <= 30) {
-    return (
-      <div className="gameCardContext">
-        Releases in {days} day{days === 1 ? "" : "s"}
-      </div>
-    );
-  }
-
-  if (days === 0) {
-    return (
-      <div className="gameCardContext">
-        Releases today
-      </div>
-    );
-  }
-
-  return null;
-})()}
-
 {(() => {
+  const days = getDaysUntilRelease(game.releaseDate);
   const label = getHypeLabel(game.hypeScore);
 
-  if (!label) return null;
+  if (!days && !label) return null;
+
+  let text = "";
+
+  if (label && days !== null && days > 0 && days <= 30) {
+    text = `${label} • ${days === 0 ? "Releases today" : `Releases in ${days} day${days === 1 ? "" : "s"}`}`;
+  } else if (label) {
+    text = label;
+  } else if (days !== null) {
+    if (days === 0) text = "Releases today";
+    else if (days > 0 && days <= 30) {
+      text = `Releases in ${days} day${days === 1 ? "" : "s"}`;
+    }
+  }
+
+  if (!text) return null;
 
   return (
-    <div className="gameCardContext">
-      {label}
+    <div
+      style={{
+        marginTop: "6px",
+        fontSize: "0.85rem",
+        fontWeight: 700,
+        color: "#8bb9ff"
+      }}
+    >
+      {text}
     </div>
   );
 })()}
 
           {hasLiveViewers && (
-  <div className="gameCardLive">
-    {formatViewerCount(game.twitchViewers!)} watching
-  </div>
+<div
+  className="gameCardLive"
+  style={{
+    marginTop: "6px",
+    fontWeight: 700,
+    color: "#f5f7fb"
+  }}
+>
+  🔴 {formatViewerCount(game.twitchViewers!)} watching
+</div>
 )}
         </div>
       </article>

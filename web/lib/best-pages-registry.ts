@@ -333,29 +333,133 @@ export const bestPagesRegistry: BestPageRegistryEntry[] = [
   },
   {
     type: "genre-platform-year",
-    slug: "best-rpg-games-pc-2025",
-    canonicalPath: "/best-rpg-games-pc-2025",
-    genreSlug: "rpg",
+    slug: "best-shooter-games-pc-2025",
+    canonicalPath: "/best-shooter-games-pc-2025",
+    genreSlug: "shooter",
     platformSlug: "pc",
     year: 2025,
     pageTitle:
-      bestGenrePlatformGamesByYearContent.pc.rpg[2025].pageTitle,
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].pageTitle,
     pageSubtitle:
-      bestGenrePlatformGamesByYearContent.pc.rpg[2025].pageSubtitle,
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].pageSubtitle,
     description:
-      bestGenrePlatformGamesByYearContent.pc.rpg[2025].description,
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].description,
     introParagraphOne:
-      bestGenrePlatformGamesByYearContent.pc.rpg[2025].introParagraphOne,
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].introParagraphOne,
     introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.pc.rpg[2025].introParagraphTwo,
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].introParagraphTwo,
     exploreHeading:
-      bestGenrePlatformGamesByYearContent.pc.rpg[2025].exploreHeading,
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].exploreHeading,
     topSectionHeading:
-      bestGenrePlatformGamesByYearContent.pc.rpg[2025].topSectionHeading,
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].topSectionHeading,
     topSectionIntro:
-      bestGenrePlatformGamesByYearContent.pc.rpg[2025].topSectionIntro,
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].topSectionIntro,
     fullListHeading:
-      bestGenrePlatformGamesByYearContent.pc.rpg[2025].fullListHeading
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].fullListHeading
+  },
+  {
+    type: "genre-platform-year",
+    slug: "best-strategy-games-pc-2025",
+    canonicalPath: "/best-strategy-games-pc-2025",
+    genreSlug: "strategy",
+    platformSlug: "pc",
+    year: 2025,
+    pageTitle:
+      bestGenrePlatformGamesByYearContent.pc.strategy[2025].pageTitle,
+    pageSubtitle:
+      bestGenrePlatformGamesByYearContent.pc.strategy[2025].pageSubtitle,
+    description:
+      bestGenrePlatformGamesByYearContent.pc.strategy[2025].description,
+    introParagraphOne:
+      bestGenrePlatformGamesByYearContent.pc.strategy[2025].introParagraphOne,
+    introParagraphTwo:
+      bestGenrePlatformGamesByYearContent.pc.strategy[2025].introParagraphTwo,
+    exploreHeading:
+      bestGenrePlatformGamesByYearContent.pc.strategy[2025].exploreHeading,
+    topSectionHeading:
+      bestGenrePlatformGamesByYearContent.pc.strategy[2025].topSectionHeading,
+    topSectionIntro:
+      bestGenrePlatformGamesByYearContent.pc.strategy[2025].topSectionIntro,
+    fullListHeading:
+      bestGenrePlatformGamesByYearContent.pc.strategy[2025].fullListHeading
+  },
+  {
+    type: "genre-platform-year",
+    slug: "best-adventure-games-pc-2025",
+    canonicalPath: "/best-adventure-games-pc-2025",
+    genreSlug: "adventure",
+    platformSlug: "pc",
+    year: 2025,
+    pageTitle:
+      bestGenrePlatformGamesByYearContent.pc.adventure[2025].pageTitle,
+    pageSubtitle:
+      bestGenrePlatformGamesByYearContent.pc.adventure[2025].pageSubtitle,
+    description:
+      bestGenrePlatformGamesByYearContent.pc.adventure[2025].description,
+    introParagraphOne:
+      bestGenrePlatformGamesByYearContent.pc.adventure[2025].introParagraphOne,
+    introParagraphTwo:
+      bestGenrePlatformGamesByYearContent.pc.adventure[2025].introParagraphTwo,
+    exploreHeading:
+      bestGenrePlatformGamesByYearContent.pc.adventure[2025].exploreHeading,
+    topSectionHeading:
+      bestGenrePlatformGamesByYearContent.pc.adventure[2025].topSectionHeading,
+    topSectionIntro:
+      bestGenrePlatformGamesByYearContent.pc.adventure[2025].topSectionIntro,
+    fullListHeading:
+      bestGenrePlatformGamesByYearContent.pc.adventure[2025].fullListHeading
+  },
+  {
+    type: "genre-platform-year",
+    slug: "best-simulation-games-pc-2025",
+    canonicalPath: "/best-simulation-games-pc-2025",
+    genreSlug: "simulation",
+    platformSlug: "pc",
+    year: 2025,
+    pageTitle:
+      bestGenrePlatformGamesByYearContent.pc.simulation[2025].pageTitle,
+    pageSubtitle:
+      bestGenrePlatformGamesByYearContent.pc.simulation[2025].pageSubtitle,
+    description:
+      bestGenrePlatformGamesByYearContent.pc.simulation[2025].description,
+    introParagraphOne:
+      bestGenrePlatformGamesByYearContent.pc.simulation[2025].introParagraphOne,
+    introParagraphTwo:
+      bestGenrePlatformGamesByYearContent.pc.simulation[2025].introParagraphTwo,
+    exploreHeading:
+      bestGenrePlatformGamesByYearContent.pc.simulation[2025].exploreHeading,
+    topSectionHeading:
+      bestGenrePlatformGamesByYearContent.pc.simulation[2025].topSectionHeading,
+    topSectionIntro:
+      bestGenrePlatformGamesByYearContent.pc.simulation[2025].topSectionIntro,
+    fullListHeading:
+      bestGenrePlatformGamesByYearContent.pc.simulation[2025].fullListHeading
+  },
+  {
+    type: "genre-platform-year",
+    slug: "best-indie-games-pc-2025",
+    canonicalPath: "/best-indie-games-pc-2025",
+    genreSlug: "indie",
+    platformSlug: "pc",
+    year: 2025,
+    pageTitle:
+      bestGenrePlatformGamesByYearContent.pc.indie[2025].pageTitle,
+    pageSubtitle:
+      bestGenrePlatformGamesByYearContent.pc.indie[2025].pageSubtitle,
+    description:
+      bestGenrePlatformGamesByYearContent.pc.indie[2025].description,
+    introParagraphOne:
+      bestGenrePlatformGamesByYearContent.pc.indie[2025].introParagraphOne,
+    introParagraphTwo:
+      bestGenrePlatformGamesByYearContent.pc.indie[2025].introParagraphTwo,
+    exploreHeading:
+      bestGenrePlatformGamesByYearContent.pc.indie[2025].exploreHeading,
+    topSectionHeading:
+      bestGenrePlatformGamesByYearContent.pc.indie[2025].topSectionHeading,
+    topSectionIntro:
+      bestGenrePlatformGamesByYearContent.pc.indie[2025].topSectionIntro,
+    fullListHeading:
+      bestGenrePlatformGamesByYearContent.pc.indie[2025].fullListHeading
   },
   {
     type: "genre-platform-year",

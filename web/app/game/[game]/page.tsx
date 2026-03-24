@@ -36,6 +36,20 @@ function formatReleaseDateForDisplay(game: {
 
 export const revalidate = 3600;
 
+function isReleasedGame(game: { releaseDate?: string | null }) {
+  if (!game.releaseDate) {
+    return false;
+  }
+
+  const releaseDate = new Date(game.releaseDate);
+
+  if (Number.isNaN(releaseDate.getTime())) {
+    return false;
+  }
+
+  return releaseDate.getTime() <= Date.now();
+}
+
 function getPlatformHrefFromSlug(platformSlug?: string | null) {
   if (!platformSlug) {
     return null;
@@ -356,6 +370,7 @@ export default async function GamePage(props: any) {
                 .filter(
                   (g) =>
                     g.id !== game.id &&
+                    isReleasedGame(g) &&
                     g.genres &&
                     g.genres.some((genre: string) => game.genres.includes(genre))
                 )
@@ -395,6 +410,7 @@ export default async function GamePage(props: any) {
                 .filter(
                   (g) =>
                     g.id !== game.id &&
+                    isReleasedGame(g) &&
                     g.platforms &&
                     g.platforms.includes(game.platforms[0])
                 )

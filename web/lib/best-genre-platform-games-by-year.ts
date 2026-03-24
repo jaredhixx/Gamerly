@@ -35,6 +35,82 @@ export const bestGenrePlatformGamesByYearContent = {
           "These are the standout shooter games released on PC in 2025 based on quality and popularity signals.",
         fullListHeading: "Full List of Best Shooter Games on PC in 2025"
       }
+    },
+
+    strategy: {
+      2025: {
+        pageTitle: "Best Strategy Games on PC in 2025",
+        pageSubtitle:
+          "Top-rated strategy games released in 2025 on PC, ranked by quality and popularity.",
+        description:
+          "Discover the best strategy games on PC in 2025, including the top RTS and turn-based strategy games released this year.",
+        introParagraphOne:
+          "The best strategy games on PC in 2025 include the strongest real-time and turn-based strategy releases available this year, from large-scale war simulations to tactical decision-focused experiences.",
+        introParagraphTwo:
+          "If you want to find the most worth-playing strategy games on PC released in 2025, this page highlights the top options based on review scores and player interest.",
+        exploreHeading: "Explore More PC Strategy Pages",
+        topSectionHeading: "Top Strategy Games Released on PC in 2025",
+        topSectionIntro:
+          "These are the standout strategy games released on PC in 2025 based on quality and popularity signals.",
+        fullListHeading: "Full List of Best Strategy Games on PC in 2025"
+      }
+    },
+
+    adventure: {
+      2025: {
+        pageTitle: "Best Adventure Games on PC in 2025",
+        pageSubtitle:
+          "Top-rated adventure games released in 2025 on PC, ranked by quality and popularity.",
+        description:
+          "Discover the best adventure games on PC in 2025, including the top story-driven and exploration-focused titles released this year.",
+        introParagraphOne:
+          "The best adventure games on PC in 2025 include the strongest narrative-driven and exploration-focused releases available this year, from cinematic experiences to open-ended journeys.",
+        introParagraphTwo:
+          "If you want to find the most worth-playing adventure games on PC released in 2025, this page highlights the top options based on review scores and player interest.",
+        exploreHeading: "Explore More PC Adventure Pages",
+        topSectionHeading: "Top Adventure Games Released on PC in 2025",
+        topSectionIntro:
+          "These are the standout adventure games released on PC in 2025 based on quality and popularity signals.",
+        fullListHeading: "Full List of Best Adventure Games on PC in 2025"
+      }
+    },
+
+    simulation: {
+      2025: {
+        pageTitle: "Best Simulation Games on PC in 2025",
+        pageSubtitle:
+          "Top-rated simulation games released in 2025 on PC, ranked by quality and popularity.",
+        description:
+          "Discover the best simulation games on PC in 2025, including the top simulation experiences released this year.",
+        introParagraphOne:
+          "The best simulation games on PC in 2025 include the strongest simulation releases available this year, from life sims to highly detailed system-driven experiences.",
+        introParagraphTwo:
+          "If you want to find the most worth-playing simulation games on PC released in 2025, this page highlights the top options based on review scores and player interest.",
+        exploreHeading: "Explore More PC Simulation Pages",
+        topSectionHeading: "Top Simulation Games Released on PC in 2025",
+        topSectionIntro:
+          "These are the standout simulation games released on PC in 2025 based on quality and popularity signals.",
+        fullListHeading: "Full List of Best Simulation Games on PC in 2025"
+      }
+    },
+
+    indie: {
+      2025: {
+        pageTitle: "Best Indie Games on PC in 2025",
+        pageSubtitle:
+          "Top-rated indie games released in 2025 on PC, ranked by quality and popularity.",
+        description:
+          "Discover the best indie games on PC in 2025, including the top independent titles released this year.",
+        introParagraphOne:
+          "The best indie games on PC in 2025 include the strongest independently developed releases available this year, from innovative mechanics to critically acclaimed smaller projects.",
+        introParagraphTwo:
+          "If you want to find the most worth-playing indie games on PC released in 2025, this page highlights the top options based on review scores and player interest.",
+        exploreHeading: "Explore More PC Indie Pages",
+        topSectionHeading: "Top Indie Games Released on PC in 2025",
+        topSectionIntro:
+          "These are the standout indie games released on PC in 2025 based on quality and popularity signals.",
+        fullListHeading: "Full List of Best Indie Games on PC in 2025"
+      }
     }
   }
 } as const;

@@ -214,6 +214,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...newGamesPaginationPages,
 ...upcomingGamesPaginationPages,
 
+// BEST GENRE PAGES (NEW)
+...genreSlugs.map((genre) => ({
+  url: `${SITE_URL}/best-${genre}-games`,
+  lastModified: now
+})),
+
 ...Object.keys(platforms)
   .filter((platform) => platform !== "ios" && platform !== "android")
   .flatMap((platform) =>

@@ -212,7 +212,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...platformPaginationPages,
     ...allGamesPaginationPages,
     ...newGamesPaginationPages,
-    ...upcomingGamesPaginationPages,
-    ...gameUrls
+...upcomingGamesPaginationPages,
+
+{
+  url: `${SITE_URL}/platform/pc/rpg`,
+  lastModified: now
+},
+{
+  url: `${SITE_URL}/platform/pc/shooter`,
+  lastModified: now
+},
+{
+  url: `${SITE_URL}/platform/pc/strategy`,
+  lastModified: now
+},
+{
+  url: `${SITE_URL}/platform/pc/adventure`,
+  lastModified: now
+},
+{
+  url: `${SITE_URL}/platform/pc/indie`,
+  lastModified: now
+},
+{
+  url: `${SITE_URL}/platform/pc/simulation`,
+  lastModified: now
+},
+
+...gameUrls
   ];
 }

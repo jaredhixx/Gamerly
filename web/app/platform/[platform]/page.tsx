@@ -360,25 +360,90 @@ export default async function PlatformPage(props: any) {
           Popular {platformLabel} Genres
         </h2>
 
+<p
+  style={{
+    fontSize: "14px",
+    lineHeight: 1.7,
+    color: "#8f99ad",
+    marginBottom: "12px"
+  }}
+>
+  Looking for something specific? Explore{" "}
+  <Link
+    href={`/platform/${platformConfig.slug}/rpg`}
+    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
+  >
+    RPG games on {platformLabel}
+  </Link>
+  ,{" "}
+  <Link
+    href={`/platform/${platformConfig.slug}/shooter`}
+    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
+  >
+    shooter games on {platformLabel}
+  </Link>
+  ,{" "}
+  <Link
+    href={`/platform/${platformConfig.slug}/strategy`}
+    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
+  >
+    strategy games on {platformLabel}
+  </Link>
+  ,{" "}
+  <Link
+    href={`/platform/${platformConfig.slug}/adventure`}
+    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
+  >
+    adventure games on {platformLabel}
+  </Link>
+  ,{" "}
+  <Link
+    href={`/platform/${platformConfig.slug}/indie`}
+    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
+  >
+    indie games on {platformLabel}
+  </Link>
+  , and{" "}
+  <Link
+    href={`/platform/${platformConfig.slug}/simulation`}
+    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
+  >
+    simulation games on {platformLabel}
+  </Link>
+  .
+</p>
+
         <ul style={{ lineHeight: "32px", marginBottom: "28px" }}>
-          <li>
-            <Link href="/genre/rpg">{platformLabel} RPG Games</Link>
-          </li>
-          <li>
-            <Link href="/genre/shooter">{platformLabel} Shooter Games</Link>
-          </li>
-          <li>
-            <Link href="/genre/strategy">{platformLabel} Strategy Games</Link>
-          </li>
-          <li>
-            <Link href="/genre/adventure">{platformLabel} Adventure Games</Link>
-          </li>
-          <li>
-            <Link href="/genre/indie">{platformLabel} Indie Games</Link>
-          </li>
-          <li>
-            <Link href="/genre/simulation">{platformLabel} Simulation Games</Link>
-          </li>
+<li>
+  <Link href="/genre/rpg">
+    Best RPG Games on {platformLabel}
+  </Link>
+</li>
+<li>
+  <Link href="/genre/shooter">
+    Best Shooter Games on {platformLabel}
+  </Link>
+</li>
+<li>
+  <Link href="/genre/strategy">
+    Best Strategy Games on {platformLabel}
+  </Link>
+</li>
+<li>
+  <Link href="/genre/adventure">
+    Best Adventure Games on {platformLabel}
+  </Link>
+</li>
+<li>
+  <Link href="/genre/indie">
+    Best Indie Games on {platformLabel}
+  </Link>
+</li>
+<li>
+  <Link href="/genre/simulation">
+    Best Simulation Games on {platformLabel}
+  </Link>
+</li>
         </ul>
 
         <div

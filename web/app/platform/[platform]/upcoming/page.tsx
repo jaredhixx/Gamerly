@@ -81,18 +81,67 @@ export default async function PlatformUpcomingPage(props: any) {
         Upcoming {platformLabel} Games
       </h1>
 
-      <p
+      <p style={{ color: "#A7B1C6", marginBottom: "20px", maxWidth: "800px" }}>
+        Discover upcoming {platformLabel.toLowerCase()} games scheduled for release, including highly anticipated titles and new releases coming soon. 
+        This page helps you track what is launching next across the {platformLabel.toLowerCase()} platform.
+      </p>
+
+      <section
         style={{
-          fontSize: "16px",
-          lineHeight: 1.7,
-          color: "#b8c0d4",
-          maxWidth: "800px",
-          marginBottom: "12px"
+          marginBottom: "28px",
+          padding: "18px",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "16px",
+          background: "rgba(255,255,255,0.02)"
         }}
       >
-        Browse upcoming {platformLabel.toLowerCase()} games sorted by release
-        date so you can see what is launching next.
-      </p>
+        <h2
+          style={{
+            fontSize: "20px",
+            fontWeight: 700,
+            marginBottom: "10px"
+          }}
+        >
+          Upcoming {platformLabel} Release Calendar
+        </h2>
+
+        <p
+          style={{
+            fontSize: "15px",
+            lineHeight: 1.7,
+            color: "#b8c0d4",
+            marginBottom: "10px"
+          }}
+        >
+          This page tracks upcoming {platformLabel.toLowerCase()} games by release
+          date so you can quickly see what is coming next. It is designed to help
+          you follow announced launches, plan what to play, and keep up with the
+          biggest releases still on the way.
+        </p>
+
+        <p
+          style={{
+            fontSize: "14px",
+            lineHeight: 1.7,
+            color: "#8f99ad",
+            marginBottom: 0
+          }}
+        >
+          You can also explore{" "}
+          <Link href={`/platform/${platformConfig.slug}`}>
+            all {platformLabel.toLowerCase()} games
+          </Link>
+          ,{" "}
+          <Link href={`/platform/${platformConfig.slug}/new`}>
+            new releases
+          </Link>
+          ,{" "}
+          <Link href={`/platform/${platformConfig.slug}/top-rated`}>
+            top rated games
+          </Link>
+          , and the genre links below to narrow the list further.
+        </p>
+      </section>
 
       <p
         style={{
@@ -126,9 +175,9 @@ export default async function PlatformUpcomingPage(props: any) {
             marginBottom: "16px"
           }}
         >
-          Explore more ways to browse {platformLabel.toLowerCase()} games, including
-          the main platform hub, newly released games, top rated titles, and genre
-          pages.
+          Explore more {platformLabel.toLowerCase()} game pages, including the
+          main {platformLabel.toLowerCase()} games hub, new {platformLabel.toLowerCase()} games,
+          top rated {platformLabel.toLowerCase()} games, and {platformLabel.toLowerCase()} genre pages.
         </p>
 
         <ul
@@ -235,7 +284,27 @@ export default async function PlatformUpcomingPage(props: any) {
         </div>
       </section>
 
-      <GameGrid games={upcoming.slice(0, 120)} />
+      <section style={{ marginBottom: "28px" }}>
+        <h2 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "16px" }}>
+          Next {platformLabel} Games Releasing Soon
+        </h2>
+
+        <GameGrid games={upcoming.slice(0, 6)} />
+      </section>
+
+      <section>
+        <h2
+          style={{
+            fontSize: "24px",
+            fontWeight: 700,
+            marginBottom: "16px"
+          }}
+        >
+          Full Upcoming {platformLabel} Games List
+        </h2>
+
+        <GameGrid games={upcoming.slice(0, 120)} />
+      </section>
     </main>
   );
 }

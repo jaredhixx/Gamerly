@@ -368,7 +368,8 @@ export default async function PlatformPage(props: any) {
     marginBottom: "12px"
   }}
 >
-  Looking for something specific? Explore{" "}
+  Explore {platformLabel} games by genre to find the best titles based on
+  what you actually want to play, whether that is{" "}
   <Link
     href={`/platform/${platformConfig.slug}/rpg`}
     style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
@@ -414,36 +415,36 @@ export default async function PlatformPage(props: any) {
 </p>
 
         <ul style={{ lineHeight: "32px", marginBottom: "28px" }}>
-<li>
-  <Link href="/genre/rpg">
-    Best RPG Games on {platformLabel}
-  </Link>
-</li>
-<li>
-  <Link href="/genre/shooter">
-    Best Shooter Games on {platformLabel}
-  </Link>
-</li>
-<li>
-  <Link href="/genre/strategy">
-    Best Strategy Games on {platformLabel}
-  </Link>
-</li>
-<li>
-  <Link href="/genre/adventure">
-    Best Adventure Games on {platformLabel}
-  </Link>
-</li>
-<li>
-  <Link href="/genre/indie">
-    Best Indie Games on {platformLabel}
-  </Link>
-</li>
-<li>
-  <Link href="/genre/simulation">
-    Best Simulation Games on {platformLabel}
-  </Link>
-</li>
+          <li>
+            <Link href={`/platform/${platformConfig.slug}/rpg`}>
+              Best RPG Games on {platformLabel}
+            </Link>
+          </li>
+          <li>
+            <Link href={`/platform/${platformConfig.slug}/shooter`}>
+              Best Shooter Games on {platformLabel}
+            </Link>
+          </li>
+          <li>
+            <Link href={`/platform/${platformConfig.slug}/strategy`}>
+              Best Strategy Games on {platformLabel}
+            </Link>
+          </li>
+          <li>
+            <Link href={`/platform/${platformConfig.slug}/adventure`}>
+              Best Adventure Games on {platformLabel}
+            </Link>
+          </li>
+          <li>
+            <Link href={`/platform/${platformConfig.slug}/indie`}>
+              Best Indie Games on {platformLabel}
+            </Link>
+          </li>
+          <li>
+            <Link href={`/platform/${platformConfig.slug}/simulation`}>
+              Best Simulation Games on {platformLabel}
+            </Link>
+          </li>
         </ul>
 
         <div

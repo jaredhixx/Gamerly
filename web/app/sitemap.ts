@@ -214,30 +214,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...newGamesPaginationPages,
 ...upcomingGamesPaginationPages,
 
-{
-  url: `${SITE_URL}/platform/pc/rpg`,
-  lastModified: now
-},
-{
-  url: `${SITE_URL}/platform/pc/shooter`,
-  lastModified: now
-},
-{
-  url: `${SITE_URL}/platform/pc/strategy`,
-  lastModified: now
-},
-{
-  url: `${SITE_URL}/platform/pc/adventure`,
-  lastModified: now
-},
-{
-  url: `${SITE_URL}/platform/pc/indie`,
-  lastModified: now
-},
-{
-  url: `${SITE_URL}/platform/pc/simulation`,
-  lastModified: now
-},
+...Object.keys(platforms)
+  .filter((platform) => platform !== "ios" && platform !== "android")
+  .flatMap((platform) =>
+    Object.keys(genres).map((genre) => ({
+      url: `${SITE_URL}/platform/${platform}/${genre}`,
+      lastModified: now
+    }))
+  ),
 
 ...gameUrls
   ];

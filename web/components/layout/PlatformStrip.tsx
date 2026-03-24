@@ -11,39 +11,35 @@ const platforms = [
 
 const featuredPlatformLinks = [
   { label: "Upcoming PC Games", href: "/platform/pc/upcoming" },
-  { label: "New PC Games", href: "/platform/pc/new" },
   { label: "Top Rated PC Games", href: "/platform/pc/top-rated" },
+  { label: "PC RPG Games", href: "/platform/pc/rpg" },
+  { label: "PC Shooter Games", href: "/platform/pc/shooter" },
+
   {
     label: "Upcoming PlayStation Games",
     href: "/platform/playstation/upcoming"
-  },
-  {
-    label: "New PlayStation Games",
-    href: "/platform/playstation/new"
   },
   {
     label: "Top Rated PlayStation Games",
     href: "/platform/playstation/top-rated"
   },
   {
+    label: "PlayStation RPG Games",
+    href: "/platform/playstation/rpg"
+  },
+
+  {
     label: "Upcoming Xbox Games",
     href: "/platform/xbox/upcoming"
-  },
-  {
-    label: "New Xbox Games",
-    href: "/platform/xbox/new"
   },
   {
     label: "Top Rated Xbox Games",
     href: "/platform/xbox/top-rated"
   },
+
   {
     label: "Upcoming Switch Games",
     href: "/platform/switch/upcoming"
-  },
-  {
-    label: "New Switch Games",
-    href: "/platform/switch/new"
   },
   {
     label: "Top Rated Switch Games",

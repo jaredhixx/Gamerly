@@ -226,6 +226,27 @@ export default async function Home() {
       linkLabel: "Browse PC games"
     },
     {
+  title: "Explore PlayStation",
+  description:
+    "Discover PlayStation games across genres so you can quickly find what is worth playing on your system.",
+  href: "/platform/playstation",
+  linkLabel: "Browse PlayStation games"
+},
+{
+  title: "Explore Xbox",
+  description:
+    "Discover Xbox games across genres so you can quickly find what is worth playing on your system.",
+  href: "/platform/xbox",
+  linkLabel: "Browse Xbox games"
+},
+{
+  title: "Explore Switch",
+  description:
+    "Discover Nintendo Switch games across genres so you can quickly find what is worth playing on your system.",
+  href: "/platform/switch",
+  linkLabel: "Browse Switch games"
+},
+    {
       title: "Explore Everything",
       description:
         "Open the full index when you want the widest possible view of Gamerly instead of a curated front page.",
@@ -234,18 +255,18 @@ export default async function Home() {
     }
   ];
 
-  const genreLinks = [
-    { href: "/genre/rpg", label: "RPG Games" },
-    { href: "/genre/shooter", label: "Shooter Games" },
-    { href: "/genre/strategy", label: "Strategy Games" },
-    { href: "/genre/adventure", label: "Adventure Games" },
-    { href: "/genre/simulation", label: "Simulation Games" },
-    { href: "/genre/puzzle", label: "Puzzle Games" },
-    { href: "/genre/indie", label: "Indie Games" },
-    { href: "/genre/fighting", label: "Fighting Games" },
-    { href: "/genre/racing", label: "Racing Games" },
-    { href: "/genre/sport", label: "Sports Games" }
-  ];
+const genreLinks = [
+  { href: "/platform/pc/rpg", label: "RPG Games on PC" },
+  { href: "/platform/pc/shooter", label: "Shooter Games on PC" },
+  { href: "/platform/pc/strategy", label: "Strategy Games on PC" },
+  { href: "/platform/pc/adventure", label: "Adventure Games on PC" },
+  { href: "/platform/pc/simulation", label: "Simulation Games on PC" },
+  { href: "/platform/pc/puzzle", label: "Puzzle Games on PC" },
+  { href: "/platform/pc/indie", label: "Indie Games on PC" },
+  { href: "/platform/pc/fighting", label: "Fighting Games on PC" },
+  { href: "/platform/pc/racing", label: "Racing Games on PC" },
+  { href: "/platform/pc/sport", label: "Sports Games on PC" }
+];
 
   return (
     <main style={{ paddingTop: "8px", paddingBottom: "72px" }}>
@@ -735,6 +756,7 @@ export default async function Home() {
             ))}
             <Link href="/all-games">All Games</Link>
             <Link href="/platform/playstation">PlayStation Games</Link>
+            <Link href="/platform/playstation/rpg">PlayStation RPG Games</Link>
             <Link href="/platform/xbox">Xbox Games</Link>
             <Link href="/platform/switch">Nintendo Switch Games</Link>
           </div>

@@ -136,54 +136,6 @@ export default async function GenrePage(props: any) {
 >
   Best {name} Games
 </Link>
-
-    <Link
-      href={`/genre/${genre}/top-rated`}
-      style={{
-        display: "block",
-        padding: "14px 16px",
-        borderRadius: "12px",
-        textDecoration: "none",
-        color: "#f5f7fb",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        fontWeight: 600
-      }}
-    >
-      Top Rated {name} Games
-    </Link>
-
-    <Link
-      href={`/genre/${genre}/upcoming`}
-      style={{
-        display: "block",
-        padding: "14px 16px",
-        borderRadius: "12px",
-        textDecoration: "none",
-        color: "#f5f7fb",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        fontWeight: 600
-      }}
-    >
-      Upcoming {name} Games
-    </Link>
-
-    <Link
-      href={`/genre/${genre}/new`}
-      style={{
-        display: "block",
-        padding: "14px 16px",
-        borderRadius: "12px",
-        textDecoration: "none",
-        color: "#f5f7fb",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        fontWeight: 600
-      }}
-    >
-      New {name} Games
-    </Link>
   </div>
 </section>
 

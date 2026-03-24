@@ -241,6 +241,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   lastModified: now
 })),
 
+// BEST PLATFORM YEAR PAGES
+...[ 
+  "/best-pc-games-2025"
+].map((path) => ({
+  url: `${SITE_URL}${path}`,
+  lastModified: now
+})),
+
 ...Object.keys(platforms)
   .filter((platform) => platform !== "ios" && platform !== "android")
   .flatMap((platform) =>

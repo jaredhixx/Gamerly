@@ -3,9 +3,11 @@ import PageContainer from "../layout/PageContainer";
 import SectionHeading from "../ui/SectionHeading";
 import GameGrid from "../game/GameGrid";
 import { fetchGames } from "../../lib/igdb";
+import type { PlatformSlug } from "../../lib/platforms";
 
 type Props = {
   year: number;
+  platformSlug: PlatformSlug;
   pageTitle: string;
   pageSubtitle: string;
   introParagraphOne: string;
@@ -16,8 +18,9 @@ type Props = {
   fullListHeading: string;
 };
 
-export default async function BestGamesByYearPage({
+export default async function BestPlatformGamesByYearPage({
   year,
+  platformSlug,
   pageTitle,
   pageSubtitle,
   introParagraphOne,
@@ -37,8 +40,14 @@ export default async function BestGamesByYearPage({
     const releaseYear = new Date(game.releaseDate).getUTCFullYear();
     const rating = game.aggregated_rating ?? 0;
     const ratingCount = game.aggregated_rating_count ?? 0;
+    const hasPlatform = game.platformSlugs?.includes(platformSlug);
 
-    return releaseYear === year && rating >= 70 && ratingCount >= 1;
+    return (
+      releaseYear === year &&
+      hasPlatform &&
+      rating >= 70 &&
+      ratingCount >= 1
+    );
   });
 
   const sortedGames = [...matchingGames].sort((a, b) => {
@@ -89,31 +98,26 @@ export default async function BestGamesByYearPage({
       <section style={{ marginBottom: "40px" }}>
         <h2>{exploreHeading}</h2>
 
-<ul style={{ paddingLeft: "20px", margin: "16px 0 0" }}>
-  <li>
-    <Link href="/best-pc-games-2025">Browse best PC games of 2025</Link>
-  </li>
-  <li>
-    <Link href="/top-rated">Browse top-rated games across all years</Link>
-  </li>
-  <li>
-    <Link href="/new-games">Browse newly released games</Link>
-  </li>
-  <li>
-    <Link href="/upcoming-games">Browse upcoming games</Link>
-  </li>
-  <li>
-    <Link href="/games-releasing-this-month">
-      See games releasing this month
-    </Link>
-  </li>
-  <li>
-    <Link href="/genres">Browse games by genre</Link>
-  </li>
-  <li>
-    <Link href="/platforms">Browse games by platform</Link>
-  </li>
-</ul>
+        <ul style={{ paddingLeft: "20px", margin: "16px 0 0" }}>
+          <li>
+            <Link href="/platform/pc">Browse all PC games</Link>
+          </li>
+          <li>
+            <Link href="/best-games-2025">Browse best games of 2025</Link>
+          </li>
+          <li>
+            <Link href="/new-games">Browse newly released games</Link>
+          </li>
+          <li>
+            <Link href="/upcoming-games">Browse upcoming games</Link>
+          </li>
+          <li>
+            <Link href="/top-rated">Browse top-rated games across all years</Link>
+          </li>
+          <li>
+            <Link href="/genres">Browse games by genre</Link>
+          </li>
+        </ul>
       </section>
 
       <section style={{ marginBottom: "40px" }}>
@@ -126,7 +130,7 @@ export default async function BestGamesByYearPage({
         {topPicks.length > 0 ? (
           <GameGrid games={topPicks} />
         ) : (
-          <p>No strong ranked games are available for this year yet.</p>
+          <p>No strong ranked platform games are available for this year yet.</p>
         )}
       </section>
 
@@ -136,7 +140,7 @@ export default async function BestGamesByYearPage({
         {fullList.length > 0 ? (
           <GameGrid games={fullList} />
         ) : (
-          <p>No strong ranked games are available for this year yet.</p>
+          <p>No strong ranked platform games are available for this year yet.</p>
         )}
       </section>
     </PageContainer>

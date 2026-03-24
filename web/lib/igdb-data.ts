@@ -757,6 +757,7 @@ async function postIGDB(query: string, token: string) {
 
   const response = await fetch("https://api.igdb.com/v4/games", {
     method: "POST",
+    cache: "no-store",
     headers: {
       "Client-ID": clientId,
       Authorization: `Bearer ${token}`,
@@ -795,26 +796,31 @@ function getEndOfTodayUTC() {
   );
 }
 
+const CATALOG_PAGE_SIZE = 500;
+const CATALOG_MAX_PAGES_PER_WINDOW = 6;
+
 type CatalogWindow = {
   label: string;
   startUnix: number;
   endUnix: number;
   sortDirection: "asc" | "desc";
-  limit: number;
 };
 
-function buildCatalogQuery(window: CatalogWindow) {
+function buildCatalogQuery(
+  window: CatalogWindow,
+  dateField: "first_release_date" | "release_dates.date",
+  offset = 0
+) {
   return `
     fields ${IGDB_GAME_FIELDS};
     where
       name != null &
       cover != null &
-      (
-        (first_release_date >= ${window.startUnix} & first_release_date <= ${window.endUnix}) |
-        (release_dates.date >= ${window.startUnix} & release_dates.date <= ${window.endUnix})
-      );
-    sort first_release_date ${window.sortDirection};
-    limit ${window.limit};
+      ${dateField} >= ${window.startUnix} &
+      ${dateField} <= ${window.endUnix};
+    sort ${dateField} ${window.sortDirection};
+    limit ${CATALOG_PAGE_SIZE};
+    offset ${offset};
   `;
 }
 
@@ -828,36 +834,151 @@ function buildCatalogWindows(): CatalogWindow[] {
       label: "future-near",
       startUnix: tomorrowUnix,
       endUnix: tomorrowUnix + 180 * 86400,
-      sortDirection: "asc",
-      limit: 500
+      sortDirection: "asc"
     },
     {
       label: "future-far",
       startUnix: tomorrowUnix + 181 * 86400,
       endUnix: tomorrowUnix + 365 * 86400,
-      sortDirection: "asc",
-      limit: 500
+      sortDirection: "asc"
     },
     {
-      label: "past-recent",
-      startUnix: todayUnix - 365 * 86400,
+      label: "past-recent-1a-1",
+      startUnix: todayUnix - 30 * 86400,
       endUnix: todayUnix,
-      sortDirection: "desc",
-      limit: 500
+      sortDirection: "desc"
     },
     {
-      label: "past-mid",
-      startUnix: todayUnix - 1095 * 86400,
+      label: "past-recent-1a-2",
+      startUnix: todayUnix - 60 * 86400,
+      endUnix: todayUnix - 31 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-1b-1",
+      startUnix: todayUnix - 90 * 86400,
+      endUnix: todayUnix - 61 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-1b-2",
+      startUnix: todayUnix - 120 * 86400,
+      endUnix: todayUnix - 91 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-2a-1",
+      startUnix: todayUnix - 150 * 86400,
+      endUnix: todayUnix - 121 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-2a-2",
+      startUnix: todayUnix - 180 * 86400,
+      endUnix: todayUnix - 151 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-2b-1",
+      startUnix: todayUnix - 210 * 86400,
+      endUnix: todayUnix - 181 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-2b-2",
+      startUnix: todayUnix - 240 * 86400,
+      endUnix: todayUnix - 211 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-3a-1",
+      startUnix: todayUnix - 270 * 86400,
+      endUnix: todayUnix - 241 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-3a-2",
+      startUnix: todayUnix - 300 * 86400,
+      endUnix: todayUnix - 271 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-3b-1",
+      startUnix: todayUnix - 333 * 86400,
+      endUnix: todayUnix - 301 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-recent-3b-2",
+      startUnix: todayUnix - 365 * 86400,
+      endUnix: todayUnix - 334 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-mid-1a-1a",
+      startUnix: todayUnix - 272 * 86400,
+      endUnix: todayUnix - 241 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-mid-1a-1b",
+      startUnix: todayUnix - 303 * 86400,
+      endUnix: todayUnix - 273 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-mid-1a-2a",
+      startUnix: todayUnix - 334 * 86400,
+      endUnix: todayUnix - 304 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-mid-1a-2b",
+      startUnix: todayUnix - 365 * 86400,
+      endUnix: todayUnix - 335 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-mid-1b-1a-1",
+      startUnix: todayUnix - 411 * 86400,
       endUnix: todayUnix - 366 * 86400,
-      sortDirection: "desc",
-      limit: 500
+      sortDirection: "desc"
     },
     {
-      label: "past-deep",
-      startUnix: todayUnix - 1825 * 86400,
+      label: "past-mid-1b-1a-2",
+      startUnix: todayUnix - 457 * 86400,
+      endUnix: todayUnix - 412 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-mid-1b-1b",
+      startUnix: todayUnix - 548 * 86400,
+      endUnix: todayUnix - 458 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-mid-1b-2",
+      startUnix: todayUnix - 730 * 86400,
+      endUnix: todayUnix - 549 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-mid-2",
+      startUnix: todayUnix - 1095 * 86400,
+      endUnix: todayUnix - 731 * 86400,
+      sortDirection: "desc"
+    },
+    {
+      label: "past-deep-1",
+      startUnix: todayUnix - 1460 * 86400,
       endUnix: todayUnix - 1096 * 86400,
-      sortDirection: "desc",
-      limit: 500
+      sortDirection: "desc"
+    },
+    {
+      label: "past-deep-2",
+      startUnix: todayUnix - 1825 * 86400,
+      endUnix: todayUnix - 1461 * 86400,
+      sortDirection: "desc"
     }
   ];
 }
@@ -869,23 +990,53 @@ async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
 
   for (const window of windows) {
     try {
-      const rawGames = await postIGDB(buildCatalogQuery(window), token);
-      const normalizedGames = rawGames
-        .map(normalizeGame)
-        .filter((game) => game.id && game.name && game.releaseDate);
+      const dateFields: Array<"first_release_date" | "release_dates.date"> = [
+        "first_release_date",
+        "release_dates.date"
+      ];
 
-      for (const game of normalizedGames) {
-        const existing = mergedById.get(game.id);
+      for (const dateField of dateFields) {
+        let hitWindowPageCap = true;
 
-        if (!existing) {
-          mergedById.set(game.id, game);
-          continue;
+        for (let pageIndex = 0; pageIndex < CATALOG_MAX_PAGES_PER_WINDOW; pageIndex += 1) {
+          const offset = pageIndex * CATALOG_PAGE_SIZE;
+          const rawGames = await postIGDB(
+            buildCatalogQuery(window, dateField, offset),
+            token
+          );
+          const normalizedGames = rawGames
+            .map(normalizeGame)
+            .filter((game) => game.id && game.name && game.releaseDate);
+
+          console.log(
+            `[IGDB] Catalog page fetched. window=${window.label} dateField=${dateField} pageIndex=${pageIndex} offset=${offset} raw=${rawGames.length} normalized=${normalizedGames.length}`
+          );
+
+          for (const game of normalizedGames) {
+            const existing = mergedById.get(game.id);
+
+            if (!existing) {
+              mergedById.set(game.id, game);
+              continue;
+            }
+
+            mergedById.set(game.id, mergeGames(existing, game));
+          }
+
+          if (rawGames.length < CATALOG_PAGE_SIZE) {
+            hitWindowPageCap = false;
+            break;
+          }
+
+          await sleep(300);
         }
 
-        mergedById.set(game.id, mergeGames(existing, game));
+        if (hitWindowPageCap) {
+          console.warn(
+            `[IGDB] Catalog window hit page cap. window=${window.label} dateField=${dateField} pageSize=${CATALOG_PAGE_SIZE} maxPages=${CATALOG_MAX_PAGES_PER_WINDOW}`
+          );
+        }
       }
-
-      await sleep(300);
     } catch (error) {
       console.warn(`IGDB catalog window failed: ${window.label}`, error);
       await sleep(500);

@@ -71,8 +71,13 @@ export default async function PlatformTopRatedPage(props: any) {
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
       <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "12px" }}>
-        Top Rated {platformLabel} Games
+        Best {platformLabel} Games
       </h1>
+
+      <p style={{ color: "#A7B1C6", marginBottom: "20px", maxWidth: "800px" }}>
+  Discover the best {platformLabel} games ranked by ratings, popularity, and player interest. 
+  This list highlights the top-rated titles available right now, helping you find the highest quality games worth playing.
+</p>
 
       <section
   style={{
@@ -90,7 +95,7 @@ export default async function PlatformTopRatedPage(props: any) {
       marginBottom: "10px"
     }}
   >
-    Best {platformLabel} Games Right Now
+    How These {platformLabel} Games Are Ranked
   </h2>
 
   <p
@@ -101,10 +106,9 @@ export default async function PlatformTopRatedPage(props: any) {
       marginBottom: "10px"
     }}
   >
-    This page ranks the best {platformLabel.toLowerCase()} games based on
-    aggregated critic scores, player ratings, and overall quality. If you are
-    trying to find what is actually worth playing, this is the fastest way to
-    see the top performing titles.
+    This page ranks {platformLabel.toLowerCase()} games using aggregated critic
+    scores, player ratings, and overall quality signals. It is designed to help
+    you quickly identify which titles stand out most in the current {platformLabel.toLowerCase()} library.
   </p>
 
   <p
@@ -130,19 +134,6 @@ export default async function PlatformTopRatedPage(props: any) {
     , and browse by genre below to narrow the list further.
   </p>
 </section>
-
-      <p
-        style={{
-          fontSize: "16px",
-          lineHeight: 1.7,
-          color: "#b8c0d4",
-          maxWidth: "800px",
-          marginBottom: "12px"
-        }}
-      >
-        Browse the highest rated {platformLabel.toLowerCase()} games ranked by
-        aggregated scores.
-      </p>
 
       <p
         style={{
@@ -176,9 +167,9 @@ export default async function PlatformTopRatedPage(props: any) {
             marginBottom: "16px"
           }}
         >
-          Explore more ways to browse {platformLabel.toLowerCase()} games, including
-          the main platform hub, newly released games, upcoming titles, and genre
-          pages.
+          Explore more {platformLabel.toLowerCase()} game pages, including the
+          main {platformLabel.toLowerCase()} games hub, new {platformLabel.toLowerCase()} games,
+          upcoming {platformLabel.toLowerCase()} games, and {platformLabel.toLowerCase()} genre pages.
         </p>
 
         <ul
@@ -285,7 +276,27 @@ export default async function PlatformTopRatedPage(props: any) {
         </div>
       </section>
 
-      <GameGrid games={topRated.slice(0, 120)} />
+            <section style={{ marginBottom: "28px" }}>
+        <h2 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "16px" }}>
+          Top {platformLabel} Games Right Now
+        </h2>
+
+        <GameGrid games={topRated.slice(0, 6)} />
+      </section>
+
+      <section>
+        <h2
+          style={{
+            fontSize: "24px",
+            fontWeight: 700,
+            marginBottom: "16px"
+          }}
+        >
+          Full {platformLabel} Top Rated List
+        </h2>
+
+        <GameGrid games={topRated.slice(0, 120)} />
+      </section>
     </main>
   );
 }

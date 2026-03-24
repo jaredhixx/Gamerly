@@ -79,6 +79,11 @@ export default async function PlatformNewPage(props: any) {
         New {platformLabel} Games
       </h1>
 
+      <p style={{ color: "#A7B1C6", marginBottom: "20px", maxWidth: "800px" }}>
+        Discover new {platformLabel.toLowerCase()} games recently released, including the latest titles available right now. 
+        This page helps you track what is new, trending, and worth playing across the {platformLabel.toLowerCase()} platform.
+      </p>
+
       <section
   style={{
     marginBottom: "28px",
@@ -137,19 +142,6 @@ export default async function PlatformNewPage(props: any) {
 
       <p
         style={{
-          fontSize: "16px",
-          lineHeight: 1.7,
-          color: "#b8c0d4",
-          maxWidth: "800px",
-          marginBottom: "12px"
-        }}
-      >
-        Browse new {platformLabel.toLowerCase()} game releases sorted by most
-        recent release date.
-      </p>
-
-      <p
-        style={{
           fontSize: "14px",
           lineHeight: 1.7,
           color: "#8f99ad",
@@ -179,8 +171,9 @@ export default async function PlatformNewPage(props: any) {
             maxWidth: "900px"
           }}
         >
-          Browse more {platformLabel.toLowerCase()} game discovery pages to find
-          upcoming releases, top rated titles, genre pages, and the main platform hub.
+          Browse more {platformLabel.toLowerCase()} game pages, including the
+          main {platformLabel.toLowerCase()} games hub, upcoming {platformLabel.toLowerCase()} games,
+          top rated {platformLabel.toLowerCase()} games, and {platformLabel.toLowerCase()} genre pages.
         </p>
 
         <div
@@ -278,7 +271,27 @@ export default async function PlatformNewPage(props: any) {
           ))}
         </div>
       </section>
-            <GameGrid games={newReleases.slice(0, 120)} />
+      <section style={{ marginBottom: "28px" }}>
+        <h2 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "16px" }}>
+          Latest {platformLabel} Releases
+        </h2>
+
+        <GameGrid games={newReleases.slice(0, 6)} />
+      </section>
+
+      <section>
+        <h2
+          style={{
+            fontSize: "24px",
+            fontWeight: 700,
+            marginBottom: "16px"
+          }}
+        >
+          Full New {platformLabel} Games List
+        </h2>
+
+        <GameGrid games={newReleases.slice(0, 120)} />
+      </section>
     </main>
   );
 }

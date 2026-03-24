@@ -21,9 +21,11 @@ export async function generateMetadata(props: any): Promise<Metadata> {
     return { title: "Platform Not Found" };
   }
 
+  const platformLabel = platformConfig.name.replace(" Games", "");
+
   return {
-    title: `${platformConfig.name} Games — Page ${page}`,
-    description: `Browse ${platformConfig.name.toLowerCase()} games including release dates, ratings, screenshots, and more.`,
+    title: `${platformLabel} Games - Page ${page}`,
+    description: `Browse ${platformLabel.toLowerCase()} games including release dates, ratings, screenshots, and more.`,
     alternates: {
       canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}/page/${page}`)
     }
@@ -42,6 +44,8 @@ export default async function PlatformPaginationPage(props: any) {
   if (!platformConfig || !Number.isInteger(page) || page < 2) {
     notFound();
   }
+
+  const platformLabel = platformConfig.name.replace(" Games", "");
 
   const games = await fetchGames();
 
@@ -65,7 +69,7 @@ export default async function PlatformPaginationPage(props: any) {
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
       <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "30px" }}>
-        {platformConfig.name} Games — Page {page}
+        {platformLabel} Games - Page {page}
       </h1>
 
       <GameGrid games={paginated} />

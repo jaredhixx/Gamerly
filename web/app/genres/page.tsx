@@ -22,6 +22,12 @@ const genres = [
   { name: "Sports Games", slug: "sport" }
 ];
 
+const bestYearLinks = [
+  { href: "/best-games-2026", label: "Best Games of 2026" },
+  { href: "/best-games-2025", label: "Best Games of 2025" },
+  { href: "/best-games-2024", label: "Best Games of 2024" }
+];
+
 function isReleased(date?: string | null) {
   if (!date) {
     return false;
@@ -77,9 +83,32 @@ export default async function GenresPage() {
 
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
-      <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "30px" }}>
+      <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "16px" }}>
         Browse Video Games by Genre
       </h1>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "16px",
+          marginBottom: "32px"
+        }}
+      >
+        {bestYearLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            style={{
+              color: "#6aa6ff",
+              textDecoration: "none",
+              fontWeight: 600
+            }}
+          >
+            {link.label} →
+          </Link>
+        ))}
+      </div>
 
       {genres.map((genre) => {
                 const genreGames = getGenrePreviewGames(games, genre.slug);

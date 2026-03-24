@@ -267,6 +267,12 @@ const genreLinks = [
   { href: "/best-sports-games", label: "Best Sports Games" }
 ];
 
+const yearLinks = [
+  { href: "/best-games-2026", label: "Best Games of 2026" },
+  { href: "/best-games-2025", label: "Best Games of 2025" },
+  { href: "/best-games-2024", label: "Best Games of 2024" }
+];
+
   return (
     <main style={{ paddingTop: "8px", paddingBottom: "72px" }}>
       <PageContainer>
@@ -820,12 +826,18 @@ const genreLinks = [
             subtitle="Jump straight into the type of game you want when you know the lane, but not the title."
           />
 
-          <div className="genreGrid">
-            {genreLinks.map((genre) => (
-              <Link key={genre.href} href={genre.href}>
-                {genre.label}
-              </Link>
-            ))}
+<div className="genreGrid">
+  {genreLinks.map((genre) => (
+    <Link key={genre.href} href={genre.href}>
+      {genre.label}
+    </Link>
+  ))}
+
+  {yearLinks.map((year) => (
+    <Link key={year.href} href={year.href}>
+      {year.label}
+    </Link>
+  ))}
             <Link href="/all-games">All Games</Link>
             <Link href="/platform/playstation">PlayStation Games</Link>
             <Link href="/platform/playstation/rpg">PlayStation RPG Games</Link>

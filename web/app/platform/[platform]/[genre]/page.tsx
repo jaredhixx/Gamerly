@@ -210,7 +210,7 @@ export default async function PlatformGenrePage(props: any) {
         </h2>
 
         {filtered.length > 0 ? (
-          <GameGrid games={filtered.slice(0, 60)} />
+          <GameGrid games={filtered.slice(0, 24)} />
         ) : (
           <p
             style={{

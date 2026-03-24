@@ -108,9 +108,9 @@ export default async function GenrePage(props: any) {
           All {name} Games
         </h2>
 
-        <GameGrid games={filtered.slice(0, 60)} />
+        <GameGrid games={filtered.slice(0, 24)} />
 
-        {filtered.length > 60 && (
+        {filtered.length > 24 && (
           <div style={{ marginTop: "24px" }}>
             <Link
               href={`/genre/${genre}/page/2`}
@@ -135,23 +135,112 @@ export default async function GenrePage(props: any) {
             marginBottom: "16px"
           }}
         >
-          Play {name} Games On
+          Browse {name} Games by Platform
         </h2>
 
-        <ul style={{ lineHeight: "32px" }}>
-          <li>
-            <Link href="/platform/pc">PC {name} Games</Link>
-          </li>
-          <li>
-            <Link href="/platform/playstation">PlayStation {name} Games</Link>
-          </li>
-          <li>
-            <Link href="/platform/xbox">Xbox {name} Games</Link>
-          </li>
-          <li>
-            <Link href="/platform/switch">Nintendo Switch {name} Games</Link>
-          </li>
-        </ul>
+        <p
+          style={{
+            fontSize: "14px",
+            lineHeight: 1.7,
+            color: "#8f99ad",
+            marginBottom: "18px",
+            maxWidth: "900px"
+          }}
+        >
+          Explore {name.toLowerCase()} games on each major platform to find the
+          strongest releases for PC, PlayStation, Xbox, and Nintendo Switch.
+        </p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "12px",
+            marginBottom: "28px"
+          }}
+        >
+          <Link
+            href={`/platform/pc/${genre}`}
+            style={{
+              display: "block",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontWeight: 600
+            }}
+          >
+            PC {name} Games
+          </Link>
+
+          <Link
+            href={`/platform/playstation/${genre}`}
+            style={{
+              display: "block",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontWeight: 600
+            }}
+          >
+            PlayStation {name} Games
+          </Link>
+
+          <Link
+            href={`/platform/xbox/${genre}`}
+            style={{
+              display: "block",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontWeight: 600
+            }}
+          >
+            Xbox {name} Games
+          </Link>
+
+          <Link
+            href={`/platform/switch/${genre}`}
+            style={{
+              display: "block",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontWeight: 600
+            }}
+          >
+            Nintendo Switch {name} Games
+          </Link>
+        </div>
+
+        <p
+          style={{
+            fontSize: "14px",
+            lineHeight: 1.7,
+            color: "#8f99ad",
+            maxWidth: "900px",
+            marginBottom: 0
+          }}
+        >
+          You can also explore broader discovery pages like{" "}
+          <Link href="/platforms">all platforms</Link>,{" "}
+          <Link href="/genres">all genres</Link>,{" "}
+          <Link href="/new-games">new games</Link>,{" "}
+          <Link href="/upcoming-games">upcoming games</Link>,{" "}
+          <Link href="/games-releasing-this-month">games releasing this month</Link>,{" "}
+          and <Link href="/hype">most hyped games</Link>.
+        </p>
       </section>
     </main>
   );

@@ -1,9 +1,23 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import GameGrid from "../../../../components/game/GameGrid";
 import { fetchGames } from "../../../../lib/igdb";
 import { platforms } from "../../../../lib/platforms";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../../lib/site";
+
+const platformGenreLinks = [
+  { slug: "rpg", label: "RPG" },
+  { slug: "shooter", label: "Shooter" },
+  { slug: "adventure", label: "Adventure" },
+  { slug: "strategy", label: "Strategy" },
+  { slug: "simulation", label: "Simulation" },
+  { slug: "puzzle", label: "Puzzle" },
+  { slug: "indie", label: "Indie" },
+  { slug: "fighting", label: "Fighting" },
+  { slug: "racing", label: "Racing" },
+  { slug: "sport", label: "Sports" }
+];
 
 export async function generateMetadata(props: any): Promise<Metadata> {
   const params = await props.params;
@@ -89,7 +103,126 @@ export default async function PlatformNewPage(props: any) {
         Showing {newReleases.length} new {platformLabel.toLowerCase()} games.
       </p>
 
-      <GameGrid games={newReleases.slice(0, 120)} />
+      <section style={{ marginTop: "56px" }}>
+        <h2
+          style={{
+            fontSize: "22px",
+            fontWeight: 700,
+            marginBottom: "16px"
+          }}
+        >
+          Explore More {platformLabel} Game Pages
+        </h2>
+
+        <p
+          style={{
+            fontSize: "14px",
+            lineHeight: 1.7,
+            color: "#8f99ad",
+            marginBottom: "18px",
+            maxWidth: "900px"
+          }}
+        >
+          Browse more {platformLabel.toLowerCase()} game discovery pages to find
+          upcoming releases, top rated titles, genre pages, and the main platform hub.
+        </p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "12px",
+            marginBottom: "24px"
+          }}
+        >
+          <Link
+            href={`/platform/${platformConfig.slug}`}
+            style={{
+              display: "block",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontWeight: 600
+            }}
+          >
+            All {platformLabel} Games
+          </Link>
+
+          <Link
+            href={`/platform/${platformConfig.slug}/upcoming`}
+            style={{
+              display: "block",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontWeight: 600
+            }}
+          >
+            Upcoming {platformLabel} Games
+          </Link>
+
+          <Link
+            href={`/platform/${platformConfig.slug}/top-rated`}
+            style={{
+              display: "block",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontWeight: 600
+            }}
+          >
+            Top Rated {platformLabel} Games
+          </Link>
+        </div>
+
+        <h3
+          style={{
+            fontSize: "18px",
+            fontWeight: 700,
+            marginBottom: "14px"
+          }}
+        >
+          Browse {platformLabel} by Genre
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "12px",
+            marginBottom: "20px"
+          }}
+        >
+          {platformGenreLinks.map((genre) => (
+            <Link
+              key={genre.slug}
+              href={`/platform/${platformConfig.slug}/${genre.slug}`}
+              style={{
+                display: "block",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                textDecoration: "none",
+                color: "#f5f7fb",
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                fontWeight: 600
+              }}
+            >
+              {genre.label} Games on {platformLabel}
+            </Link>
+          ))}
+        </div>
+      </section>
+            <GameGrid games={newReleases.slice(0, 120)} />
     </main>
   );
 }

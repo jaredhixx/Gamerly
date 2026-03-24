@@ -6,6 +6,19 @@ import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../lib/site";
 import Link from "next/link";
 
+const platformGenreLinks = [
+  { slug: "rpg", label: "RPG" },
+  { slug: "shooter", label: "Shooter" },
+  { slug: "adventure", label: "Adventure" },
+  { slug: "strategy", label: "Strategy" },
+  { slug: "simulation", label: "Simulation" },
+  { slug: "puzzle", label: "Puzzle" },
+  { slug: "indie", label: "Indie" },
+  { slug: "fighting", label: "Fighting" },
+  { slug: "racing", label: "Racing" },
+  { slug: "sport", label: "Sports" }
+];
+
 export async function generateMetadata(props: any): Promise<Metadata> {
   const params = await props.params;
   const platform = params?.platform;
@@ -220,7 +233,46 @@ export default async function PlatformPage(props: any) {
               Browse More {platformLabel} Games
             </Link>
           </li>
-        </ul>
+                </ul>
+
+        <h3
+          style={{
+            fontSize: "18px",
+            fontWeight: 700,
+            marginTop: "20px",
+            marginBottom: "12px"
+          }}
+        >
+          Browse by Genre
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "10px"
+          }}
+        >
+          {platformGenreLinks.slice(0, 6).map((genre) => (
+            <Link
+              key={genre.slug}
+              href={`/platform/${platformConfig.slug}/${genre.slug}`}
+              style={{
+                display: "block",
+                padding: "12px 14px",
+                borderRadius: "10px",
+                textDecoration: "none",
+                color: "#dbe9ff",
+                background: "rgba(106,166,255,0.08)",
+                border: "1px solid rgba(106,166,255,0.2)",
+                fontWeight: 600,
+                fontSize: "14px"
+              }}
+            >
+              {genre.label}
+            </Link>
+          ))}
+        </div>
       </section>
 
       {topRated.length > 0 && (
@@ -330,9 +382,9 @@ export default async function PlatformPage(props: any) {
           All {platformLabel} Games
         </h2>
 
-        <GameGrid games={filtered.slice(0, 60)} />
+        <GameGrid games={filtered.slice(0, 24)} />
 
-        {filtered.length > 60 && (
+        {filtered.length > 24 && (
           <div style={{ marginTop: "24px" }}>
             <Link
               href={`/platform/${platformConfig.slug}/page/2`}
@@ -357,95 +409,51 @@ export default async function PlatformPage(props: any) {
             marginBottom: "16px"
           }}
         >
-          Popular {platformLabel} Genres
+          Browse {platformLabel} by Genre
         </h2>
 
-<p
-  style={{
-    fontSize: "14px",
-    lineHeight: 1.7,
-    color: "#8f99ad",
-    marginBottom: "12px"
-  }}
->
-  Explore {platformLabel} games by genre to find the best titles based on
-  what you actually want to play, whether that is{" "}
-  <Link
-    href={`/platform/${platformConfig.slug}/rpg`}
-    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
-  >
-    RPG games on {platformLabel}
-  </Link>
-  ,{" "}
-  <Link
-    href={`/platform/${platformConfig.slug}/shooter`}
-    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
-  >
-    shooter games on {platformLabel}
-  </Link>
-  ,{" "}
-  <Link
-    href={`/platform/${platformConfig.slug}/strategy`}
-    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
-  >
-    strategy games on {platformLabel}
-  </Link>
-  ,{" "}
-  <Link
-    href={`/platform/${platformConfig.slug}/adventure`}
-    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
-  >
-    adventure games on {platformLabel}
-  </Link>
-  ,{" "}
-  <Link
-    href={`/platform/${platformConfig.slug}/indie`}
-    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
-  >
-    indie games on {platformLabel}
-  </Link>
-  , and{" "}
-  <Link
-    href={`/platform/${platformConfig.slug}/simulation`}
-    style={{ color: "#6aa6ff", fontWeight: 600, textDecoration: "underline" }}
-  >
-    simulation games on {platformLabel}
-  </Link>
-  .
-</p>
+        <p
+          style={{
+            fontSize: "14px",
+            lineHeight: 1.7,
+            color: "#8f99ad",
+            marginBottom: "18px",
+            maxWidth: "900px"
+          }}
+        >
+          Explore {platformLabel.toLowerCase()} games by genre to narrow the catalog
+          around what you actually want to play. You can jump into platform-specific
+          pages for RPG, shooter, adventure, strategy, simulation, puzzle, indie,
+          fighting, racing, and sports games.
+        </p>
 
-        <ul style={{ lineHeight: "32px", marginBottom: "28px" }}>
-          <li>
-            <Link href={`/platform/${platformConfig.slug}/rpg`}>
-              Best RPG Games on {platformLabel}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "12px",
+            marginBottom: "28px"
+          }}
+        >
+          {platformGenreLinks.map((genre) => (
+            <Link
+              key={genre.slug}
+              href={`/platform/${platformConfig.slug}/${genre.slug}`}
+              style={{
+                display: "block",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                textDecoration: "none",
+                color: "#f5f7fb",
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                fontWeight: 600
+              }}
+            >
+              {genre.label} Games on {platformLabel}
             </Link>
-          </li>
-          <li>
-            <Link href={`/platform/${platformConfig.slug}/shooter`}>
-              Best Shooter Games on {platformLabel}
-            </Link>
-          </li>
-          <li>
-            <Link href={`/platform/${platformConfig.slug}/strategy`}>
-              Best Strategy Games on {platformLabel}
-            </Link>
-          </li>
-          <li>
-            <Link href={`/platform/${platformConfig.slug}/adventure`}>
-              Best Adventure Games on {platformLabel}
-            </Link>
-          </li>
-          <li>
-            <Link href={`/platform/${platformConfig.slug}/indie`}>
-              Best Indie Games on {platformLabel}
-            </Link>
-          </li>
-          <li>
-            <Link href={`/platform/${platformConfig.slug}/simulation`}>
-              Best Simulation Games on {platformLabel}
-            </Link>
-          </li>
-        </ul>
+          ))}
+        </div>
 
         <div
           style={{
@@ -453,7 +461,8 @@ export default async function PlatformPage(props: any) {
             borderRadius: "16px",
             border: "1px solid rgba(255,255,255,0.08)",
             background: "rgba(255,255,255,0.02)",
-            maxWidth: "900px"
+            maxWidth: "900px",
+            marginBottom: "24px"
           }}
         >
           <h2
@@ -463,7 +472,7 @@ export default async function PlatformPage(props: any) {
               marginBottom: "16px"
             }}
           >
-            About {platformLabel} Games
+            Explore More Ways to Browse {platformLabel} Games
           </h2>
 
           <p
@@ -489,11 +498,14 @@ export default async function PlatformPage(props: any) {
             }}
           >
             For broader discovery, you can also explore{" "}
+            <Link href="/platforms">all gaming platforms</Link>,{" "}
+            <Link href="/genres">all game genres</Link>,{" "}
             <Link href="/new-games">new games</Link>,{" "}
             <Link href="/upcoming-games">upcoming games</Link>,{" "}
+            <Link href="/top-rated">top rated games</Link>,{" "}
             <Link href="/games-releasing-this-month">games releasing this month</Link>,{" "}
-            and the current <Link href="/hype">most hyped games</Link> across all
-            platforms.
+            <Link href="/releases">the full release calendar</Link>, and the current{" "}
+            <Link href="/hype">most hyped games</Link> across all platforms.
           </p>
         </div>
       </section>

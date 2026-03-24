@@ -37,7 +37,13 @@ export default async function BestPlatformGamesByYearPage({
       return false;
     }
 
-    const releaseYear = new Date(game.releaseDate).getUTCFullYear();
+    const releaseDate = new Date(game.releaseDate);
+
+    if (releaseDate > new Date()) {
+      return false;
+    }
+
+    const releaseYear = releaseDate.getUTCFullYear();
     const rating = game.aggregated_rating ?? 0;
     const ratingCount = game.aggregated_rating_count ?? 0;
     const hasPlatform = game.platformSlugs?.includes(platformSlug);

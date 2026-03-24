@@ -3,6 +3,7 @@ import { fetchGames } from "../lib/igdb";
 import { SITE_URL } from "../lib/site";
 import { platforms } from "../lib/platforms";
 import { genres } from "../lib/genres";
+import { bestPagesRegistry } from "../lib/best-pages-registry";
 
 export const revalidate = 21600;
 
@@ -215,39 +216,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 ...upcomingGamesPaginationPages,
 
 // BEST GENRE PAGES
-...[
-  "/best-rpg-games",
-  "/best-shooter-games",
-  "/best-adventure-games",
-  "/best-strategy-games",
-  "/best-simulation-games",
-  "/best-puzzle-games",
-  "/best-indie-games",
-  "/best-fighting-games",
-  "/best-racing-games",
-  "/best-sports-games"
-].map((path) => ({
-  url: `${SITE_URL}${path}`,
-  lastModified: now
-})),
+...bestPagesRegistry
+  .filter((page) => page.type === "genre")
+  .map((page) => ({
+    url: `${SITE_URL}${page.canonicalPath}`,
+    lastModified: now
+  })),
 
 // BEST YEAR PAGES
-...[ 
-  "/best-games-2024",
-  "/best-games-2025",
-  "/best-games-2026"
-].map((path) => ({
-  url: `${SITE_URL}${path}`,
-  lastModified: now
-})),
+...bestPagesRegistry
+  .filter((page) => page.type === "year")
+  .map((page) => ({
+    url: `${SITE_URL}${page.canonicalPath}`,
+    lastModified: now
+  })),
 
 // BEST PLATFORM YEAR PAGES
-...[ 
-  "/best-pc-games-2025"
-].map((path) => ({
-  url: `${SITE_URL}${path}`,
-  lastModified: now
-})),
+...bestPagesRegistry
+  .filter((page) => page.type === "platform-year")
+  .map((page) => ({
+    url: `${SITE_URL}${page.canonicalPath}`,
+    lastModified: now
+  })),
 
 ...Object.keys(platforms)
   .filter((platform) => platform !== "ios" && platform !== "android")

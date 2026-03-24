@@ -30,9 +30,17 @@ export default async function BestGenreGamesPage({
 }: Props) {
   const games = await fetchGames();
 
-  const matchingGames = games.filter(
-    (game: any) => game.genreSlugs?.includes(genreSlug)
-  );
+  const matchingGames = games.filter((game: any) => {
+    if (!game.genreSlugs?.includes(genreSlug)) {
+      return false;
+    }
+
+    if (!game.releaseDate) {
+      return false;
+    }
+
+    return new Date(game.releaseDate) <= new Date();
+  });
 
   const sortedGames = [...matchingGames].sort((a, b) => {
     const ratingA = a.aggregated_rating ?? 0;

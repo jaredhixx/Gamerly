@@ -21,10 +21,12 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const platformLabel = platformConfig.name.replace(" Games", "");
 
   return {
-    title: `Top Rated ${platformLabel} Games`,
-    description: `Browse the highest rated ${platformLabel.toLowerCase()} games based on aggregated ratings and popularity.`,
+    title: `Best ${platformLabel} Games 2026 | Top Rated, Highest Scored, Must Play`,
+    description: `Browse the best ${platformLabel.toLowerCase()} games in 2026 ranked by aggregated critic scores, ratings, and top rated must-play titles.`,
     alternates: {
-      canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}/top-rated`)
+      canonical: buildCanonicalUrl(
+        `/platform/${platformConfig.slug}/top-rated`
+      )
     }
   };
 }

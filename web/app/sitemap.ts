@@ -76,10 +76,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now
   }));
 
-  const platformPages = Object.keys(platforms).map((platform) => ({
-    url: `${SITE_URL}/platform/${platform}`,
-    lastModified: now
-  }));
+  const platformPages = Object.keys(platforms).flatMap((platform) => [
+    {
+      url: `${SITE_URL}/platform/${platform}`,
+      lastModified: now
+    },
+    {
+      url: `${SITE_URL}/platform/${platform}/new`,
+      lastModified: now
+    },
+    {
+      url: `${SITE_URL}/platform/${platform}/upcoming`,
+      lastModified: now
+    },
+    {
+      url: `${SITE_URL}/platform/${platform}/top-rated`,
+      lastModified: now
+    }
+  ]);
 
   const discoveryPages = [
     "/new-games",

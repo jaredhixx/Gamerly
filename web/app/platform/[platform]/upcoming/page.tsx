@@ -21,8 +21,8 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const platformLabel = platformConfig.name.replace(" Games", "");
 
   return {
-    title: `Upcoming ${platformLabel} Games`,
-    description: `Browse upcoming ${platformLabel.toLowerCase()} games with release dates, screenshots, and more.`,
+    title: `Upcoming ${platformLabel} Games 2026 | Release Dates, Trailers, Screenshots`,
+    description: `Browse upcoming ${platformLabel.toLowerCase()} games in 2026 with release dates, trailers, screenshots, and new releases coming soon.`,
     alternates: {
       canonical: buildCanonicalUrl(
         `/platform/${platformConfig.slug}/upcoming`

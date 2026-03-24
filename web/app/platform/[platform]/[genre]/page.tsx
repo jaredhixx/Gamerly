@@ -95,35 +95,14 @@ export default async function PlatformGenrePage(props: any) {
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
       <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "12px" }}>
-        {genreName} Games on {platformLabel}
+        Best {genreName} Games on {platformLabel}
       </h1>
 
-<p
-  style={{
-    fontSize: "16px",
-    lineHeight: 1.7,
-    color: "#b8c0d4",
-    maxWidth: "800px",
-    marginBottom: "16px"
-  }}
->
-  Looking for the best {genreName.toLowerCase()} games on {platformLabel}? This
-  page highlights top rated titles, new releases, and upcoming games so you can
-  quickly find what to play next.
-</p>
-
-<p
-  style={{
-    fontSize: "14px",
-    lineHeight: 1.7,
-    color: "#8f99ad",
-    maxWidth: "800px",
-    marginBottom: "20px"
-  }}
->
-  Whether you are searching for popular {genreName.toLowerCase()} games,
-  critically acclaimed releases, or new and upcoming titles on {platformLabel},
-  this page organizes everything in one place for easy discovery.
+<p style={{ color: "#A7B1C6", marginBottom: "20px", maxWidth: "800px" }}>
+  Discover the best {genreName.toLowerCase()} games on {platformLabel}, including
+  top rated picks, new releases, and upcoming titles. This page helps you quickly
+  compare the strongest {genreName.toLowerCase()} games available across the
+  {platformLabel} platform.
 </p>
 
       <p
@@ -224,40 +203,130 @@ export default async function PlatformGenrePage(props: any) {
         )}
       </section>
 
-      <section style={{ marginTop: "60px" }}>
+      <section
+        style={{
+          marginTop: "60px",
+          padding: "20px",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "16px",
+          background: "rgba(255,255,255,0.02)"
+        }}
+      >
         <h2
           style={{
             fontSize: "22px",
             fontWeight: 700,
-            marginBottom: "16px"
+            marginBottom: "10px"
           }}
         >
-          Explore More
+          Explore More {genreName} and {platformLabel} Pages
         </h2>
 
-        <ul style={{ lineHeight: "32px" }}>
+        <p
+          style={{
+            fontSize: "14px",
+            lineHeight: 1.7,
+            color: "#8f99ad",
+            marginBottom: "18px"
+          }}
+        >
+          Browse more related pages, including the main {platformLabel.toLowerCase()} games hub,
+          best {platformLabel.toLowerCase()} games, upcoming {platformLabel.toLowerCase()} games,
+          new {platformLabel.toLowerCase()} games, and all {genreName.toLowerCase()} games.
+        </p>
+
+        <ul
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "12px",
+            listStyle: "none",
+            padding: 0,
+            margin: 0
+          }}
+        >
           <li>
-            <Link href={`/platform/${platformConfig.slug}`}>
+            <Link
+              href={`/platform/${platformConfig.slug}`}
+              style={{
+                display: "block",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                textDecoration: "none",
+                color: "#f5f7fb",
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                fontWeight: 600
+              }}
+            >
               All {platformLabel} Games
             </Link>
           </li>
           <li>
-            <Link href={`/platform/${platformConfig.slug}/top-rated`}>
-              Top Rated {platformLabel} Games
+            <Link
+              href={`/platform/${platformConfig.slug}/top-rated`}
+              style={{
+                display: "block",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                textDecoration: "none",
+                color: "#f5f7fb",
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                fontWeight: 600
+              }}
+            >
+              Best {platformLabel} Games
             </Link>
           </li>
           <li>
-            <Link href={`/platform/${platformConfig.slug}/upcoming`}>
+            <Link
+              href={`/platform/${platformConfig.slug}/upcoming`}
+              style={{
+                display: "block",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                textDecoration: "none",
+                color: "#f5f7fb",
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                fontWeight: 600
+              }}
+            >
               Upcoming {platformLabel} Games
             </Link>
           </li>
           <li>
-            <Link href={`/platform/${platformConfig.slug}/new`}>
+            <Link
+              href={`/platform/${platformConfig.slug}/new`}
+              style={{
+                display: "block",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                textDecoration: "none",
+                color: "#f5f7fb",
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                fontWeight: 600
+              }}
+            >
               New {platformLabel} Games
             </Link>
           </li>
           <li>
-            <Link href={`/genre/${genre}`}>
+            <Link
+              href={`/genre/${genre}`}
+              style={{
+                display: "block",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                textDecoration: "none",
+                color: "#f5f7fb",
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                fontWeight: 600
+              }}
+            >
               All {genreName} Games
             </Link>
           </li>

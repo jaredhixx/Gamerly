@@ -239,6 +239,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now
   })),
 
+// BEST GENRE PLATFORM YEAR PAGES
+...bestPagesRegistry
+  .filter((page) => page.type === "genre-platform-year")
+  .map((page) => ({
+    url: `${SITE_URL}${page.canonicalPath}`,
+    lastModified: now
+  })),
+
 ...Object.keys(platforms)
   .filter((platform) => platform !== "ios" && platform !== "android")
   .flatMap((platform) =>

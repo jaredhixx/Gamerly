@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import BestGamesByYearPage from "../../components/seo/BestGamesByYearPage";
 import BestGenreGamesPage from "../../components/seo/BestGenreGamesPage";
 import BestPlatformGamesByYearPage from "../../components/seo/BestPlatformGamesByYearPage";
+import BestGenrePlatformGamesByYearPage from "../../components/seo/BestGenrePlatformGamesByYearPage";
 import {
   bestPagesRegistry,
   getBestPageBySlug,
@@ -82,6 +83,24 @@ export default async function BestPageSlugRoute(props: any) {
     return (
       <BestPlatformGamesByYearPage
         year={page.year}
+        platformSlug={page.platformSlug}
+        pageTitle={page.pageTitle}
+        pageSubtitle={page.pageSubtitle}
+        introParagraphOne={page.introParagraphOne}
+        introParagraphTwo={page.introParagraphTwo}
+        exploreHeading={page.exploreHeading}
+        topSectionHeading={page.topSectionHeading}
+        topSectionIntro={page.topSectionIntro}
+        fullListHeading={page.fullListHeading}
+      />
+    );
+  }
+
+  if (page.type === "genre-platform-year") {
+    return (
+      <BestGenrePlatformGamesByYearPage
+        year={page.year}
+        genreSlug={page.genreSlug}
         platformSlug={page.platformSlug}
         pageTitle={page.pageTitle}
         pageSubtitle={page.pageSubtitle}

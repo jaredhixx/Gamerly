@@ -1,5 +1,6 @@
 import { bestGamesByYearContent } from "./best-games-by-year";
 import { bestPlatformGamesByYearContent } from "./best-platform-games-by-year";
+import { bestGenrePlatformGamesByYearContent } from "./best-genre-platform-games-by-year";
 import type { GenreSlug } from "./genres";
 import type { PlatformSlug } from "./platforms";
 
@@ -38,6 +39,23 @@ export type BestPageRegistryEntry =
       type: "platform-year";
       slug: string;
       canonicalPath: string;
+      platformSlug: PlatformSlug;
+      year: number;
+      pageTitle: string;
+      pageSubtitle: string;
+      description: string;
+      introParagraphOne: string;
+      introParagraphTwo: string;
+      exploreHeading: string;
+      topSectionHeading: string;
+      topSectionIntro: string;
+      fullListHeading: string;
+    }
+  | {
+      type: "genre-platform-year";
+      slug: string;
+      canonicalPath: string;
+      genreSlug: GenreSlug;
       platformSlug: PlatformSlug;
       year: number;
       pageTitle: string;
@@ -312,6 +330,58 @@ export const bestPagesRegistry: BestPageRegistryEntry[] = [
     topSectionHeading: bestPlatformGamesByYearContent.pc[2025].topSectionHeading,
     topSectionIntro: bestPlatformGamesByYearContent.pc[2025].topSectionIntro,
     fullListHeading: bestPlatformGamesByYearContent.pc[2025].fullListHeading
+  },
+  {
+    type: "genre-platform-year",
+    slug: "best-rpg-games-pc-2025",
+    canonicalPath: "/best-rpg-games-pc-2025",
+    genreSlug: "rpg",
+    platformSlug: "pc",
+    year: 2025,
+    pageTitle:
+      bestGenrePlatformGamesByYearContent.pc.rpg[2025].pageTitle,
+    pageSubtitle:
+      bestGenrePlatformGamesByYearContent.pc.rpg[2025].pageSubtitle,
+    description:
+      bestGenrePlatformGamesByYearContent.pc.rpg[2025].description,
+    introParagraphOne:
+      bestGenrePlatformGamesByYearContent.pc.rpg[2025].introParagraphOne,
+    introParagraphTwo:
+      bestGenrePlatformGamesByYearContent.pc.rpg[2025].introParagraphTwo,
+    exploreHeading:
+      bestGenrePlatformGamesByYearContent.pc.rpg[2025].exploreHeading,
+    topSectionHeading:
+      bestGenrePlatformGamesByYearContent.pc.rpg[2025].topSectionHeading,
+    topSectionIntro:
+      bestGenrePlatformGamesByYearContent.pc.rpg[2025].topSectionIntro,
+    fullListHeading:
+      bestGenrePlatformGamesByYearContent.pc.rpg[2025].fullListHeading
+  },
+  {
+    type: "genre-platform-year",
+    slug: "best-shooter-games-pc-2025",
+    canonicalPath: "/best-shooter-games-pc-2025",
+    genreSlug: "shooter",
+    platformSlug: "pc",
+    year: 2025,
+    pageTitle:
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].pageTitle,
+    pageSubtitle:
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].pageSubtitle,
+    description:
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].description,
+    introParagraphOne:
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].introParagraphOne,
+    introParagraphTwo:
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].introParagraphTwo,
+    exploreHeading:
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].exploreHeading,
+    topSectionHeading:
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].topSectionHeading,
+    topSectionIntro:
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].topSectionIntro,
+    fullListHeading:
+      bestGenrePlatformGamesByYearContent.pc.shooter[2025].fullListHeading
   }
 ];
 

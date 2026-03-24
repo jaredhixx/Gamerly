@@ -214,9 +214,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...newGamesPaginationPages,
 ...upcomingGamesPaginationPages,
 
-// BEST GENRE PAGES (NEW)
-...genreSlugs.map((genre) => ({
-  url: `${SITE_URL}/best-${genre}-games`,
+// BEST GENRE PAGES
+...[
+  "/best-rpg-games",
+  "/best-shooter-games",
+  "/best-adventure-games",
+  "/best-strategy-games",
+  "/best-simulation-games",
+  "/best-puzzle-games",
+  "/best-indie-games",
+  "/best-fighting-games",
+  "/best-racing-games",
+  "/best-sports-games"
+].map((path) => ({
+  url: `${SITE_URL}${path}`,
   lastModified: now
 })),
 

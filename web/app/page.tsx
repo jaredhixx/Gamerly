@@ -255,16 +255,16 @@ export default async function Home() {
   ];
 
 const genreLinks = [
-  { href: "/genre/rpg", label: "RPG Games" },
-  { href: "/genre/shooter", label: "Shooter Games" },
-  { href: "/genre/adventure", label: "Adventure Games" },
-  { href: "/genre/strategy", label: "Strategy Games" },
-  { href: "/genre/simulation", label: "Simulation Games" },
-  { href: "/genre/puzzle", label: "Puzzle Games" },
-  { href: "/genre/indie", label: "Indie Games" },
-  { href: "/genre/fighting", label: "Fighting Games" },
-  { href: "/genre/racing", label: "Racing Games" },
-  { href: "/genre/sport", label: "Sports Games" }
+  { href: "/best-rpg-games", label: "Best RPG Games" },
+  { href: "/best-shooter-games", label: "Best Shooter Games" },
+  { href: "/best-adventure-games", label: "Best Adventure Games" },
+  { href: "/best-strategy-games", label: "Best Strategy Games" },
+  { href: "/best-simulation-games", label: "Best Simulation Games" },
+  { href: "/best-puzzle-games", label: "Best Puzzle Games" },
+  { href: "/best-indie-games", label: "Best Indie Games" },
+  { href: "/best-fighting-games", label: "Best Fighting Games" },
+  { href: "/best-racing-games", label: "Best Racing Games" },
+  { href: "/best-sports-games", label: "Best Sports Games" }
 ];
 
   return (

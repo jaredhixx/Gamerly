@@ -74,6 +74,103 @@ export default async function GenrePage(props: any) {
         {name} Games
       </h1>
 
+      <section
+  style={{
+    marginBottom: "40px",
+    padding: "20px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "16px",
+    background: "rgba(255,255,255,0.02)"
+  }}
+>
+  <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>
+    Browse {name} Games
+  </h2>
+
+  <p
+    style={{
+      fontSize: "14px",
+      lineHeight: 1.7,
+      color: "#8f99ad",
+      marginBottom: "16px"
+    }}
+  >
+    Explore {name.toLowerCase()} games by release timing and rating to quickly find what is worth playing right now.
+  </p>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "12px"
+    }}
+  >
+    <Link
+      href={`/genre/${genre}`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        fontWeight: 600
+      }}
+    >
+      All {name} Games
+    </Link>
+
+    <Link
+      href={`/genre/${genre}/top-rated`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        fontWeight: 600
+      }}
+    >
+      Top Rated {name} Games
+    </Link>
+
+    <Link
+      href={`/genre/${genre}/upcoming`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        fontWeight: 600
+      }}
+    >
+      Upcoming {name} Games
+    </Link>
+
+    <Link
+      href={`/genre/${genre}/new`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        fontWeight: 600
+      }}
+    >
+      New {name} Games
+    </Link>
+  </div>
+</section>
+
       {filtered.length === 0 && <p>No {name.toLowerCase()} games found.</p>}
 
       {topRated.length > 0 && (
@@ -241,6 +338,59 @@ export default async function GenrePage(props: any) {
           <Link href="/games-releasing-this-month">games releasing this month</Link>,{" "}
           and <Link href="/hype">most hyped games</Link>.
         </p>
+
+        <section style={{ marginTop: "60px" }}>
+  <h2
+    style={{
+      fontSize: "22px",
+      fontWeight: 700,
+      marginBottom: "16px"
+    }}
+  >
+    Explore Other Genres
+  </h2>
+
+  <p
+    style={{
+      fontSize: "14px",
+      lineHeight: 1.7,
+      color: "#8f99ad",
+      marginBottom: "18px",
+      maxWidth: "900px"
+    }}
+  >
+    Discover more game genres to expand your search beyond {name.toLowerCase()} games and find new experiences across the full catalog.
+  </p>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "12px"
+    }}
+  >
+    {Object.entries(genres)
+      .filter(([slug]) => slug !== genre)
+      .map(([slug, label]) => (
+        <Link
+          key={slug}
+          href={`/genre/${slug}`}
+          style={{
+            display: "block",
+            padding: "14px 16px",
+            borderRadius: "12px",
+            textDecoration: "none",
+            color: "#f5f7fb",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            fontWeight: 600
+          }}
+        >
+          {label} Games
+        </Link>
+      ))}
+  </div>
+</section>
       </section>
     </main>
   );

@@ -104,32 +104,40 @@ export default async function PlatformPage(props: any) {
         upcoming games, top rated titles, and genre pages to find what to play next.
       </p>
 
-      <p
-        style={{
-          fontSize: "14px",
-          lineHeight: 1.7,
-          color: "#8f99ad",
-          maxWidth: "800px",
-          marginBottom: "32px"
-        }}
-      >
-        This page currently includes{" "}
-        <span
-          style={{
-            display: "inline-block",
-            padding: "2px 10px",
-            borderRadius: "999px",
-            background: "rgba(106,166,255,0.14)",
-            border: "1px solid rgba(106,166,255,0.28)",
-            color: "#dbe9ff",
-            fontWeight: 700
-          }}
-        >
-          {filtered.length}
-        </span>{" "}
-        {platformLabel.toLowerCase()} games across new releases, upcoming titles,
-        top rated picks, and broader discovery pages.
-      </p>
+<p
+  style={{
+    fontSize: "14px",
+    lineHeight: 1.7,
+    color: "#8f99ad",
+    maxWidth: "800px",
+    marginBottom: "32px"
+  }}
+>
+  This page currently includes{" "}
+  <span
+    style={{
+      display: "inline-block",
+      padding: "2px 10px",
+      borderRadius: "999px",
+      background: "rgba(106,166,255,0.14)",
+      border: "1px solid rgba(106,166,255,0.28)",
+      color: "#dbe9ff",
+      fontWeight: 700
+    }}
+  >
+    {filtered.length}
+  </span>{" "}
+  {platformLabel.toLowerCase()} games across new releases, upcoming titles,
+  top rated picks, and broader discovery pages. You can also explore{" "}
+  <Link href="/genres" style={{ color: "#dbe9ff", fontWeight: 600 }}>
+    all game genres
+  </Link>{" "}
+  and{" "}
+  <Link href="/platforms" style={{ color: "#dbe9ff", fontWeight: 600 }}>
+    all gaming platforms
+  </Link>
+  .
+</p>
 
       <section
         style={{
@@ -253,7 +261,7 @@ export default async function PlatformPage(props: any) {
             gap: "10px"
           }}
         >
-          {platformGenreLinks.slice(0, 6).map((genre) => (
+          {platformGenreLinks.map((genre) => (
             <Link
               key={genre.slug}
               href={`/platform/${platformConfig.slug}/${genre.slug}`}
@@ -376,6 +384,61 @@ export default async function PlatformPage(props: any) {
           </div>
         </section>
       )}
+
+      <section style={{ marginTop: "60px" }}>
+  <h2
+    style={{
+      fontSize: "22px",
+      fontWeight: 700,
+      marginBottom: "16px"
+    }}
+  >
+    Browse Other Platforms
+  </h2>
+
+  <p
+    style={{
+      fontSize: "14px",
+      lineHeight: 1.7,
+      color: "#8f99ad",
+      marginBottom: "18px",
+      maxWidth: "900px"
+    }}
+  >
+    You can also explore games on other major platforms to compare new releases,
+    upcoming games, top rated titles, and genre pages across the wider market.
+  </p>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "12px",
+      marginBottom: "8px"
+    }}
+  >
+    {Object.values(platforms)
+      .filter((item) => item.slug !== platformConfig.slug)
+      .map((item) => (
+        <Link
+          key={item.slug}
+          href={`/platform/${item.slug}`}
+          style={{
+            display: "block",
+            padding: "14px 16px",
+            borderRadius: "12px",
+            textDecoration: "none",
+            color: "#f5f7fb",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            fontWeight: 600
+          }}
+        >
+          {item.name}
+        </Link>
+      ))}
+  </div>
+</section>
 
       <section>
         <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>

@@ -18,7 +18,6 @@ import PageContainer from "../components/layout/PageContainer";
 import SectionHeading from "../components/ui/SectionHeading";
 import SectionBlock from "../components/layout/SectionBlock";
 import FeaturedHero from "../components/layout/FeaturedHero";
-import PlatformStrip from "../components/layout/PlatformStrip";
 
 export const metadata: Metadata = {
   title:
@@ -256,16 +255,16 @@ export default async function Home() {
   ];
 
 const genreLinks = [
-  { href: "/platform/pc/rpg", label: "RPG Games on PC" },
-  { href: "/platform/pc/shooter", label: "Shooter Games on PC" },
-  { href: "/platform/pc/strategy", label: "Strategy Games on PC" },
-  { href: "/platform/pc/adventure", label: "Adventure Games on PC" },
-  { href: "/platform/pc/simulation", label: "Simulation Games on PC" },
-  { href: "/platform/pc/puzzle", label: "Puzzle Games on PC" },
-  { href: "/platform/pc/indie", label: "Indie Games on PC" },
-  { href: "/platform/pc/fighting", label: "Fighting Games on PC" },
-  { href: "/platform/pc/racing", label: "Racing Games on PC" },
-  { href: "/platform/pc/sport", label: "Sports Games on PC" }
+  { href: "/genre/rpg", label: "RPG Games" },
+  { href: "/genre/shooter", label: "Shooter Games" },
+  { href: "/genre/adventure", label: "Adventure Games" },
+  { href: "/genre/strategy", label: "Strategy Games" },
+  { href: "/genre/simulation", label: "Simulation Games" },
+  { href: "/genre/puzzle", label: "Puzzle Games" },
+  { href: "/genre/indie", label: "Indie Games" },
+  { href: "/genre/fighting", label: "Fighting Games" },
+  { href: "/genre/racing", label: "Racing Games" },
+  { href: "/genre/sport", label: "Sports Games" }
 ];
 
   return (
@@ -734,13 +733,86 @@ const genreLinks = [
           data-ad-slot="home-between-upcoming-and-platforms"
         />
 
-        <SectionBlock>
-          <SectionHeading
-            title="Browse by Platform"
-            subtitle="Start from the system you actually play on so the site becomes useful immediately."
-          />
-          <PlatformStrip />
-        </SectionBlock>
+<SectionBlock>
+  <SectionHeading
+    title="Browse by Platform"
+    subtitle="Start from the system you actually play on so the site becomes useful immediately."
+  />
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "14px",
+      marginBottom: "18px"
+    }}
+  >
+    <Link
+      href="/platform/pc"
+      style={{
+        display: "block",
+        padding: "16px",
+        borderRadius: "14px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        fontWeight: 700
+      }}
+    >
+      PC Games
+    </Link>
+
+    <Link
+      href="/platform/playstation"
+      style={{
+        display: "block",
+        padding: "16px",
+        borderRadius: "14px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        fontWeight: 700
+      }}
+    >
+      PlayStation Games
+    </Link>
+
+    <Link
+      href="/platform/xbox"
+      style={{
+        display: "block",
+        padding: "16px",
+        borderRadius: "14px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        fontWeight: 700
+      }}
+    >
+      Xbox Games
+    </Link>
+
+    <Link
+      href="/platform/switch"
+      style={{
+        display: "block",
+        padding: "16px",
+        borderRadius: "14px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        fontWeight: 700
+      }}
+    >
+      Nintendo Switch Games
+    </Link>
+  </div>
+
+</SectionBlock>
 
         <SectionBlock>
           <SectionHeading

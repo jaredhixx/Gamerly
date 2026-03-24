@@ -74,6 +74,63 @@ export default async function PlatformTopRatedPage(props: any) {
         Top Rated {platformLabel} Games
       </h1>
 
+      <section
+  style={{
+    marginBottom: "28px",
+    padding: "18px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "16px",
+    background: "rgba(255,255,255,0.02)"
+  }}
+>
+  <h2
+    style={{
+      fontSize: "20px",
+      fontWeight: 700,
+      marginBottom: "10px"
+    }}
+  >
+    Best {platformLabel} Games Right Now
+  </h2>
+
+  <p
+    style={{
+      fontSize: "15px",
+      lineHeight: 1.7,
+      color: "#b8c0d4",
+      marginBottom: "10px"
+    }}
+  >
+    This page ranks the best {platformLabel.toLowerCase()} games based on
+    aggregated critic scores, player ratings, and overall quality. If you are
+    trying to find what is actually worth playing, this is the fastest way to
+    see the top performing titles.
+  </p>
+
+  <p
+    style={{
+      fontSize: "14px",
+      lineHeight: 1.7,
+      color: "#8f99ad",
+      marginBottom: 0
+    }}
+  >
+    You can also explore{" "}
+    <Link href={`/platform/${platformConfig.slug}`}>
+      all {platformLabel.toLowerCase()} games
+    </Link>
+    ,{" "}
+    <Link href={`/platform/${platformConfig.slug}/new`}>
+      new releases
+    </Link>
+    ,{" "}
+    <Link href={`/platform/${platformConfig.slug}/upcoming`}>
+      upcoming games
+    </Link>
+    , and browse by genre below to narrow the list further.
+  </p>
+</section>
+
       <p
         style={{
           fontSize: "16px",
@@ -206,7 +263,7 @@ export default async function PlatformTopRatedPage(props: any) {
             marginBottom: "8px"
           }}
         >
-          {platformGenreLinks.slice(0, 6).map((genre) => (
+          {platformGenreLinks.map((genre) => (
             <Link
               key={genre.slug}
               href={`/platform/${platformConfig.slug}/${genre.slug}`}

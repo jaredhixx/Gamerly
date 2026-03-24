@@ -79,6 +79,62 @@ export default async function PlatformNewPage(props: any) {
         New {platformLabel} Games
       </h1>
 
+      <section
+  style={{
+    marginBottom: "28px",
+    padding: "18px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "16px",
+    background: "rgba(255,255,255,0.02)"
+  }}
+>
+  <h2
+    style={{
+      fontSize: "20px",
+      fontWeight: 700,
+      marginBottom: "10px"
+    }}
+  >
+    Latest {platformLabel} Releases
+  </h2>
+
+  <p
+    style={{
+      fontSize: "15px",
+      lineHeight: 1.7,
+      color: "#b8c0d4",
+      marginBottom: "10px"
+    }}
+  >
+    This page tracks new {platformLabel.toLowerCase()} games sorted by the most
+    recent release date so you can quickly see what is already out and worth
+    checking next.
+  </p>
+
+  <p
+    style={{
+      fontSize: "14px",
+      lineHeight: 1.7,
+      color: "#8f99ad",
+      marginBottom: 0
+    }}
+  >
+    You can also explore{" "}
+    <Link href={`/platform/${platformConfig.slug}`}>
+      all {platformLabel.toLowerCase()} games
+    </Link>
+    ,{" "}
+    <Link href={`/platform/${platformConfig.slug}/upcoming`}>
+      upcoming releases
+    </Link>
+    ,{" "}
+    <Link href={`/platform/${platformConfig.slug}/top-rated`}>
+      top rated games
+    </Link>
+    , and the genre links below to narrow the list further.
+  </p>
+</section>
+
       <p
         style={{
           fontSize: "16px",

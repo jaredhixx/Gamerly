@@ -65,7 +65,95 @@ function getRecentNewGamesCount(
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const games = await fetchGames();
+
+  let games: Awaited<ReturnType<typeof fetchGames>> = [];
+
+  try {
+    games = await fetchGames();
+  } catch (error) {
+    console.error("[sitemap] Failed to fetch games. Returning fallback sitemap.", error);
+
+    const genrePages = genreSlugs.map((genre) => ({
+      url: `${SITE_URL}/genre/${genre}`,
+      lastModified: now
+    }));
+
+    const platformPages = Object.keys(platforms).flatMap((platform) => [
+      {
+        url: `${SITE_URL}/platform/${platform}`,
+        lastModified: now
+      },
+      {
+        url: `${SITE_URL}/platform/${platform}/new`,
+        lastModified: now
+      },
+      {
+        url: `${SITE_URL}/platform/${platform}/upcoming`,
+        lastModified: now
+      },
+      {
+        url: `${SITE_URL}/platform/${platform}/top-rated`,
+        lastModified: now
+      }
+    ]);
+
+    const discoveryPages = [
+      "/new-games",
+      "/upcoming-games",
+      "/games-releasing-today",
+      "/games-releasing-this-week",
+      "/games-releasing-this-month",
+      "/releases",
+      "/all-games",
+      "/top-rated",
+      "/hype",
+      "/platforms",
+      "/genres",
+      "/upcoming-pc-games",
+      "/upcoming-xbox-games"
+    ].map((path) => ({
+      url: `${SITE_URL}${path}`,
+      lastModified: now
+    }));
+
+    return [
+      {
+        url: SITE_URL,
+        lastModified: now
+      },
+      ...discoveryPages,
+      ...platformPages,
+      ...genrePages,
+
+      ...bestPagesRegistry
+        .filter((page) => page.type === "genre")
+        .map((page) => ({
+          url: `${SITE_URL}${page.canonicalPath}`,
+          lastModified: now
+        })),
+
+      ...bestPagesRegistry
+        .filter((page) => page.type === "year")
+        .map((page) => ({
+          url: `${SITE_URL}${page.canonicalPath}`,
+          lastModified: now
+        })),
+
+      ...bestPagesRegistry
+        .filter((page) => page.type === "platform-year")
+        .map((page) => ({
+          url: `${SITE_URL}${page.canonicalPath}`,
+          lastModified: now
+        })),
+
+      ...bestPagesRegistry
+        .filter((page) => page.type === "genre-platform-year")
+        .map((page) => ({
+          url: `${SITE_URL}${page.canonicalPath}`,
+          lastModified: now
+        }))
+    ];
+  }
 
   const gameUrls = games.map((game) => ({
     url: `${SITE_URL}/game/${game.id}-${game.slug}`,

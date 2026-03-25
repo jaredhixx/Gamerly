@@ -50,6 +50,257 @@ function isReleasedGame(game: { releaseDate?: string | null }) {
   return releaseDate.getTime() <= Date.now();
 }
 
+function getReleaseYear(value?: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.getUTCFullYear();
+}
+
+function getSharedValuesCount(
+  left?: string[] | null,
+  right?: string[] | null
+) {
+  if (!left || !right || left.length === 0 || right.length === 0) {
+    return 0;
+  }
+
+  const rightSet = new Set(right);
+  let count = 0;
+
+  for (const value of left) {
+    if (rightSet.has(value)) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
+function getGenreRelatedScore(
+  currentGame: {
+    genres?: string[] | null;
+    platforms?: string[] | null;
+    releaseDate?: string | null;
+    aggregated_rating?: number | null;
+    aggregated_rating_count?: number | null;
+  },
+  candidateGame: {
+    genres?: string[] | null;
+    platforms?: string[] | null;
+    releaseDate?: string | null;
+    aggregated_rating?: number | null;
+    aggregated_rating_count?: number | null;
+  }
+) {
+  let score = 0;
+
+  const sharedGenres = getSharedValuesCount(
+    currentGame.genres,
+    candidateGame.genres
+  );
+  const sharedPlatforms = getSharedValuesCount(
+    currentGame.platforms,
+    candidateGame.platforms
+  );
+
+  score += sharedGenres * 10;
+  score += sharedPlatforms * 3;
+
+  if (
+    currentGame.platforms &&
+    currentGame.platforms.length > 0 &&
+    candidateGame.platforms &&
+    candidateGame.platforms.includes(currentGame.platforms[0])
+  ) {
+    score += 4;
+  }
+
+  const currentYear = getReleaseYear(currentGame.releaseDate);
+  const candidateYear = getReleaseYear(candidateGame.releaseDate);
+
+  if (currentYear !== null && candidateYear !== null) {
+    const yearDifference = Math.abs(currentYear - candidateYear);
+
+    if (yearDifference === 0) {
+      score += 4;
+    } else if (yearDifference === 1) {
+      score += 3;
+    } else if (yearDifference === 2) {
+      score += 2;
+    } else if (yearDifference <= 4) {
+      score += 1;
+    }
+  }
+
+  if (
+    typeof candidateGame.aggregated_rating === "number" &&
+    candidateGame.aggregated_rating >= 75
+  ) {
+    score += 2;
+  }
+
+  if (
+    typeof candidateGame.aggregated_rating_count === "number" &&
+    candidateGame.aggregated_rating_count >= 20
+  ) {
+    score += 1;
+  }
+
+  return score;
+}
+
+function getPlatformRelatedScore(
+  currentGame: {
+    genres?: string[] | null;
+    platforms?: string[] | null;
+    releaseDate?: string | null;
+    aggregated_rating?: number | null;
+    aggregated_rating_count?: number | null;
+  },
+  candidateGame: {
+    genres?: string[] | null;
+    platforms?: string[] | null;
+    releaseDate?: string | null;
+    aggregated_rating?: number | null;
+    aggregated_rating_count?: number | null;
+  }
+) {
+  let score = 0;
+
+  const sharedPlatforms = getSharedValuesCount(
+    currentGame.platforms,
+    candidateGame.platforms
+  );
+  const sharedGenres = getSharedValuesCount(
+    currentGame.genres,
+    candidateGame.genres
+  );
+
+  score += sharedPlatforms * 10;
+  score += sharedGenres * 4;
+
+  if (
+    currentGame.genres &&
+    currentGame.genres.length > 0 &&
+    candidateGame.genres &&
+    candidateGame.genres.includes(currentGame.genres[0])
+  ) {
+    score += 4;
+  }
+
+  const currentYear = getReleaseYear(currentGame.releaseDate);
+  const candidateYear = getReleaseYear(candidateGame.releaseDate);
+
+  if (currentYear !== null && candidateYear !== null) {
+    const yearDifference = Math.abs(currentYear - candidateYear);
+
+    if (yearDifference === 0) {
+      score += 4;
+    } else if (yearDifference === 1) {
+      score += 3;
+    } else if (yearDifference === 2) {
+      score += 2;
+    } else if (yearDifference <= 4) {
+      score += 1;
+    }
+  }
+
+  if (
+    typeof candidateGame.aggregated_rating === "number" &&
+    candidateGame.aggregated_rating >= 75
+  ) {
+    score += 2;
+  }
+
+  if (
+    typeof candidateGame.aggregated_rating_count === "number" &&
+    candidateGame.aggregated_rating_count >= 20
+  ) {
+    score += 1;
+  }
+
+  return score;
+}
+
+function compareRelatedGames(
+  currentGame: {
+    genres?: string[] | null;
+    platforms?: string[] | null;
+    releaseDate?: string | null;
+    aggregated_rating?: number | null;
+    aggregated_rating_count?: number | null;
+  },
+  leftGame: {
+    releaseDate?: string | null;
+    aggregated_rating?: number | null;
+    aggregated_rating_count?: number | null;
+    name: string;
+  },
+  rightGame: {
+    releaseDate?: string | null;
+    aggregated_rating?: number | null;
+    aggregated_rating_count?: number | null;
+    name: string;
+  },
+  getScore: (
+    currentGame: {
+      genres?: string[] | null;
+      platforms?: string[] | null;
+      releaseDate?: string | null;
+      aggregated_rating?: number | null;
+      aggregated_rating_count?: number | null;
+    },
+    candidateGame: {
+      genres?: string[] | null;
+      platforms?: string[] | null;
+      releaseDate?: string | null;
+      aggregated_rating?: number | null;
+      aggregated_rating_count?: number | null;
+    }
+  ) => number
+) {
+  const rightScore = getScore(currentGame, rightGame);
+  const leftScore = getScore(currentGame, leftGame);
+
+  if (rightScore !== leftScore) {
+    return rightScore - leftScore;
+  }
+
+  const rightRating =
+    typeof rightGame.aggregated_rating === "number"
+      ? rightGame.aggregated_rating
+      : -1;
+  const leftRating =
+    typeof leftGame.aggregated_rating === "number"
+      ? leftGame.aggregated_rating
+      : -1;
+
+  if (rightRating !== leftRating) {
+    return rightRating - leftRating;
+  }
+
+  const rightRelease = rightGame.releaseDate
+    ? new Date(rightGame.releaseDate).getTime()
+    : 0;
+  const leftRelease = leftGame.releaseDate
+    ? new Date(leftGame.releaseDate).getTime()
+    : 0;
+
+  if (rightRelease !== leftRelease) {
+    return rightRelease - leftRelease;
+  }
+
+  return leftGame.name.localeCompare(rightGame.name);
+}
+
 function getPlatformHrefFromSlug(platformSlug?: string | null) {
   if (!platformSlug) {
     return null;
@@ -198,6 +449,33 @@ export default async function GamePage(props: any) {
   if (!game) {
     notFound();
   }
+
+  const relatedGenreGames = allGames
+    .filter(
+      (g) =>
+        g.id !== game.id &&
+        isReleasedGame(g) &&
+        g.genres &&
+        g.genres.some((genre: string) => game.genres?.includes(genre))
+    )
+    .sort((leftGame, rightGame) =>
+      compareRelatedGames(game, leftGame, rightGame, getGenreRelatedScore)
+    )
+    .slice(0, 8);
+
+  const relatedPlatformGames = allGames
+    .filter(
+      (g) =>
+        g.id !== game.id &&
+        isReleasedGame(g) &&
+        g.platforms &&
+        game.platforms &&
+        g.platforms.some((platform: string) => game.platforms.includes(platform))
+    )
+    .sort((leftGame, rightGame) =>
+      compareRelatedGames(game, leftGame, rightGame, getPlatformRelatedScore)
+    )
+    .slice(0, 8);
 
   return (
     <>
@@ -365,17 +643,7 @@ export default async function GamePage(props: any) {
               More {game.genres[0]} Games
             </h2>
 
-            <GameGrid
-              games={allGames
-                .filter(
-                  (g) =>
-                    g.id !== game.id &&
-                    isReleasedGame(g) &&
-                    g.genres &&
-                    g.genres.some((genre: string) => game.genres.includes(genre))
-                )
-                .slice(0, 8)}
-            />
+            <GameGrid games={relatedGenreGames} />
 
 <div style={{ marginTop: "16px" }}>
 <Link
@@ -405,17 +673,7 @@ export default async function GamePage(props: any) {
               More {game.platforms[0]} Games
             </h2>
 
-            <GameGrid
-              games={allGames
-                .filter(
-                  (g) =>
-                    g.id !== game.id &&
-                    isReleasedGame(g) &&
-                    g.platforms &&
-                    g.platforms.includes(game.platforms[0])
-                )
-                .slice(0, 8)}
-            />
+            <GameGrid games={relatedPlatformGames} />
 
 <div style={{ marginTop: "16px" }}>
 <Link

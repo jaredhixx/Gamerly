@@ -1600,6 +1600,8 @@ p + p {
 /* Summary */
 
 .gameSummary {
+  position: relative;
+
   font-size: 16.5px;
   line-height: 1.75;
   color: #d1d5db;
@@ -1610,12 +1612,36 @@ p + p {
   overflow: hidden;
 }
 
+.gameSummary::after {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 56px;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(17,24,43,0),
+    rgba(17,24,43,0.78) 55%,
+    rgba(17,24,43,1)
+  );
+
+  pointer-events: none;
+}
+
 .gameSummary.expanded {
   max-height: none;
 }
 
+.gameSummary.expanded::after {
+  display: none;
+}
+
 .summaryToggle {
-  margin-top: 8px;
+  margin-top: 10px;
 
   background: none;
   border: none;
@@ -1624,6 +1650,7 @@ p + p {
   font-size: 14px;
   font-weight: 600;
   font-family: inherit;
+  line-height: 1;
 
   color: var(--accent);
   cursor: pointer;

@@ -125,10 +125,35 @@ export default async function BestGenrePlatformGamesByYearPage({
     <PageContainer>
       <SectionHeading title={pageTitle} subtitle={pageSubtitle} />
 
-      <div style={{ maxWidth: "800px", marginBottom: "40px" }}>
-        <p>{introParagraphOne}</p>
-        <p>{introParagraphTwo}</p>
-      </div>
+<div style={{ maxWidth: "800px", marginBottom: "40px" }}>
+  <p>{introParagraphOne}</p>
+  <p>{introParagraphTwo}</p>
+
+<p>
+  This list of the best{" "}
+  <Link href={`/best-${genreSlug}-games`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
+    {genreSlug} games
+  </Link>{" "}
+  on{" "}
+  <Link href={`/platform/${platformSlug}`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
+    {platformSlug}
+  </Link>{" "}
+  in{" "}
+  <Link href={`/best-games-${year}`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
+    {year}
+  </Link>{" "}
+  focuses on titles that have already released and built real momentum with players.
+  Rankings are based on a combination of critic scores, player reception,
+  and overall visibility within the current gaming landscape.
+</p>
+
+  <p>
+    Whether you are looking for the highest rated releases or hidden gems that
+    gained traction over time, this page highlights the strongest {genreSlug}
+    experiences available on {platformSlug} in {year} without including
+    unreleased or low-signal titles.
+  </p>
+</div>
 
       <section style={{ marginBottom: "40px" }}>
         <h2>{exploreHeading}</h2>

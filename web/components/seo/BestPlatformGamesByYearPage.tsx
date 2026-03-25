@@ -96,35 +96,59 @@ export default async function BestPlatformGamesByYearPage({
     <PageContainer>
       <SectionHeading title={pageTitle} subtitle={pageSubtitle} />
 
-      <div style={{ maxWidth: "800px", marginBottom: "40px" }}>
-        <p>{introParagraphOne}</p>
-        <p>{introParagraphTwo}</p>
-      </div>
+<div style={{ maxWidth: "800px", marginBottom: "40px" }}>
+  <p>{introParagraphOne}</p>
+  <p>{introParagraphTwo}</p>
 
-      <section style={{ marginBottom: "40px" }}>
-        <h2>{exploreHeading}</h2>
+<p>
+  This page tracks the best{" "}
+  <Link href={`/best-games-${year}`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
+    games of {year}
+  </Link>{" "}
+  on{" "}
+  <Link href={`/platform/${platformSlug}`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
+    {platformSlug === "pc" ? "PC" : platformSlug === "playstation" ? "PlayStation" : platformSlug === "xbox" ? "Xbox" : platformSlug === "switch" ? "Switch" : platformSlug}
+  </Link>{" "}
+  using released titles that have already started to separate themselves through review scores, audience response, and overall visibility.
+</p>
 
-        <ul style={{ paddingLeft: "20px", margin: "16px 0 0" }}>
-          <li>
-            <Link href="/platform/pc">Browse all PC games</Link>
-          </li>
-          <li>
-            <Link href="/best-games-2025">Browse best games of 2025</Link>
-          </li>
-          <li>
-            <Link href="/new-games">Browse newly released games</Link>
-          </li>
-          <li>
-            <Link href="/upcoming-games">Browse upcoming games</Link>
-          </li>
-          <li>
-            <Link href="/top-rated">Browse top-rated games across all years</Link>
-          </li>
-          <li>
-            <Link href="/genres">Browse games by genre</Link>
-          </li>
-        </ul>
-      </section>
+  <p>
+    If you want the strongest games available on {platformSlug === "pc" ? "PC" : platformSlug === "playstation" ? "PlayStation" : platformSlug === "xbox" ? "Xbox" : platformSlug === "switch" ? "Switch" : platformSlug} in {year}, this list is built to surface the titles with the clearest quality signals while filtering out unreleased or low-signal entries.
+  </p>
+</div>
+
+<section style={{ marginBottom: "40px" }}>
+  <h2>{exploreHeading}</h2>
+
+  <ul style={{ paddingLeft: "20px", margin: "16px 0 0" }}>
+    <li>
+      <Link href={`/platform/${platformSlug}`}>
+        Browse all {platformSlug === "pc" ? "PC" : platformSlug === "playstation" ? "PlayStation" : platformSlug === "xbox" ? "Xbox" : platformSlug === "switch" ? "Switch" : platformSlug} games
+      </Link>
+    </li>
+    <li>
+      <Link href={`/best-games-${year}`}>Browse best games of {year}</Link>
+    </li>
+    <li>
+      <Link href="/best-rpg-games">Browse best RPG games</Link>
+    </li>
+    <li>
+      <Link href="/best-shooter-games">Browse best shooter games</Link>
+    </li>
+    <li>
+      <Link href="/best-adventure-games">Browse best adventure games</Link>
+    </li>
+    <li>
+      <Link href="/best-strategy-games">Browse best strategy games</Link>
+    </li>
+    <li>
+      <Link href="/best-simulation-games">Browse best simulation games</Link>
+    </li>
+    <li>
+      <Link href="/best-indie-games">Browse best indie games</Link>
+    </li>
+  </ul>
+</section>
 
       <section style={{ marginBottom: "40px" }}>
         <h2>{topSectionHeading}</h2>

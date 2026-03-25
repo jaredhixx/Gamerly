@@ -87,10 +87,22 @@ export default async function BestGamesByYearPage({
     <PageContainer>
       <SectionHeading title={pageTitle} subtitle={pageSubtitle} />
 
-      <div style={{ maxWidth: "800px", marginBottom: "40px" }}>
-        <p>{introParagraphOne}</p>
-        <p>{introParagraphTwo}</p>
-      </div>
+<div style={{ maxWidth: "800px", marginBottom: "40px" }}>
+  <p>{introParagraphOne}</p>
+  <p>{introParagraphTwo}</p>
+
+  <p>
+    This page tracks the best games of {year} using released titles that have
+    already started to stand out through review scores, audience response, and
+    overall visibility across the market.
+  </p>
+
+  <p>
+    If you want the strongest games released in {year}, this list is built to
+    surface the titles with the clearest quality signals while filtering out
+    unreleased or low-signal entries.
+  </p>
+</div>
 
       <section style={{ marginBottom: "40px" }}>
         <h2>{exploreHeading}</h2>

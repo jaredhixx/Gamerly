@@ -273,6 +273,53 @@ const yearLinks = [
   { href: "/best-games-2024", label: "Best Games of 2024" }
 ];
 
+const bestPageClusters = [
+  {
+    title: "Best PC Games in 2025",
+    links: [
+      { href: "/best-pc-games-2025", label: "Best PC Games of 2025" },
+      { href: "/best-shooter-games-pc-2025", label: "Best PC Shooter Games of 2025" },
+      { href: "/best-strategy-games-pc-2025", label: "Best PC Strategy Games of 2025" },
+      { href: "/best-adventure-games-pc-2025", label: "Best PC Adventure Games of 2025" },
+      { href: "/best-simulation-games-pc-2025", label: "Best PC Simulation Games of 2025" },
+      { href: "/best-indie-games-pc-2025", label: "Best PC Indie Games of 2025" }
+    ]
+  },
+  {
+    title: "Best PlayStation Games in 2025",
+    links: [
+      { href: "/best-rpg-games-playstation-2025", label: "Best PlayStation RPG Games of 2025" },
+      { href: "/best-shooter-games-playstation-2025", label: "Best PlayStation Shooter Games of 2025" },
+      { href: "/best-strategy-games-playstation-2025", label: "Best PlayStation Strategy Games of 2025" },
+      { href: "/best-adventure-games-playstation-2025", label: "Best PlayStation Adventure Games of 2025" },
+      { href: "/best-simulation-games-playstation-2025", label: "Best PlayStation Simulation Games of 2025" },
+      { href: "/best-indie-games-playstation-2025", label: "Best PlayStation Indie Games of 2025" }
+    ]
+  },
+  {
+    title: "Best Xbox Games in 2025",
+    links: [
+      { href: "/best-rpg-games-xbox-2025", label: "Best Xbox RPG Games of 2025" },
+      { href: "/best-shooter-games-xbox-2025", label: "Best Xbox Shooter Games of 2025" },
+      { href: "/best-strategy-games-xbox-2025", label: "Best Xbox Strategy Games of 2025" },
+      { href: "/best-adventure-games-xbox-2025", label: "Best Xbox Adventure Games of 2025" },
+      { href: "/best-simulation-games-xbox-2025", label: "Best Xbox Simulation Games of 2025" },
+      { href: "/best-indie-games-xbox-2025", label: "Best Xbox Indie Games of 2025" }
+    ]
+  },
+  {
+    title: "Best Switch Games in 2025",
+    links: [
+      { href: "/best-rpg-games-switch-2025", label: "Best Switch RPG Games of 2025" },
+      { href: "/best-shooter-games-switch-2025", label: "Best Switch Shooter Games of 2025" },
+      { href: "/best-strategy-games-switch-2025", label: "Best Switch Strategy Games of 2025" },
+      { href: "/best-adventure-games-switch-2025", label: "Best Switch Adventure Games of 2025" },
+      { href: "/best-simulation-games-switch-2025", label: "Best Switch Simulation Games of 2025" },
+      { href: "/best-indie-games-switch-2025", label: "Best Switch Indie Games of 2025" }
+    ]
+  }
+];
+
   return (
     <main style={{ paddingTop: "8px", paddingBottom: "72px" }}>
       <PageContainer>
@@ -820,31 +867,94 @@ const yearLinks = [
 
 </SectionBlock>
 
-        <SectionBlock>
-          <SectionHeading
-            title="Browse by Genre"
-            subtitle="Jump straight into the type of game you want when you know the lane, but not the title."
-          />
+<SectionBlock>
+  <SectionHeading
+    title="Best Games by Platform in 2025"
+    subtitle="These are the best games in 2025 for each platform, curated for you."
+  />
 
-<div className="genreGrid">
-  {genreLinks.map((genre) => (
-    <Link key={genre.href} href={genre.href}>
-      {genre.label}
-    </Link>
-  ))}
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+      gap: "16px",
+      marginBottom: "18px"
+    }}
+  >
+    {bestPageClusters.map((cluster) => (
+      <div
+        key={cluster.title}
+        style={{
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "18px",
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.025))",
+          padding: "18px"
+        }}
+      >
+        <div
+          style={{
+            color: "#f5f7fb",
+            fontSize: "1rem",
+            fontWeight: 800,
+            lineHeight: 1.35,
+            marginBottom: "12px"
+          }}
+        >
+          {cluster.title}
+        </div>
 
-  {yearLinks.map((year) => (
-    <Link key={year.href} href={year.href}>
-      {year.label}
-    </Link>
-  ))}
-            <Link href="/all-games">All Games</Link>
-            <Link href="/platform/playstation">PlayStation Games</Link>
-            <Link href="/platform/playstation/rpg">PlayStation RPG Games</Link>
-            <Link href="/platform/xbox">Xbox Games</Link>
-            <Link href="/platform/switch">Nintendo Switch Games</Link>
-          </div>
-        </SectionBlock>
+        <div
+          style={{
+            display: "grid",
+            gap: "10px"
+          }}
+        >
+          {cluster.links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              style={{
+                color: "#8bb9ff",
+                textDecoration: "none",
+                fontWeight: 700,
+                lineHeight: 1.5
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</SectionBlock>
+
+<SectionBlock>
+  <SectionHeading
+    title="Browse by Genre"
+    subtitle="Jump straight into the type of game you want when you know the lane, but not the title."
+  />
+
+  <div className="genreGrid">
+    {genreLinks.map((genre) => (
+      <Link key={genre.href} href={genre.href}>
+        {genre.label}
+      </Link>
+    ))}
+
+    {yearLinks.map((year) => (
+      <Link key={year.href} href={year.href}>
+        {year.label}
+      </Link>
+    ))}
+    <Link href="/all-games">All Games</Link>
+    <Link href="/platform/playstation">PlayStation Games</Link>
+    <Link href="/platform/playstation/rpg">PlayStation RPG Games</Link>
+    <Link href="/platform/xbox">Xbox Games</Link>
+    <Link href="/platform/switch">Nintendo Switch Games</Link>
+  </div>
+</SectionBlock>
       </PageContainer>
     </main>
   );

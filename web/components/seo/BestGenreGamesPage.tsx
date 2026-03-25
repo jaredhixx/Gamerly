@@ -66,29 +66,39 @@ export default async function BestGenreGamesPage({
         <p>{introParagraphTwo}</p>
       </div>
 
-      <section style={{ marginBottom: "40px" }}>
-        <h2>{exploreHeading}</h2>
-        <ul style={{ paddingLeft: "20px", margin: "16px 0 0" }}>
-          <li>
-            <Link href={`/platform/pc/${genreSlug}`}>Best {pageTitle.replace("Best ", "").replace(" Games", "")} games on PC</Link>
-          </li>
-          <li>
-            <Link href={`/platform/playstation/${genreSlug}`}>Best {pageTitle.replace("Best ", "").replace(" Games", "")} games on PlayStation</Link>
-          </li>
-          <li>
-            <Link href={`/platform/xbox/${genreSlug}`}>Best {pageTitle.replace("Best ", "").replace(" Games", "")} games on Xbox</Link>
-          </li>
-          <li>
-            <Link href={`/platform/switch/${genreSlug}`}>Best {pageTitle.replace("Best ", "").replace(" Games", "")} games on Switch</Link>
-          </li>
-          <li>
-            <Link href={`/genre/${genreSlug}`}>Browse all {pageTitle.replace("Best ", "").replace(" Games", "")} games</Link>
-          </li>
-          <li>
-            <Link href="/platform/pc/upcoming">Upcoming PC releases</Link>
-          </li>
-        </ul>
-      </section>
+<section style={{ marginBottom: "40px" }}>
+  <h2>{exploreHeading}</h2>
+  <ul style={{ paddingLeft: "20px", margin: "16px 0 0" }}>
+    <li>
+      <Link href={`/best-${genreSlug}-games-pc-2025`}>
+        Best {pageTitle.replace("Best ", "").replace(" Games", "")} games on PC in 2025
+      </Link>
+    </li>
+    <li>
+      <Link href={`/best-${genreSlug}-games-playstation-2025`}>
+        Best {pageTitle.replace("Best ", "").replace(" Games", "")} games on PlayStation in 2025
+      </Link>
+    </li>
+    <li>
+      <Link href={`/best-${genreSlug}-games-xbox-2025`}>
+        Best {pageTitle.replace("Best ", "").replace(" Games", "")} games on Xbox in 2025
+      </Link>
+    </li>
+    <li>
+      <Link href={`/best-${genreSlug}-games-switch-2025`}>
+        Best {pageTitle.replace("Best ", "").replace(" Games", "")} games on Switch in 2025
+      </Link>
+    </li>
+    <li>
+      <Link href={`/genre/${genreSlug}`}>
+        Browse all {pageTitle.replace("Best ", "").replace(" Games", "")} games
+      </Link>
+    </li>
+    <li>
+      <Link href="/best-games-2025">Browse best games of 2025</Link>
+    </li>
+  </ul>
+</section>
 
       <section style={{ marginBottom: "40px" }}>
         <h2>{topSectionHeading}</h2>

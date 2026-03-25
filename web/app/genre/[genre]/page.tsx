@@ -224,21 +224,69 @@ export default async function GenrePage(props: any) {
             marginBottom: "28px"
           }}
         >
-          <Link
-            href={`/platform/pc/${genre}`}
-            style={{
-              display: "block",
-              padding: "14px 16px",
-              borderRadius: "12px",
-              textDecoration: "none",
-              color: "#f5f7fb",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              fontWeight: 600
-            }}
-          >
-            PC {name} Games
-          </Link>
+<Link
+  href={`/best-${genre}-games-pc-2025`}
+  style={{
+    display: "block",
+    padding: "14px 16px",
+    borderRadius: "12px",
+    textDecoration: "none",
+    color: "#f5f7fb",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    fontWeight: 600
+  }}
+>
+  Best {name} Games on PC (2025)
+</Link>
+
+<Link
+  href={`/best-${genre}-games-playstation-2025`}
+  style={{
+    display: "block",
+    padding: "14px 16px",
+    borderRadius: "12px",
+    textDecoration: "none",
+    color: "#f5f7fb",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    fontWeight: 600
+  }}
+>
+  Best {name} Games on PlayStation (2025)
+</Link>
+
+<Link
+  href={`/best-${genre}-games-xbox-2025`}
+  style={{
+    display: "block",
+    padding: "14px 16px",
+    borderRadius: "12px",
+    textDecoration: "none",
+    color: "#f5f7fb",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    fontWeight: 600
+  }}
+>
+  Best {name} Games on Xbox (2025)
+</Link>
+
+<Link
+  href={`/best-${genre}-games-switch-2025`}
+  style={{
+    display: "block",
+    padding: "14px 16px",
+    borderRadius: "12px",
+    textDecoration: "none",
+    color: "#f5f7fb",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    fontWeight: 600
+  }}
+>
+  Best {name} Games on Switch (2025)
+</Link>
 
           <Link
             href={`/platform/playstation/${genre}`}

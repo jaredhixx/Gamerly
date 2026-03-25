@@ -244,6 +244,145 @@ export default async function PlatformPage(props: any) {
                 </ul>
 
         <h3
+  style={{
+    fontSize: "18px",
+    fontWeight: 700,
+    marginTop: "20px",
+    marginBottom: "12px"
+  }}
+>
+  Best {platformLabel} Games in 2025
+</h3>
+
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "10px",
+    marginBottom: "16px"
+  }}
+>
+  <Link
+    href={`/best-${platformConfig.slug}-games-2025`}
+    style={{
+      display: "block",
+      padding: "12px 14px",
+      borderRadius: "10px",
+      textDecoration: "none",
+      color: "#dbe9ff",
+      background: "rgba(106,166,255,0.08)",
+      border: "1px solid rgba(106,166,255,0.2)",
+      fontWeight: 600,
+      fontSize: "14px"
+    }}
+  >
+    Best {platformLabel} Games of 2025
+  </Link>
+
+  <Link
+    href={`/best-rpg-games-${platformConfig.slug}-2025`}
+    style={{
+      display: "block",
+      padding: "12px 14px",
+      borderRadius: "10px",
+      textDecoration: "none",
+      color: "#dbe9ff",
+      background: "rgba(106,166,255,0.08)",
+      border: "1px solid rgba(106,166,255,0.2)",
+      fontWeight: 600,
+      fontSize: "14px"
+    }}
+  >
+    Best RPG Games on {platformLabel}
+  </Link>
+
+  <Link
+    href={`/best-shooter-games-${platformConfig.slug}-2025`}
+    style={{
+      display: "block",
+      padding: "12px 14px",
+      borderRadius: "10px",
+      textDecoration: "none",
+      color: "#dbe9ff",
+      background: "rgba(106,166,255,0.08)",
+      border: "1px solid rgba(106,166,255,0.2)",
+      fontWeight: 600,
+      fontSize: "14px"
+    }}
+  >
+    Best Shooter Games on {platformLabel}
+  </Link>
+
+  <Link
+    href={`/best-adventure-games-${platformConfig.slug}-2025`}
+    style={{
+      display: "block",
+      padding: "12px 14px",
+      borderRadius: "10px",
+      textDecoration: "none",
+      color: "#dbe9ff",
+      background: "rgba(106,166,255,0.08)",
+      border: "1px solid rgba(106,166,255,0.2)",
+      fontWeight: 600,
+      fontSize: "14px"
+    }}
+  >
+    Best Adventure Games on {platformLabel}
+  </Link>
+
+  <Link
+    href={`/best-strategy-games-${platformConfig.slug}-2025`}
+    style={{
+      display: "block",
+      padding: "12px 14px",
+      borderRadius: "10px",
+      textDecoration: "none",
+      color: "#dbe9ff",
+      background: "rgba(106,166,255,0.08)",
+      border: "1px solid rgba(106,166,255,0.2)",
+      fontWeight: 600,
+      fontSize: "14px"
+    }}
+  >
+    Best Strategy Games on {platformLabel}
+  </Link>
+
+  <Link
+    href={`/best-simulation-games-${platformConfig.slug}-2025`}
+    style={{
+      display: "block",
+      padding: "12px 14px",
+      borderRadius: "10px",
+      textDecoration: "none",
+      color: "#dbe9ff",
+      background: "rgba(106,166,255,0.08)",
+      border: "1px solid rgba(106,166,255,0.2)",
+      fontWeight: 600,
+      fontSize: "14px"
+    }}
+  >
+    Best Simulation Games on {platformLabel}
+  </Link>
+
+  <Link
+    href={`/best-indie-games-${platformConfig.slug}-2025`}
+    style={{
+      display: "block",
+      padding: "12px 14px",
+      borderRadius: "10px",
+      textDecoration: "none",
+      color: "#dbe9ff",
+      background: "rgba(106,166,255,0.08)",
+      border: "1px solid rgba(106,166,255,0.2)",
+      fontWeight: 600,
+      fontSize: "14px"
+    }}
+  >
+    Best Indie Games on {platformLabel}
+  </Link>
+</div>
+
+        <h3
           style={{
             fontSize: "18px",
             fontWeight: 700,

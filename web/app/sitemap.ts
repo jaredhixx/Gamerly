@@ -155,11 +155,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   }
 
-  const gameUrls = games.map((game) => ({
-    url: `${SITE_URL}/game/${game.id}-${game.slug}`,
-    lastModified: game.releaseDate ? new Date(game.releaseDate) : now
-  }));
-
   const genrePages = genreSlugs.map((genre) => ({
     url: `${SITE_URL}/genre/${genre}`,
     lastModified: now
@@ -281,7 +276,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now
     }))
   ),
-
-...gameUrls
   ];
 }

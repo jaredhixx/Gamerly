@@ -2,6 +2,7 @@ import Link from "next/link";
 import PageContainer from "../layout/PageContainer";
 import SectionHeading from "../ui/SectionHeading";
 import GameGrid from "../game/GameGrid";
+import { getBestPageBySlug } from "../../lib/best-pages-registry";
 import { fetchGames } from "../../lib/igdb";
 
 type Props = {
@@ -83,6 +84,28 @@ export default async function BestGamesByYearPage({
   const topPicks = sortedGames.slice(0, 12);
   const fullList = sortedGames.slice(0, 60);
 
+  const platformYearExploreLinks = [
+    {
+      href: `/best-pc-games-${year}`,
+      label: `Browse best PC games of ${year}`
+    },
+    {
+      href: `/best-playstation-games-${year}`,
+      label: `Browse best PlayStation games of ${year}`
+    },
+    {
+      href: `/best-xbox-games-${year}`,
+      label: `Browse best Xbox games of ${year}`
+    },
+    {
+      href: `/best-switch-games-${year}`,
+      label: `Browse best Switch games of ${year}`
+    }
+  ].filter((link) => {
+    const slug = link.href.replace("/", "");
+    return Boolean(getBestPageBySlug(slug));
+  });
+
   return (
     <PageContainer>
       <SectionHeading title={pageTitle} subtitle={pageSubtitle} />
@@ -107,31 +130,33 @@ export default async function BestGamesByYearPage({
       <section style={{ marginBottom: "40px" }}>
         <h2>{exploreHeading}</h2>
 
-<ul style={{ paddingLeft: "20px", margin: "16px 0 0" }}>
-  <li>
-    <Link href="/best-pc-games-2025">Browse best PC games of 2025</Link>
-  </li>
-  <li>
-    <Link href="/top-rated">Browse top-rated games across all years</Link>
-  </li>
-  <li>
-    <Link href="/new-games">Browse newly released games</Link>
-  </li>
-  <li>
-    <Link href="/upcoming-games">Browse upcoming games</Link>
-  </li>
-  <li>
-    <Link href="/games-releasing-this-month">
-      See games releasing this month
-    </Link>
-  </li>
-  <li>
-    <Link href="/genres">Browse games by genre</Link>
-  </li>
-  <li>
-    <Link href="/platforms">Browse games by platform</Link>
-  </li>
-</ul>
+        <ul style={{ paddingLeft: "20px", margin: "16px 0 0" }}>
+          {platformYearExploreLinks.map((link) => (
+            <li key={link.href}>
+              <Link href={link.href}>{link.label}</Link>
+            </li>
+          ))}
+          <li>
+            <Link href="/top-rated">Browse top-rated games across all years</Link>
+          </li>
+          <li>
+            <Link href="/new-games">Browse newly released games</Link>
+          </li>
+          <li>
+            <Link href="/upcoming-games">Browse upcoming games</Link>
+          </li>
+          <li>
+            <Link href="/games-releasing-this-month">
+              See games releasing this month
+            </Link>
+          </li>
+          <li>
+            <Link href="/genres">Browse games by genre</Link>
+          </li>
+          <li>
+            <Link href="/platforms">Browse games by platform</Link>
+          </li>
+        </ul>
       </section>
 
       <section style={{ marginBottom: "40px" }}>

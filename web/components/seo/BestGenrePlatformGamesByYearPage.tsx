@@ -53,20 +53,6 @@ export default async function BestGenrePlatformGamesByYearPage({
     return releaseYear === year && hasGenre && hasPlatform;
   });
 
-  if (genreSlug === "shooter" && platformSlug === "pc" && year === 2025) {
-    console.log(
-      "DEBUG_ALL_MATCHING_SHOOTER_PC_2025",
-      allMatchingGames.map((game) => ({
-        name: game.name,
-        releaseDate: game.releaseDate,
-        genreSlugs: game.genreSlugs,
-        platformSlugs: game.platformSlugs,
-        aggregated_rating: game.aggregated_rating,
-        aggregated_rating_count: game.aggregated_rating_count
-      }))
-    );
-  }
-
   const strongMatchingGames = allMatchingGames.filter((game) => {
     const rating = game.aggregated_rating ?? 0;
     const ratingCount = game.aggregated_rating_count ?? 0;
@@ -175,7 +161,7 @@ export default async function BestGenrePlatformGamesByYearPage({
             </Link>
           </li>
           <li>
-            <Link href="/best-games-2025">Browse best games of 2025</Link>
+            <Link href={`/best-games-${year}`}>Browse best games of {year}</Link>
           </li>
           <li>
             <Link href="/new-games">Browse newly released games</Link>

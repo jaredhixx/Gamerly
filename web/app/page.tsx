@@ -102,8 +102,10 @@ function buildUpcomingWindowGames(
 }
 
 export default async function Home() {
-  const games = await fetchGames();
-  const streams = await fetchTwitchStreams();
+  const [games, streams] = await Promise.all([
+    fetchGames(),
+    fetchTwitchStreams()
+  ]);
 
   const roughTwitchMap = buildRoughTwitchMap(streams);
 

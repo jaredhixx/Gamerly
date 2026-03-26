@@ -100,6 +100,14 @@ export default async function BestPlatformGamesByYearPage({
   <p>{introParagraphOne}</p>
   <p>{introParagraphTwo}</p>
 
+  <p style={{ marginTop: "16px" }}>
+  <strong>How these games are ranked:</strong> Rankings are based on a combination of
+  critic scores, player interest, and overall release impact. Games with stronger
+  review performance, higher engagement, and more lasting relevance are prioritized
+  higher on the list, while lower-signal or newly released titles may appear lower
+  until more data becomes available.
+</p>
+
 <p>
   This page tracks the best{" "}
   <Link href={`/best-games-${year}`} style={{ color: "#8bb9ff", fontWeight: 600 }}>

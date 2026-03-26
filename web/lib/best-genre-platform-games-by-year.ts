@@ -8,13 +8,13 @@ export const bestGenrePlatformGamesByYearContent = {
         description:
           "Discover the best RPG games on PC in 2025, including the top-rated role-playing games released on PC this year.",
         introParagraphOne:
-          "The best RPG games on PC in 2025 include the strongest role-playing releases available on the platform this year, from major open-world launches to smaller critically praised standouts. This page focuses only on RPG games released in 2025 that are available on PC.",
-        introParagraphTwo:
-          "If you want a faster way to find the most worth-playing PC RPGs released in 2025, this page is designed to surface the strongest options first using quality and popularity signals.",
+  "The best RPG games on PC in 2025 are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on role-playing games released in 2025 that are playable on PC, highlighting the titles that stand out the most across a wide range of RPG styles.",
+introParagraphTwo:
+  "If you are searching for the best RPG games on PC in 2025 to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player reception, and lasting relevance within the RPG genre. For a broader view across all genres, explore the best PC games of 2025 to see the top releases across the entire platform. If you are also interested in fast-paced action, check out the best shooter games on PC in 2025 to discover top FPS and shooter experiences this year.",
         exploreHeading: "Explore More PC RPG Pages",
         topSectionHeading: "Top RPG Games Released on PC in 2025",
         topSectionIntro:
-          "These are the standout RPG games released on PC in 2025 based on a blend of review strength and player interest. If you want to find the best PC RPGs from 2025, start here.",
+  "These are the best RPG games released on PC in 2025, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest PC RPG releases of the year and is designed to quickly surface the top role-playing games worth playing.",
         fullListHeading: "Full List of Best RPG Games on PC in 2025"
       }
     },
@@ -25,14 +25,14 @@ export const bestGenrePlatformGamesByYearContent = {
           "Top-rated shooter games released in 2025 on PC, ranked by quality and popularity.",
         description:
           "Discover the best shooter games on PC in 2025, including the top-rated FPS and third-person shooters released this year.",
-        introParagraphOne:
-          "The best shooter games on PC in 2025 include the strongest FPS and third-person shooter releases available this year, from competitive multiplayer titles to story-driven campaigns.",
-        introParagraphTwo:
-          "If you are looking for the most worth-playing shooter games on PC released in 2025, this page highlights the top options based on review scores and player interest.",
+introParagraphOne:
+  "The best shooter games on PC in 2025 are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on shooter games released in 2025 that are playable on PC, highlighting the titles that stand out the most across both competitive and single-player experiences.",
+introParagraphTwo:
+  "If you are searching for the best shooter games on PC in 2025 to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player engagement, and lasting relevance within the shooter genre. For a broader view across all genres, explore the best PC games of 2025 to see the top releases across the entire platform. If you prefer slower, more tactical decision-making, check out the best strategy games on PC in 2025 to discover the top strategy releases this year.",
         exploreHeading: "Explore More PC Shooter Pages",
         topSectionHeading: "Top Shooter Games Released on PC in 2025",
         topSectionIntro:
-          "These are the standout shooter games released on PC in 2025 based on quality and popularity signals.",
+  "These are the best shooter games released on PC in 2025, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest PC shooter releases of the year and is designed to quickly surface the top shooter games worth playing.",
         fullListHeading: "Full List of Best Shooter Games on PC in 2025"
       }
     },
@@ -45,13 +45,13 @@ export const bestGenrePlatformGamesByYearContent = {
         description:
           "Discover the best strategy games on PC in 2025, including the top RTS and turn-based strategy games released this year.",
         introParagraphOne:
-          "The best strategy games on PC in 2025 include the strongest real-time and turn-based strategy releases available this year, from large-scale war simulations to tactical decision-focused experiences.",
-        introParagraphTwo:
-          "If you want to find the most worth-playing strategy games on PC released in 2025, this page highlights the top options based on review scores and player interest.",
+  "The best strategy games on PC in 2025 are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on strategy games released in 2025 that are playable on PC, highlighting the titles that stand out across both real-time and turn-based strategy experiences.",
+introParagraphTwo:
+  "If you are searching for the best strategy games on PC in 2025 to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player engagement, and lasting relevance within the strategy genre. For a broader view across all genres, explore the best PC games of 2025 to see the top releases across the entire platform. If you want more character progression, world-building, and role-playing depth, explore the best RPG games on PC in 2025 to discover the top PC RPG releases this year.",
         exploreHeading: "Explore More PC Strategy Pages",
         topSectionHeading: "Top Strategy Games Released on PC in 2025",
         topSectionIntro:
-          "These are the standout strategy games released on PC in 2025 based on quality and popularity signals.",
+  "These are the best strategy games released on PC in 2025, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest PC strategy releases of the year and is designed to quickly surface the top strategy games worth playing.",
         fullListHeading: "Full List of Best Strategy Games on PC in 2025"
       }
     },

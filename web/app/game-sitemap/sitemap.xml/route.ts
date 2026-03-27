@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { SITE_URL } from "../../lib/site";
+import { SITE_URL } from "../../../lib/site";
 
 export const revalidate = 21600;
 
@@ -10,6 +10,7 @@ const CACHE_FILE = path.join(process.cwd(), "igdb-cache.json");
 type CachedGame = {
   id: number;
   slug: string;
+  releaseDate?: string | null;
 };
 
 type CachePayload =
@@ -19,8 +20,8 @@ type CachePayload =
     }
   | CachedGame[];
 
-function readGameCount(): {
-  gameCount: number;
+function readGameCache(): {
+  games: CachedGame[];
   lastUpdated: string;
 } {
   const nowIso = new Date().toISOString();
@@ -35,12 +36,12 @@ function readGameCount(): {
       ? parsed.games
       : [];
 
-    const gameCount = rawGames.filter(
-      (game) =>
+    const games = rawGames.filter(
+      (game): game is CachedGame =>
         typeof game?.id === "number" &&
         typeof game?.slug === "string" &&
         game.slug.length > 0
-    ).length;
+    );
 
     const lastUpdated =
       Array.isArray(parsed)
@@ -50,47 +51,36 @@ function readGameCount(): {
         : nowIso;
 
     return {
-      gameCount,
+      games,
       lastUpdated
     };
   } catch (error) {
-    console.error(
-      "[sitemap-index] Failed to read igdb-cache.json for game sitemap count.",
-      error
-    );
+    console.error("[game-sitemap-index] Failed to read igdb-cache.json", error);
 
     return {
-      gameCount: 0,
+      games: [],
       lastUpdated: nowIso
     };
   }
 }
 
 export async function GET() {
-  const { gameCount, lastUpdated } = readGameCount();
-
-  const sitemapEntries = [
-    `  <sitemap>
-    <loc>${SITE_URL}/sitemap.xml</loc>
-    <lastmod>${lastUpdated}</lastmod>
-  </sitemap>`
-  ];
-
-  const gameSitemapCount = Math.max(
+  const { games, lastUpdated } = readGameCache();
+  const sitemapCount = Math.max(
     1,
-    Math.ceil(gameCount / GAME_SITEMAP_PAGE_SIZE)
+    Math.ceil(games.length / GAME_SITEMAP_PAGE_SIZE)
   );
 
-  for (let index = 0; index < gameSitemapCount; index += 1) {
-    sitemapEntries.push(`  <sitemap>
+  const entries = Array.from({ length: sitemapCount }, (_, index) => {
+    return `  <sitemap>
     <loc>${SITE_URL}/game-sitemap/sitemap/${index}.xml</loc>
     <lastmod>${lastUpdated}</lastmod>
-  </sitemap>`);
-  }
+  </sitemap>`;
+  });
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${sitemapEntries.join("\n")}
+${entries.join("\n")}
 </sitemapindex>`;
 
   return new Response(xml, {

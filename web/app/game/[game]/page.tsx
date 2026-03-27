@@ -687,6 +687,43 @@ const relatedPlatformGames = allGames
       </span>
     </div>
 
+    <div className="gameHeroDecisionRow">
+  <span className="gameHeroDecisionLabel">Rating</span>
+  <span className="gameHeroDecisionValue">
+    {typeof game.aggregated_rating === "number"
+      ? `${Math.round(game.aggregated_rating)} / 100`
+      : "No rating yet"}
+  </span>
+</div>
+
+<div className="gameHeroDecisionRow">
+  <span className="gameHeroDecisionLabel">Review coverage</span>
+  <span className="gameHeroDecisionValue">
+    {typeof game.aggregated_rating_count === "number"
+      ? game.aggregated_rating_count >= 50
+        ? "Strong"
+        : game.aggregated_rating_count >= 20
+        ? "Moderate"
+        : "Limited"
+      : "Unknown"}
+  </span>
+</div>
+
+<div className="gameHeroDecisionRow">
+  <span className="gameHeroDecisionLabel">Player signal</span>
+  <span className="gameHeroDecisionValue">
+    {typeof game.aggregated_rating === "number"
+      ? game.aggregated_rating >= 80 &&
+        typeof game.aggregated_rating_count === "number" &&
+        game.aggregated_rating_count >= 20
+        ? "Strong"
+        : game.aggregated_rating >= 70
+        ? "Moderate"
+        : "Weak"
+      : "Unknown"}
+  </span>
+</div>
+
 
   </div>
 

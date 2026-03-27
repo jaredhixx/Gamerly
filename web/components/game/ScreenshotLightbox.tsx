@@ -65,18 +65,29 @@ useEffect(() => {
 
   return (
     <>
-      <div className="screenshotGrid">
-
-        {images.map((img, index) => (
+      <div className="screenshotGallery">
+        <div className="screenshotFeatured">
           <img
-            key={img}
-            src={img}
+            src={images[0]}
             alt="Game screenshot"
             loading="lazy"
-            onClick={() => setActiveIndex(index)}
+            onClick={() => setActiveIndex(0)}
           />
-        ))}
+        </div>
 
+        {images.length > 1 && (
+          <div className="screenshotGrid">
+            {images.slice(1).map((img, index) => (
+              <img
+                key={img}
+                src={img}
+                alt="Game screenshot"
+                loading="lazy"
+                onClick={() => setActiveIndex(index + 1)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {activeIndex !== null && (

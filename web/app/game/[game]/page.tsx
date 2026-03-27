@@ -473,14 +473,41 @@ if (slugParam !== correctSlug) {
     return { title: "Game Not Found" };
   }
 
-  return {
-        title: `${game.name} Release Date & Platforms`,
-    description:
-      game.summary || `${game.name} game details and release info.`,
-    alternates: {
-      canonical: buildCanonicalUrl(`/game/${id}-${game.slug}`)
-    }
-  };
+const primaryPlatform = game.platforms?.[0];
+const primaryGenre = game.genres?.[0];
+
+const releaseYear = game.releaseDate
+  ? new Date(game.releaseDate).getUTCFullYear()
+  : null;
+
+const titleParts = [
+  game.name,
+  primaryPlatform ? `${primaryPlatform}` : null,
+  releaseYear ? `${releaseYear}` : null,
+  "Release Date, Gameplay, Platforms"
+].filter(Boolean);
+
+const seoTitle = titleParts.join(" | ");
+
+const seoDescriptionParts = [
+  `View ${game.name} release date${releaseYear ? ` (${releaseYear})` : ""}.`,
+  primaryPlatform ? `Available on ${primaryPlatform}.` : null,
+  primaryGenre ? `A ${primaryGenre} game.` : null,
+  typeof game.aggregated_rating === "number"
+    ? `Rated ${Math.round(game.aggregated_rating)}/100.`
+    : null,
+  "See screenshots, trailer, and similar games."
+].filter(Boolean);
+
+const seoDescription = seoDescriptionParts.join(" ");
+
+return {
+  title: seoTitle,
+  description: seoDescription,
+  alternates: {
+    canonical: buildCanonicalUrl(`/game/${id}-${game.slug}`)
+  }
+};
 }
 
 export default async function GamePage(props: any) {
@@ -564,43 +591,64 @@ const relatedPlatformGames = allGames
             "@context": "https://schema.org",
             "@type": "VideoGame",
             name: game.name,
-            datePublished: game.releaseDate,
-            image: game.coverUrl,
-            gamePlatform: game.platforms,
-            description: game.summary
+            url: buildCanonicalUrl(`/game/${game.id}-${game.slug}`),
+            description:
+              game.summary ||
+              `${game.name} game details, release date, platforms, screenshots, trailer, and related games.`,
+            datePublished: game.releaseDate || undefined,
+            image: game.coverUrl ? [game.coverUrl] : undefined,
+            genre: game.genres && game.genres.length > 0 ? game.genres : undefined,
+            gamePlatform:
+              game.platforms && game.platforms.length > 0 ? game.platforms : undefined,
+            publisher: {
+              "@type": "Organization",
+              name: "Gamerly"
+            },
+            aggregateRating:
+              typeof game.aggregated_rating === "number" &&
+              typeof game.aggregated_rating_count === "number" &&
+              game.aggregated_rating_count > 0
+                ? {
+                    "@type": "AggregateRating",
+                    ratingValue: Number(game.aggregated_rating.toFixed(1)),
+                    ratingCount: game.aggregated_rating_count,
+                    bestRating: 100,
+                    worstRating: 0
+                  }
+                : undefined
           })
         }}
       />
 
       <script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{
-    __html: JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Home",
-          item: "https://www.gamerly.net"
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Games",
-          item: "https://www.gamerly.net/new-games"
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: game.name,
-          item: `https://www.gamerly.net/game/${game.id}-${game.slug}`
-        }
-      ]
-    })
-  }}
-/>
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: buildCanonicalUrl("/")
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "New Games",
+                item: buildCanonicalUrl("/new-games")
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: game.name,
+                item: buildCanonicalUrl(`/game/${game.id}-${game.slug}`)
+              }
+            ]
+          })
+        }}
+      />
 
 <main className="gamePage">
 <h1 className="gameTitle">
@@ -624,30 +672,69 @@ const relatedPlatformGames = allGames
 <div className="gameMeta">
   <span className="gameMetaLabel">Release date</span>
   <span className="gameMetaValue">
-    {formatReleaseDateForDisplay(game) ?? "TBA"}
+    {(() => {
+      const formattedReleaseDate = formatReleaseDateForDisplay(game);
+
+      if (!formattedReleaseDate || !game.releaseDate) {
+        return "Release date TBA";
+      }
+
+      const releaseTime = new Date(game.releaseDate).getTime();
+      const now = Date.now();
+
+      if (releaseTime <= now) {
+        return `Released on ${formattedReleaseDate}`;
+      }
+
+      return `Releases on ${formattedReleaseDate}`;
+    })()}
   </span>
 </div>
 
   <div className="gamePills">
-    {game.platforms?.slice(0, 3).map((platform: string, index: number) => {
-      const platformSlug = game.platformSlugs?.[index];
-      const href =
-        getPlatformHrefFromSlug(platformSlug) || getPlatformHref(platform);
+    {game.platforms
+      ?.filter((platform: string, index: number) => {
+        const platformSlug = game.platformSlugs?.[index]?.toLowerCase() || "";
+        const platformName = platform.toLowerCase();
 
-      if (!href) {
+        const isSupportedPlatform =
+          platformSlug === "pc" ||
+          platformSlug === "playstation" ||
+          platformSlug === "xbox" ||
+          platformSlug === "switch" ||
+          platformSlug === "ios" ||
+          platformSlug === "android" ||
+          platformName.includes("pc") ||
+          platformName.includes("windows") ||
+          platformName.includes("playstation") ||
+          platformName.includes("xbox") ||
+          platformName.includes("switch") ||
+          platformName.includes("nintendo") ||
+          platformName.includes("ios") ||
+          platformName.includes("iphone") ||
+          platformName.includes("ipad") ||
+          platformName.includes("android");
+
+        return isSupportedPlatform;
+      })
+      .slice(0, 3)
+      .map((platform: string) => {
+        const href = getPlatformHref(platform);
+
+        if (!href) {
+          return (
+            <span key={platform} className="gamePill">
+              {platform}
+            </span>
+          );
+        }
+
         return (
-          <span key={platform} className="gamePill">
+          <Link key={platform} href={href} className="gamePill">
             {platform}
-          </span>
+          </Link>
         );
-      }
-
-      return (
-        <Link key={platform} href={href} className="gamePill">
-          {platform}
-        </Link>
-      );
-    })}
+      })}
 
     {game.genres?.slice(0, 2).map((genre: string, index: number) => {
       const genreSlug = game.genreSlugs?.[index];
@@ -673,31 +760,71 @@ const relatedPlatformGames = allGames
   <div className="gameHeroDecisionCard">
     <div className="gameHeroDecisionRow">
       <span className="gameHeroDecisionLabel">Status</span>
-      <span className="gameHeroDecisionValue">
-        {game.releaseDate
-          ? new Date(game.releaseDate) <= new Date()
-            ? "Released"
-            : "Upcoming"
-          : "Release date unknown"}
-      </span>
+<span className="gameHeroDecisionValue">
+  {(() => {
+    if (!game.releaseDate) {
+      return "Release date unknown";
+    }
+
+    const releaseTime = new Date(game.releaseDate).getTime();
+    const now = Date.now();
+
+    const daysDifference = Math.floor(
+      (releaseTime - now) / (1000 * 60 * 60 * 24)
+    );
+
+    if (releaseTime <= now) {
+      const daysSinceRelease = Math.floor(
+        (now - releaseTime) / (1000 * 60 * 60 * 24)
+      );
+
+      if (daysSinceRelease <= 30) {
+        return "Released (Recent)";
+      }
+
+      return "Released";
+    }
+
+    if (daysDifference <= 30) {
+      return "Releasing Soon";
+    }
+
+    return "Upcoming";
+  })()}
+</span>
     </div>
 
     <div className="gameHeroDecisionRow">
       <span className="gameHeroDecisionLabel">Best for</span>
-      <span className="gameHeroDecisionValue">
-        {game.genres?.[0] && game.platforms?.[0]
-          ? `${
-              typeof game.aggregated_rating === "number" &&
-              game.aggregated_rating >= 80
-                ? "Players looking for highly rated games"
-                : "Fans of " + game.genres[0] + " games"
-            }${
-              game.platforms[0]
-                ? ", especially on " + game.platforms[0]
-                : ""
-            }`
-          : "Players exploring new games"}
-      </span>
+<span className="gameHeroDecisionValue">
+  {game.genres?.[0] && game.platforms?.[0]
+    ? (() => {
+        const genre = game.genres[0];
+        const platform = game.platforms[0];
+
+        const rating = game.aggregated_rating;
+        const ratingCount = game.aggregated_rating_count;
+
+        if (
+          typeof rating === "number" &&
+          typeof ratingCount === "number" &&
+          rating >= 80 &&
+          ratingCount >= 20
+        ) {
+          return `${genre} players looking for highly rated games on ${platform}`;
+        }
+
+        if (
+          typeof rating === "number" &&
+          rating >= 70
+        ) {
+          return `${genre} players exploring solid games on ${platform}`;
+        }
+
+        return `${genre} players exploring games on ${platform}`;
+      })()
+    : "Players exploring new games"}
+</span>
     </div>
 
     <div className="gameHeroDecisionRow">
@@ -709,52 +836,54 @@ const relatedPlatformGames = allGames
       </span>
     </div>
 
-    <div className="gameHeroDecisionRow">
-      <span className="gameHeroDecisionLabel">Review coverage</span>
-      <span className="gameHeroDecisionValue">
-        {typeof game.aggregated_rating_count === "number"
-          ? game.aggregated_rating_count >= 50
-            ? "Strong"
-            : game.aggregated_rating_count >= 20
-            ? "Moderate"
-            : "Limited"
-          : "Unknown"}
-      </span>
-    </div>
+<div className="gameHeroDecisionRow">
+  <span className="gameHeroDecisionLabel">Review coverage</span>
+  <span className="gameHeroDecisionValue">
+    {typeof game.aggregated_rating_count === "number"
+      ? game.aggregated_rating_count >= 50
+        ? "Well reviewed"
+        : game.aggregated_rating_count >= 20
+        ? "Some review depth"
+        : "Early review data"
+      : "Review data unclear"}
+  </span>
+</div>
 
-    <div className="gameHeroDecisionRow">
-      <span className="gameHeroDecisionLabel">Player signal</span>
-      <span
-        className={`gameHeroDecisionValue ${
-          typeof game.aggregated_rating === "number"
-            ? game.aggregated_rating >= 80 &&
-              typeof game.aggregated_rating_count === "number" &&
-              game.aggregated_rating_count >= 20
-              ? "signal-strong"
-              : game.aggregated_rating >= 70
-              ? "signal-moderate"
-              : "signal-weak"
-            : "signal-unknown"
-        }`}
-      >
-        {typeof game.aggregated_rating === "number"
-          ? game.aggregated_rating >= 80 &&
-            typeof game.aggregated_rating_count === "number" &&
-            game.aggregated_rating_count >= 20
-            ? "Strong"
-            : game.aggregated_rating >= 70
-            ? "Moderate"
-            : "Weak"
-          : "Unknown"}
-      </span>
-    </div>
+<div className="gameHeroDecisionRow">
+  <span className="gameHeroDecisionLabel">Player signal</span>
+  <span
+    className={`gameHeroDecisionValue ${
+      typeof game.aggregated_rating === "number"
+        ? game.aggregated_rating >= 80 &&
+          typeof game.aggregated_rating_count === "number" &&
+          game.aggregated_rating_count >= 20
+          ? "signal-strong"
+          : game.aggregated_rating >= 70
+          ? "signal-moderate"
+          : "signal-weak"
+        : "signal-unknown"
+    }`}
+  >
+    {typeof game.aggregated_rating === "number"
+      ? game.aggregated_rating >= 80 &&
+        typeof game.aggregated_rating_count === "number" &&
+        game.aggregated_rating_count >= 20
+        ? "Strong early signal"
+        : game.aggregated_rating >= 70
+        ? "Promising signal"
+        : "Mixed signal"
+      : "Signal still forming"}
+  </span>
+</div>
   </div>
 </div>
   </div>
 
 {game.summary && (
   <section className="gameHeroSummaryBlock">
-    <h2 className="gameHeroSummaryHeading">About {game.name}</h2>
+    <h2 className="gameHeroSummaryHeading">
+  What to Know About {game.name}
+</h2>
     <ExpandableSummary summary={game.summary} />
   </section>
 )}
@@ -788,67 +917,43 @@ const relatedPlatformGames = allGames
 
 {moreLikeThisGames.length > 0 && (
   <section className="gameSection">
-    <h2>More Like This</h2>
+    <h2>Games Like {game.name}</h2>
 
     <GameCarousel games={moreLikeThisGames} />
   </section>
 )}
 
-        {game.genres && game.genres.length > 0 && (
-         <section className="gameSection">
-            <h2
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "20px"
-              }}
-            >
-              More {game.genres[0]} Games
-            </h2>
+{game.genres && game.genres.length > 0 && (
+  <section className="gameSection">
+    <h2>Similar {game.genres[0]} Games</h2>
 
             <GameGrid games={relatedGenreGames} />
 
-<div style={{ marginTop: "16px" }}>
-<Link
-  href={
-    getGenreHrefFromSlug(game.genreSlugs?.[0]) ||
-    getGenreHref(game.genres[0]) ||
-    "/genres"
-  }
-  className="sectionMoreLink"
->
-  Browse all {game.genres[0]} games →
-</Link>
+<div style={{ marginTop: "14px" }}>
+  <Link
+    href={`/genre/${game.genres[0].toLowerCase()}`}
+    className="browseAllLink"
+  >
+    Browse all {game.genres[0]} games →
+  </Link>
 </div>
 
           </section>
         )}
 
-        {game.platforms && game.platforms.length > 0 && (
-         <section className="gameSection">
-            <h2
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "20px"
-              }}
-            >
-              More {game.platforms[0]} Games
-            </h2>
+{game.platforms && game.platforms.length > 0 && (
+  <section className="gameSection">
+    <h2>More {game.platforms[0]} Games Like {game.name}</h2>
 
             <GameGrid games={relatedPlatformGames} />
 
-<div style={{ marginTop: "16px" }}>
-<Link
-  href={
-    getPlatformHrefFromSlug(game.platformSlugs?.[0]) ||
-    getPlatformHref(game.platforms[0]) ||
-    "/platforms"
-  }
-  className="sectionMoreLink"
->
-  Browse all {game.platforms[0]} games →
-</Link>
+<div style={{ marginTop: "14px" }}>
+  <Link
+    href={`/platform/${game.platforms[0].toLowerCase()}`}
+    className="browseAllLink"
+  >
+    Browse all {game.platforms[0]} games →
+  </Link>
 </div>
 
           </section>

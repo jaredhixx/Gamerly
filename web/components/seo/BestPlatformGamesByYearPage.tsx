@@ -135,25 +135,24 @@ export default async function BestPlatformGamesByYearPage({
       </Link>
     </li>
     <li>
-      <Link href={`/best-games-${year}`}>Browse best games of {year}</Link>
+      <Link href={`/best-rpg-games-${platformSlug}-${year}`}>
+        Best RPG games on {platformSlug === "pc" ? "PC" : platformSlug === "playstation" ? "PlayStation" : platformSlug === "xbox" ? "Xbox" : platformSlug === "switch" ? "Switch" : platformSlug} in {year}
+      </Link>
     </li>
     <li>
-      <Link href="/best-rpg-games">Browse best RPG games</Link>
+      <Link href={`/best-shooter-games-${platformSlug}-${year}`}>
+        Best shooter games on {platformSlug === "pc" ? "PC" : platformSlug === "playstation" ? "PlayStation" : platformSlug === "xbox" ? "Xbox" : platformSlug === "switch" ? "Switch" : platformSlug} in {year}
+      </Link>
     </li>
     <li>
-      <Link href="/best-shooter-games">Browse best shooter games</Link>
+      <Link href={`/best-adventure-games-${platformSlug}-${year}`}>
+        Best adventure games on {platformSlug === "pc" ? "PC" : platformSlug === "playstation" ? "PlayStation" : platformSlug === "xbox" ? "Xbox" : platformSlug === "switch" ? "Switch" : platformSlug} in {year}
+      </Link>
     </li>
     <li>
-      <Link href="/best-adventure-games">Browse best adventure games</Link>
-    </li>
-    <li>
-      <Link href="/best-strategy-games">Browse best strategy games</Link>
-    </li>
-    <li>
-      <Link href="/best-simulation-games">Browse best simulation games</Link>
-    </li>
-    <li>
-      <Link href="/best-indie-games">Browse best indie games</Link>
+      <Link href={`/best-strategy-games-${platformSlug}-${year}`}>
+        Best strategy games on {platformSlug === "pc" ? "PC" : platformSlug === "playstation" ? "PlayStation" : platformSlug === "xbox" ? "Xbox" : platformSlug === "switch" ? "Switch" : platformSlug} in {year}
+      </Link>
     </li>
   </ul>
 </section>

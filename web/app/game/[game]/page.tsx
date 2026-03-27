@@ -711,7 +711,19 @@ const relatedPlatformGames = allGames
 
 <div className="gameHeroDecisionRow">
   <span className="gameHeroDecisionLabel">Player signal</span>
-  <span className="gameHeroDecisionValue">
+  <span
+    className={`gameHeroDecisionValue ${
+      typeof game.aggregated_rating === "number"
+        ? game.aggregated_rating >= 80 &&
+          typeof game.aggregated_rating_count === "number" &&
+          game.aggregated_rating_count >= 20
+          ? "signal-strong"
+          : game.aggregated_rating >= 70
+          ? "signal-moderate"
+          : "signal-weak"
+        : "signal-unknown"
+    }`}
+  >
     {typeof game.aggregated_rating === "number"
       ? game.aggregated_rating >= 80 &&
         typeof game.aggregated_rating_count === "number" &&

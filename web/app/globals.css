@@ -1147,12 +1147,6 @@ p + p {
   border-color: rgba(148,163,184,0.30);
 }
 
-.gameCardPlatform[data-platform="iOS"] {
-  background: rgba(148, 163, 184, 0.20);
-  color: #dbe4f0;
-  border-color: rgba(148, 163, 184, 0.30);
-}
-
 /* Genre chip */
 
 .gameCardGenre {
@@ -1727,6 +1721,12 @@ p + p {
   margin-top: 0;
   margin-left: 0;
   margin-right: 0;
+}
+
+.gameHeroSummary .gameSummary.expanded {
+  max-height: calc(1.75em * 8);
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .gameHeroSummary .summaryToggle {
@@ -2584,4 +2584,23 @@ p + p {
   color: #ffffff;
 
   transform: translateY(-2px);
+}
+
+.signal-strong {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.signal-moderate {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.signal-weak {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.signal-unknown {
+  color: #9ca3af;
 }

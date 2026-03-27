@@ -165,7 +165,10 @@ export default async function BestPlatformGamesByYearPage({
         </p>
 
         {topPicks.length > 0 ? (
-          <GameGrid games={topPicks} />
+          <GameGrid
+            games={topPicks}
+            prioritizedPlatformSlug={platformSlug}
+          />
         ) : (
           <p>No strong ranked platform games are available for this year yet.</p>
         )}
@@ -175,7 +178,10 @@ export default async function BestPlatformGamesByYearPage({
         <h2>{fullListHeading}</h2>
 
         {fullList.length > 0 ? (
-          <GameGrid games={fullList} />
+          <GameGrid
+            games={fullList}
+            prioritizedPlatformSlug={platformSlug}
+          />
         ) : (
           <p>No strong ranked platform games are available for this year yet.</p>
         )}

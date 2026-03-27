@@ -32,46 +32,42 @@ const genres = [
 export default function SiteHeader() {
 
   const [query, setQuery] = useState("");
-const [results, setResults] = useState<any[]>([]);
-const [games, setGames] = useState<any[]>([]);
+  const [results, setResults] = useState<any[]>([]);
 
-useEffect(() => {
-  async function loadGames() {
-    try {
-      const res = await fetch("/api/search-data");
-      const data = await res.json();
-      setGames(data);
-    } catch (err) {
-      console.error("Search data failed to load", err);
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setResults([]);
+      return;
     }
-  }
 
-  loadGames();
-}, []);
+    const controller = new AbortController();
 
-useEffect(() => {
-  if (query.length < 2) {
-    setResults([]);
-    return;
-  }
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/search-data?q=${encodeURIComponent(query.trim())}`,
+          { signal: controller.signal }
+        );
 
-const q = query.toLowerCase();
+        if (!res.ok) {
+          throw new Error("Search request failed");
+        }
 
-const filtered = games
-  .filter((g) => g.name && g.name.toLowerCase().includes(q))
-  .sort((a, b) => {
-    const aStarts = a.name.toLowerCase().startsWith(q);
-    const bStarts = b.name.toLowerCase().startsWith(q);
+        const data = await res.json();
+        setResults(data);
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          console.error("Search data failed to load", err);
+          setResults([]);
+        }
+      }
+    }, 150);
 
-    if (aStarts && !bStarts) return -1;
-    if (!aStarts && bStarts) return 1;
-
-    return a.name.localeCompare(b.name);
-  })
-  .slice(0, 6);
-
-  setResults(filtered);
-}, [query, games]);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [query]);
 
 
   return (

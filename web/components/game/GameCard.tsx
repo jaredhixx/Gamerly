@@ -32,6 +32,17 @@ function normalizeGenre(genre: string) {
   return map[genre] ?? genre;
 }
 
+function getPlatformSlugFromLabel(label: string) {
+  if (label === "PC") return "pc";
+  if (label === "Xbox") return "xbox";
+  if (label === "PS") return "playstation";
+  if (label === "Switch") return "switch";
+  if (label === "Android") return "android";
+  if (label === "iOS") return "ios";
+
+  return null;
+}
+
 function formatReleaseDateForDisplay(game: {
   releaseDate?: string | null;
   releaseDateDisplay?: string | null;
@@ -93,12 +104,39 @@ if (score >= 50) return "Worth Watching";
   return null;
 }
 
-export default function GameCard({ game }: { game: GameWithLive }) {
+export default function GameCard({
+  game,
+  prioritizedPlatformSlug
+}: {
+  game: GameWithLive;
+  prioritizedPlatformSlug?: string;
+}) {
   const router = useRouter();
   const gameUrl = buildGamePath(game.id, game.slug);
 
   const hasLiveViewers =
     typeof game.twitchViewers === "number" && game.twitchViewers > 0;
+
+  const orderedPlatforms = prioritizedPlatformSlug
+    ? [
+        ...(game.platforms ?? []).filter((platform) => {
+          const label = normalizePlatform(platform);
+          return getPlatformSlugFromLabel(label) === prioritizedPlatformSlug;
+        }),
+        ...(game.platforms ?? []).filter((platform) => {
+          const label = normalizePlatform(platform);
+          return getPlatformSlugFromLabel(label) !== prioritizedPlatformSlug;
+        })
+      ]
+    : game.platforms ?? [];
+
+  const uniqueOrderedPlatforms = orderedPlatforms.filter((platform, index, array) => {
+    const label = normalizePlatform(platform);
+
+    return (
+      array.findIndex((candidate) => normalizePlatform(candidate) === label) === index
+    );
+  });
 
   return (
     <Link href={gameUrl} style={{ textDecoration: "none", color: "inherit" }}>
@@ -140,23 +178,10 @@ export default function GameCard({ game }: { game: GameWithLive }) {
           <div className="gameCardPills">
             <div className="gameCardPillStack">
               <div className="gameCardPillGroup">
-                {game.platforms?.slice(0, 2).map((platform) => {
+                {uniqueOrderedPlatforms.slice(0, 2).map((platform) => {
                   const label = normalizePlatform(platform);
 
-                  const platformSlug =
-                    label === "PC"
-                      ? "pc"
-                      : label === "Xbox"
-                      ? "xbox"
-                      : label === "PS"
-                      ? "playstation"
-                      : label === "Switch"
-                      ? "switch"
-                      : label === "Android"
-                      ? "android"
-                      : label === "iOS"
-                      ? "ios"
-                      : null;
+                  const platformSlug = getPlatformSlugFromLabel(label);
 
                   return (
                                         <button

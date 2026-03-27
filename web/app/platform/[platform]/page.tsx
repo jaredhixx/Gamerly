@@ -438,7 +438,10 @@ export default async function PlatformPage(props: any) {
             The highest rated {platformLabel.toLowerCase()} games currently featured on
             Gamerly.
           </p>
-                    <GameGrid games={topRated} />
+                    <GameGrid
+                      games={topRated}
+                      prioritizedPlatformSlug={platformConfig.slug}
+                    />
 
           <div style={{ marginTop: "16px" }}>
             <Link
@@ -472,7 +475,10 @@ export default async function PlatformPage(props: any) {
             New {platformLabel.toLowerCase()} releases that are scheduled to launch
             soon.
           </p>
-                    <GameGrid games={upcoming} />
+                    <GameGrid
+                      games={upcoming}
+                      prioritizedPlatformSlug={platformConfig.slug}
+                    />
 
           <div style={{ marginTop: "16px" }}>
             <Link
@@ -506,7 +512,10 @@ export default async function PlatformPage(props: any) {
             Recently released {platformLabel.toLowerCase()} games you can browse right
             now.
           </p>
-          <GameGrid games={newReleases} />
+          <GameGrid
+            games={newReleases}
+            prioritizedPlatformSlug={platformConfig.slug}
+          />
 
           <div style={{ marginTop: "16px" }}>
             <Link
@@ -584,7 +593,10 @@ export default async function PlatformPage(props: any) {
           All {platformLabel} Games
         </h2>
 
-        <GameGrid games={filtered.slice(0, 24)} />
+        <GameGrid
+          games={filtered.slice(0, 24)}
+          prioritizedPlatformSlug={platformConfig.slug}
+        />
 
         {filtered.length > 24 && (
           <div style={{ marginTop: "24px" }}>

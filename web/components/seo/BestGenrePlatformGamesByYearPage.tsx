@@ -188,7 +188,10 @@ export default async function BestGenrePlatformGamesByYearPage({
         </p>
 
         {topPicks.length > 0 ? (
-          <GameGrid games={topPicks} />
+          <GameGrid
+            games={topPicks}
+            prioritizedPlatformSlug={platformSlug}
+          />
         ) : (
           <p>
             There are no strong ranked games for this combination yet, but you
@@ -201,7 +204,10 @@ export default async function BestGenrePlatformGamesByYearPage({
         <h2>{fullListHeading}</h2>
 
         {fullList.length > 0 ? (
-          <GameGrid games={fullList} />
+          <GameGrid
+            games={fullList}
+            prioritizedPlatformSlug={platformSlug}
+          />
         ) : (
           <p>No additional released games are available for this combination yet.</p>
         )}

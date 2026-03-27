@@ -4,6 +4,7 @@ import { getGameById, fetchGames } from "../../../lib/igdb";
 import { redirect, notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../lib/site";
 import GameGrid from "../../../components/game/GameGrid";
+import GameCarousel from "../../../components/game/GameCarousel";
 import ScreenshotLightbox from "../../../components/game/ScreenshotLightbox";
 import ExpandableSummary from "../../../components/game/ExpandableSummary";
 
@@ -230,6 +231,57 @@ function getPlatformRelatedScore(
   return score;
 }
 
+function getMoreLikeThisScore(
+  currentGame: {
+    genres?: string[] | null;
+    platforms?: string[] | null;
+    releaseDate?: string | null;
+    aggregated_rating?: number | null;
+    aggregated_rating_count?: number | null;
+  },
+  candidateGame: {
+    genres?: string[] | null;
+    platforms?: string[] | null;
+    releaseDate?: string | null;
+    aggregated_rating?: number | null;
+    aggregated_rating_count?: number | null;
+  }
+) {
+  let score = 0;
+
+  score += getGenreRelatedScore(currentGame, candidateGame);
+  score += getPlatformRelatedScore(currentGame, candidateGame);
+
+  const sharedGenres = getSharedValuesCount(
+    currentGame.genres,
+    candidateGame.genres
+  );
+  const sharedPlatforms = getSharedValuesCount(
+    currentGame.platforms,
+    candidateGame.platforms
+  );
+
+  if (sharedGenres > 0 && sharedPlatforms > 0) {
+    score += 8;
+  }
+
+  if (
+    typeof candidateGame.aggregated_rating === "number" &&
+    candidateGame.aggregated_rating >= 80
+  ) {
+    score += 2;
+  }
+
+  if (
+    typeof candidateGame.aggregated_rating_count === "number" &&
+    candidateGame.aggregated_rating_count >= 50
+  ) {
+    score += 2;
+  }
+
+  return score;
+}
+
 function compareRelatedGames(
   currentGame: {
     genres?: string[] | null;
@@ -450,32 +502,58 @@ export default async function GamePage(props: any) {
     notFound();
   }
 
-  const relatedGenreGames = allGames
-    .filter(
-      (g) =>
-        g.id !== game.id &&
-        isReleasedGame(g) &&
-        g.genres &&
-        g.genres.some((genre: string) => game.genres?.includes(genre))
-    )
-    .sort((leftGame, rightGame) =>
-      compareRelatedGames(game, leftGame, rightGame, getGenreRelatedScore)
-    )
-    .slice(0, 8);
+  const moreLikeThisGames = allGames
+  .filter(
+    (g) =>
+      g.id !== game.id &&
+      isReleasedGame(g) &&
+      (
+        (g.genres &&
+          game.genres &&
+          g.genres.some((genre: string) => game.genres.includes(genre))) ||
+        (g.platforms &&
+          game.platforms &&
+          g.platforms.some((platform: string) => game.platforms.includes(platform)))
+      )
+  )
+  .sort((leftGame, rightGame) =>
+    compareRelatedGames(game, leftGame, rightGame, getMoreLikeThisScore)
+  )
+  .slice(0, 8);
 
-  const relatedPlatformGames = allGames
-    .filter(
-      (g) =>
-        g.id !== game.id &&
-        isReleasedGame(g) &&
-        g.platforms &&
-        game.platforms &&
-        g.platforms.some((platform: string) => game.platforms.includes(platform))
-    )
-    .sort((leftGame, rightGame) =>
-      compareRelatedGames(game, leftGame, rightGame, getPlatformRelatedScore)
-    )
-    .slice(0, 8);
+const moreLikeThisIds = new Set(moreLikeThisGames.map((g) => g.id));
+
+const relatedGenreGames = allGames
+  .filter(
+    (g) =>
+      g.id !== game.id &&
+      !moreLikeThisIds.has(g.id) &&
+      isReleasedGame(g) &&
+      g.genres &&
+      g.genres.some((genre: string) => game.genres?.includes(genre))
+  )
+  .sort((leftGame, rightGame) =>
+    compareRelatedGames(game, leftGame, rightGame, getGenreRelatedScore)
+  )
+  .slice(0, 8);
+
+const relatedGenreIds = new Set(relatedGenreGames.map((g) => g.id));
+
+const relatedPlatformGames = allGames
+  .filter(
+    (g) =>
+      g.id !== game.id &&
+      !moreLikeThisIds.has(g.id) &&
+      !relatedGenreIds.has(g.id) &&
+      isReleasedGame(g) &&
+      g.platforms &&
+      game.platforms &&
+      g.platforms.some((platform: string) => game.platforms.includes(platform))
+  )
+  .sort((leftGame, rightGame) =>
+    compareRelatedGames(game, leftGame, rightGame, getPlatformRelatedScore)
+  )
+  .slice(0, 8);
 
   return (
     <>
@@ -541,64 +619,87 @@ export default async function GamePage(props: any) {
 />
           )}
 
-          <div>
-            <div style={{ marginBottom: "14px", fontSize: "15px", color: "#9aa3b2" }}>
-              Release Date:{" "}
-                            {formatReleaseDateForDisplay(game) ?? "TBA"}
-            </div>
+<div className="gameHeroInfo">
+  <div className="gameMeta">
+    Release Date: {formatReleaseDateForDisplay(game) ?? "TBA"}
+  </div>
 
-<div className="gamePills">
+  <div className="gamePills">
+    {game.platforms?.slice(0, 3).map((platform: string, index: number) => {
+      const platformSlug = game.platformSlugs?.[index];
+      const href =
+        getPlatformHrefFromSlug(platformSlug) || getPlatformHref(platform);
 
-{game.platforms?.slice(0, 3).map((platform: string, index: number) => {
-  const platformSlug = game.platformSlugs?.[index];
-  const href =
-    getPlatformHrefFromSlug(platformSlug) || getPlatformHref(platform);
+      if (!href) {
+        return (
+          <span key={platform} className="gamePill">
+            {platform}
+          </span>
+        );
+      }
 
-  if (!href) {
-    return (
-      <span key={platform} className="gamePill">
-        {platform}
+      return (
+        <Link key={platform} href={href} className="gamePill">
+          {platform}
+        </Link>
+      );
+    })}
+
+    {game.genres?.slice(0, 2).map((genre: string, index: number) => {
+      const genreSlug = game.genreSlugs?.[index];
+      const href =
+        getGenreHrefFromSlug(genreSlug) || getGenreHref(genre);
+
+      if (!href) {
+        return (
+          <span key={genre} className="gamePill">
+            {genre}
+          </span>
+        );
+      }
+
+      return (
+        <Link key={genre} href={href} className="gamePill">
+          {genre}
+        </Link>
+      );
+    })}
+  </div>
+
+  <div className="gameHeroDecisionCard">
+    <div className="gameHeroDecisionRow">
+      <span className="gameHeroDecisionLabel">Status</span>
+      <span className="gameHeroDecisionValue">
+        {game.releaseDate
+          ? new Date(game.releaseDate) <= new Date()
+            ? "Released"
+            : "Upcoming"
+          : "Release date unknown"}
       </span>
-    );
-  }
+    </div>
 
-  return (
-    <Link key={platform} href={href} className="gamePill">
-      {platform}
-    </Link>
-  );
-})}
-
-{game.genres?.slice(0, 2).map((genre: string, index: number) => {
-  const genreSlug = game.genreSlugs?.[index];
-  const href =
-    getGenreHrefFromSlug(genreSlug) || getGenreHref(genre);
-
-  if (!href) {
-    return (
-      <span key={genre} className="gamePill">
-        {genre}
+    <div className="gameHeroDecisionRow">
+      <span className="gameHeroDecisionLabel">Best for</span>
+      <span className="gameHeroDecisionValue">
+        {game.genres?.[0] && game.platforms?.[0]
+          ? `${game.genres[0]} players on ${game.platforms[0]}`
+          : "Players exploring new games"}
       </span>
-    );
-  }
+    </div>
 
-  return (
-    <Link key={genre} href={href} className="gamePill">
-      {genre}
-    </Link>
-  );
-})}
 
+  </div>
+
+  {game.summary && (
+    <div className="gameHeroSummary">
+      <ExpandableSummary summary={game.summary} />
+    </div>
+  )}
 </div>
-
-{game.summary && (
-  <ExpandableSummary summary={game.summary} />
-)}
-          </div>
         </div>
 
-        {game.trailer && (
-  <section className="gameSection">
+{game.trailer && (
+  <section className="gameSection gameMediaSection">
     <h2>Trailer</h2>
 
     <div className="gameTrailer">
@@ -615,21 +716,21 @@ export default async function GamePage(props: any) {
   </section>
 )}
 
-        {game.screenshots && game.screenshots.length > 0 && (
-          <section style={{ marginTop: "48px" }}>
-            <h2
-              style={{
-                fontSize: "22px",
-                fontWeight: 700,
-                marginBottom: "18px"
-              }}
-            >
-              Screenshots
-            </h2>
+{game.screenshots && game.screenshots.length > 0 && (
+  <section className="gameSection gameMediaSection">
+    <h2>Screenshots</h2>
 
-<ScreenshotLightbox images={game.screenshots} />
-          </section>
-        )}
+    <ScreenshotLightbox images={game.screenshots} />
+  </section>
+)}
+
+{moreLikeThisGames.length > 0 && (
+  <section className="gameSection">
+    <h2>More Like This</h2>
+
+    <GameCarousel games={moreLikeThisGames} />
+  </section>
+)}
 
         {game.genres && game.genres.length > 0 && (
          <section className="gameSection">
@@ -691,7 +792,7 @@ export default async function GamePage(props: any) {
           </section>
         )}
 
-        <section className="discoverList">
+        <section className="gameSection discoverSection">
           <h2>Discover More Games</h2>
 
 <ul>

@@ -1595,8 +1595,9 @@ p + p {
 ----------------------------- */
 
 .gamePage {
-  max-width: 1100px;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
   padding: 40px 20px;
 }
 
@@ -1604,12 +1605,19 @@ p + p {
 
 .gameHero {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 40px;
+  grid-template-columns: 380px 460px;
+  justify-content: center;
+  gap: 44px;
   align-items: start;
 
+  width: fit-content;
+  max-width: 100%;
+
   margin-top: 28px;
-  padding: 28px;
+  margin-left: auto;
+  margin-right: auto;
+
+  padding: 32px;
 
   border-radius: var(--radius-lg);
 
@@ -1622,14 +1630,10 @@ p + p {
 
 .gameCover {
   width: 100%;
+  max-width: 340px;
 
   border-radius: var(--radius-md);
-
-  border: 1px solid var(--border-subtle);
-
-  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
-
-  transition: transform 180ms ease;
+  object-fit: cover;
 }
 
 .gameCover:hover {
@@ -1637,15 +1641,100 @@ p + p {
 }
 
 .gameTitle {
-  font-size: 42px;
-
+  font-size: 44px;
   font-weight: 800;
+  letter-spacing: -0.01em;
 
-  letter-spacing: -0.02em;
+  margin-bottom: 20px;
 
-  margin-bottom: 22px;
+  text-align: center;
+}
 
-  line-height: 1.1;
+.gameHeroInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  gap: 12px;
+
+  min-width: 0;
+}
+
+.gamePills {
+  margin-bottom: 4px;
+}
+
+.gameHeroDecisionCard {
+  margin-top: 6px;
+}
+
+.gameHeroSummary {
+  margin-top: 6px;
+}
+
+.gameHeroDecisionCard {
+  width: 100%;
+  max-width: 420px;
+
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+
+  padding: 16px;
+}
+
+.gameHeroDecisionRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+
+  border-bottom: 1px solid rgba(36,48,74,0.6);
+}
+
+.gameHeroDecisionRow:last-child {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.gameHeroDecisionLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  min-width: 88px;
+}
+
+.gameHeroDecisionValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.gameHeroSummary {
+  width: 100%;
+  max-width: 420px;
+}
+
+.gameHeroSummary .gameSummary {
+  max-width: 100%;
+  margin-top: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.gameHeroSummary .summaryToggle {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  text-align: left;
 }
 
 /* Meta */
@@ -1687,6 +1776,10 @@ p + p {
   max-height: calc(1.75em * 4);
 
   overflow: hidden;
+
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 28px;
 }
 
 .gameSummary::after {
@@ -1718,7 +1811,14 @@ p + p {
 }
 
 .summaryToggle {
+  display: block;
+
+  width: 100%;
+  max-width: 720px;
+
   margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
 
   background: none;
   border: none;
@@ -1728,6 +1828,8 @@ p + p {
   font-weight: 600;
   font-family: inherit;
   line-height: 1;
+
+  text-align: right;
 
   color: var(--accent);
   cursor: pointer;
@@ -1739,16 +1841,31 @@ p + p {
   color: var(--accent-hover);
 }
 
-.gameTrailer {
+.gameMediaSection {
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+}
 
+.gameMediaSection h2 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+
+  margin-bottom: 20px;
+
+  text-align: center;
+}
+
+.gameTrailer {
   position: relative;
 
   width: 100%;
-  max-width: 960px;
+  max-width: 100%;
 
   aspect-ratio: 16 / 9;
 
-  margin-top: 18px;
+  margin-top: 0;
 
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1758,7 +1875,6 @@ p + p {
   background: #0d0f14;
 
   box-shadow: 0 18px 50px rgba(0,0,0,0.35);
-
 }
 
 .gameTrailer iframe {
@@ -1775,8 +1891,17 @@ p + p {
 
 .screenshotGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 14px;
+
+  margin-top: 6px;
+}
+
+@media (max-width: 700px) {
+  .screenshotGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .screenshotGrid img {
@@ -1802,13 +1927,15 @@ p + p {
 /* Section headings */
 
 .gameSection {
-  margin-top: 60px;
+  margin-top: 52px;
 }
 
 .gameSection h2 {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 20px;
+
+  text-align: center;
 }
 
 /* Discover links */
@@ -2393,4 +2520,68 @@ p + p {
 
 .footerLegal a:hover {
   color: #ffffff;
+}
+
+/* -----------------------------
+   DISCOVER SECTION (GAME PAGE)
+----------------------------- */
+
+.discoverSection {
+  text-align: center;
+}
+
+.discoverSection h2 {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+
+  margin-bottom: 18px;
+}
+
+.discoverSection ul {
+  list-style: none;
+
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 18px;
+
+  margin-top: 10px;
+  padding: 0;
+}
+
+.discoverSection li {
+  margin: 0;
+}
+
+.discoverSection a {
+  display: inline-block;
+
+  padding: 8px 14px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  border-radius: 999px;
+
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+
+  color: var(--text-primary);
+
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.discoverSection a:hover {
+  background: var(--bg-surface-3);
+
+  border-color: var(--accent);
+
+  color: #ffffff;
+
+  transform: translateY(-2px);
 }

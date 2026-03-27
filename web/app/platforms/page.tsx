@@ -2,11 +2,15 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { getDerivedGameData } from "../../lib/game-data";
 import GameGrid from "../../components/game/GameGrid";
+import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
   title: "Video Game Platforms",
   description:
-    "Discover video games by platform including PC, PlayStation, Xbox, Nintendo Switch, iOS, and Android."
+    "Discover video games by platform including PC, PlayStation, Xbox, Nintendo Switch, iOS, and Android.",
+  alternates: {
+    canonical: buildCanonicalUrl("/platforms")
+  }
 };
 
 const platforms = [

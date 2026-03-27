@@ -26,8 +26,8 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const platformLabel = platformConfig.name.replace(" Games", "");
 
   return {
-    title: `Best ${genreName} Games on ${platformLabel} 2026 | Top Rated, New, Upcoming`,
-    description: `Browse the best ${genreName.toLowerCase()} games on ${platformLabel} with top rated picks, new releases, upcoming titles, screenshots, and release dates.`,
+    title: `${genreName} Games on ${platformLabel} | Browse New, Upcoming, and Top Rated Games`,
+    description: `Browse ${genreName.toLowerCase()} games on ${platformLabel}, including new releases, upcoming games, top rated titles, screenshots, and release dates.`,
     alternates: {
       canonical: buildCanonicalUrl(
         `/platform/${platformConfig.slug}/${genre}`
@@ -95,15 +95,15 @@ export default async function PlatformGenrePage(props: any) {
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
       <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "12px" }}>
-        Best {genreName} Games on {platformLabel}
+        {genreName} Games on {platformLabel}
       </h1>
 
-<p style={{ color: "#A7B1C6", marginBottom: "20px", maxWidth: "800px" }}>
-  Discover the best {genreName.toLowerCase()} games on {platformLabel}, including
-  top rated picks, new releases, and upcoming titles. This page helps you quickly
-  compare the strongest {genreName.toLowerCase()} games available across the
-  {platformLabel} platform.
-</p>
+      <p style={{ color: "#A7B1C6", marginBottom: "20px", maxWidth: "800px" }}>
+        Browse {genreName.toLowerCase()} games on {platformLabel}, including
+        top rated picks, recent releases, upcoming titles, screenshots, and
+        release dates. This page is designed to help you explore the full
+        {genreName.toLowerCase()} catalog available on {platformLabel}.
+      </p>
 
       <p
         style={{
@@ -131,8 +131,8 @@ export default async function PlatformGenrePage(props: any) {
               marginBottom: "20px"
             }}
           >
-            The highest rated {genreName.toLowerCase()} games currently available on{" "}
-            {platformLabel}.
+            Browse the highest rated {genreName.toLowerCase()} games currently
+            available on {platformLabel}.
           </p>
 
           <GameGrid games={topRated} />

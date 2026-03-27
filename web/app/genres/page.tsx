@@ -2,11 +2,15 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { getDerivedGameData } from "../../lib/game-data";
 import GameGrid from "../../components/game/GameGrid";
+import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
   title: "Video Game Genres | Gamerly",
   description:
-    "Discover video games by genre including RPG, shooter, strategy, adventure, simulation, and more."
+    "Discover video games by genre including RPG, shooter, strategy, adventure, simulation, and more.",
+  alternates: {
+    canonical: buildCanonicalUrl("/genres")
+  }
 };
 
 const genres = [
@@ -87,15 +91,41 @@ export default async function GenresPage() {
         Browse Video Games by Genre
       </h1>
 
-      <div
+      <p
         style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "16px",
-          marginBottom: "32px"
+          color: "#A7B1C6",
+          marginBottom: "24px",
+          maxWidth: "820px",
+          lineHeight: 1.7
         }}
       >
-        {bestYearLinks.map((link) => (
+        Explore video games by genre across RPG, shooter, strategy, adventure,
+        simulation, puzzle, indie, racing, fighting, and sports categories.
+        This page helps you compare genre hubs, discover highly rated released
+        games, and jump into broader best-of-year pages for faster SEO-friendly
+        browsing.
+      </p>
+
+      <div style={{ marginBottom: "32px" }}>
+        <div
+          style={{
+            fontSize: "14px",
+            fontWeight: 700,
+            color: "#dbe9ff",
+            marginBottom: "10px"
+          }}
+        >
+          Browse best games by release year
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "16px"
+          }}
+        >
+          {bestYearLinks.map((link) => (
           <Link
             key={link.href}
             href={link.href}
@@ -107,7 +137,8 @@ export default async function GenresPage() {
           >
             {link.label} →
           </Link>
-        ))}
+          ))}
+        </div>
       </div>
 
       {genres.map((genre) => {
@@ -117,9 +148,22 @@ export default async function GenresPage() {
 
         return (
           <section key={genre.slug} style={{ marginBottom: "60px" }}>
-            <h2 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "20px" }}>
+            <h2 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "12px" }}>
               {genre.name}
             </h2>
+
+            <p
+              style={{
+                color: "#A7B1C6",
+                marginBottom: "20px",
+                maxWidth: "760px",
+                lineHeight: 1.7
+              }}
+            >
+              Explore top {genre.name.toLowerCase()} with highly rated released
+              games, then use the links below to browse the full genre hub or
+              jump to the dedicated best-of page for stronger ranked picks.
+            </p>
 
             <GameGrid games={genreGames} />
 

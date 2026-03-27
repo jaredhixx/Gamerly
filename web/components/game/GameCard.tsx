@@ -159,7 +159,7 @@ export default function GameCard({ game }: { game: GameWithLive }) {
                       : null;
 
                   return (
-                    <button
+                                        <button
                       key={platform}
                       className="gameCardPill gameCardPlatform"
                       data-platform={label}
@@ -172,10 +172,7 @@ export default function GameCard({ game }: { game: GameWithLive }) {
                         }
                       }}
                       style={{
-                        cursor: "pointer",
-                        border: "none",
-                        background: "none",
-                        padding: 0
+                        cursor: "pointer"
                       }}
                     >
                       {label}

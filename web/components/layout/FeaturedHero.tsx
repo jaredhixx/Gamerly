@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { buildGamePath } from "../../lib/site";
 import type { GamerlyGame } from "../../lib/igdb";
@@ -54,15 +55,13 @@ export default function FeaturedHero({
       <Link href={featuredUrl} className="heroLink">
         <div className="heroCard">
           {featured.coverUrl && (
-            <img
+            <Image
               src={featured.coverUrl}
               alt={featured.name}
-              onLoad={(e) => e.currentTarget.classList.add("loaded")}
-              ref={(img) => {
-                if (img && img.complete) {
-                  img.classList.add("loaded");
-                }
-              }}
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 66vw"
+              className="loaded"
             />
           )}
 
@@ -100,10 +99,13 @@ export default function FeaturedHero({
         <Link href={upcomingUrl} className="heroLink">
           <div className="heroSideCard">
             {upcoming.coverUrl && (
-              <img
+              <Image
                 src={upcoming.coverUrl}
                 alt={upcoming.name}
-                onLoad={(e) => e.currentTarget.classList.add("loaded")}
+                width={136}
+                height={136}
+                sizes="136px"
+                className="loaded"
               />
             )}
 
@@ -176,7 +178,6 @@ export default function FeaturedHero({
           </div>
         </Link>
       </div>
-
     </section>
   );
 }

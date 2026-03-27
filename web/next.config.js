@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-
   images: {
-    domains: ["images.igdb.com"]
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.igdb.com"
+      }
+    ]
   },
 
   async redirects() {
@@ -64,7 +68,6 @@ const nextConfig = {
       }
     ];
   }
-
 };
 
 module.exports = nextConfig;

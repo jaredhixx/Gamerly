@@ -3,10 +3,7 @@ export const revalidate = 300;
 import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchGames } from "../lib/igdb";
-import {
-  fetchExactTwitchTotalsForGameNames,
-  fetchTwitchStreams
-} from "../lib/twitch";
+import { fetchTwitchStreams } from "../lib/twitch";
 import {
   calculateHypeRankingScore,
   selectHomepageFeaturedGame,
@@ -102,10 +99,8 @@ function buildUpcomingWindowGames(
 }
 
 export default async function Home() {
-  const [games, streams] = await Promise.all([
-    fetchGames(),
-    fetchTwitchStreams()
-  ]);
+const games = await fetchGames();
+const streams = await fetchTwitchStreams().catch(() => []);
 
   const roughTwitchMap = buildRoughTwitchMap(streams);
 
@@ -135,38 +130,7 @@ export default async function Home() {
 
   const roughHypeGames = selectHomepageHypeGames(roughScoredGames).slice(0, 12);
 
-  const exactTargetNames = [
-    ...new Set(
-      [roughFeaturedGame?.name, ...roughHypeGames.map((game) => game.name)].filter(
-        (name): name is string => Boolean(name)
-      )
-    )
-  ];
-
-  const exactTwitchTotals = await fetchExactTwitchTotalsForGameNames(
-    exactTargetNames
-  );
-
-  const scoredGames = roughScoredGames.map((game) => {
-    const exact = game.name ? exactTwitchTotals[game.name] : undefined;
-
-    if (!exact || exact.viewers <= 0) {
-      return game;
-    }
-
-    const hypeScore = calculateHypeRankingScore({
-      ...game,
-      twitchViewers: exact.viewers,
-      twitchStreams: exact.streams
-    });
-
-    return {
-      ...game,
-      twitchViewers: exact.viewers,
-      twitchStreams: exact.streams,
-      hypeScore
-    };
-  });
+  const scoredGames = roughScoredGames;
 
   const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
   const featuredViewerCount = featuredGame?.twitchViewers ?? 0;
@@ -177,8 +141,24 @@ export default async function Home() {
     selectHomepageUpcomingHero(scoredGames) || scoredGames[1] || scoredGames[0];
 
   const now = new Date().getTime();
-  const upcomingGames = buildUpcomingWindowGames(games, now, 30).slice(0, 24);
-  const releasingSoonGames = buildUpcomingWindowGames(games, now, 14).slice(0, 24);
+  const upcomingWindowGames = buildUpcomingWindowGames(games, now, 30);
+  const upcomingGames = upcomingWindowGames.slice(0, 24);
+  const releasingSoonGames = upcomingWindowGames
+    .filter((game) => {
+      if (!game.releaseDate) {
+        return false;
+      }
+
+      const releaseTime = new Date(game.releaseDate).getTime();
+      const fourteenDaysAhead = now + 1000 * 60 * 60 * 24 * 14;
+
+      if (Number.isNaN(releaseTime)) {
+        return false;
+      }
+
+      return releaseTime > now && releaseTime <= fourteenDaysAhead;
+    })
+    .slice(0, 24);
 
   const hasHypeGames = hypeGames.length > 0;
   const hasUpcomingGames = upcomingGames.length > 0;
@@ -188,7 +168,7 @@ export default async function Home() {
   const trackedLiveSignalCount = scoredGames.filter(
     (game) => (game.twitchViewers ?? 0) > 0
   ).length;
-  const upcomingThirtyDayCount = buildUpcomingWindowGames(games, now, 30).length;
+  const upcomingThirtyDayCount = upcomingWindowGames.length;
 
   const intentCards = [
     {

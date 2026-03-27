@@ -372,19 +372,17 @@ const bestPageClusters = [
               The fastest way to know what games matter right now.
             </h1>
 
-            <p
-              style={{
-                margin: 0,
-                color: "#a7b1c6",
-                fontSize: "1.08rem",
-                lineHeight: 1.7,
-                maxWidth: "760px"
-              }}
-            >
-              Gamerly helps you stop guessing what to play next by combining live
-              player activity, hype signals, and release timing across PC,
-              PlayStation, Xbox, and Nintendo Switch.
-            </p>
+<p
+  style={{
+    margin: 0,
+    color: "#a7b1c6",
+    fontSize: "1.08rem",
+    lineHeight: 1.7,
+    maxWidth: "760px"
+  }}
+>
+  Gamerly cuts through generic game lists by ranking what actually matters using real player activity, release timing, and momentum signals. Instead of browsing endless titles, you get a clear, data-driven view of what is worth your time across PC, PlayStation, Xbox, and Nintendo Switch.
+</p>
           </div>
 
           <div
@@ -544,17 +542,19 @@ const bestPageClusters = [
             </div>
           </div>
 
-          <div
-            style={{
-              marginTop: "-2px",
-              color: "#9aa3b2",
-              fontSize: "0.86rem",
-              lineHeight: 1.6
-            }}
-          >
-            Featured selection is based on momentum, release timing, and player
-            attention instead of raw release lists alone.
-          </div>
+<div
+  style={{
+    marginTop: "-2px",
+    color: "#9aa3b2",
+    fontSize: "0.86rem",
+    lineHeight: 1.6
+  }}
+>
+  Featured selection is based on momentum, release timing, and player
+  attention instead of raw release lists alone. Gamerly continuously
+  tracks thousands of games and real-time activity signals to surface
+  what is actually worth paying attention to.
+</div>
         </section>
 
         <FeaturedHero

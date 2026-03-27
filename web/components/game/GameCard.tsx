@@ -102,7 +102,26 @@ export default function GameCard({ game }: { game: GameWithLive }) {
 
   return (
     <Link href={gameUrl} style={{ textDecoration: "none", color: "inherit" }}>
-      <article className="gameCard">
+<article
+  className="gameCard"
+  style={{
+    opacity:
+      typeof game.aggregated_rating === "number" &&
+      game.aggregated_rating < 60
+        ? 0.65
+        : 1,
+    border:
+      typeof game.aggregated_rating === "number" &&
+      game.aggregated_rating >= 85
+        ? "1px solid rgba(110,168,255,0.28)"
+        : undefined,
+    boxShadow:
+      typeof game.aggregated_rating === "number" &&
+      game.aggregated_rating >= 85
+        ? "0 10px 30px rgba(110,168,255,0.10)"
+        : undefined
+  }}
+>
         <div className="gameCardImageWrap">
           {game.coverUrl && (
             <Image
@@ -192,14 +211,43 @@ export default function GameCard({ game }: { game: GameWithLive }) {
           </div>
         </div>
 
-        <div className="gameCardBody">
-          <h3 className="gameCardTitle">{game.name}</h3>
+<div
+  className="gameCardBody"
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px"
+  }}
+>
+          <h3
+  className="gameCardTitle"
+  style={{
+    margin: 0,
+    fontSize: "1.05rem",
+    fontWeight: 800,
+    lineHeight: 1.3,
+    letterSpacing: "-0.01em",
+    color: "#f5f7fb"
+  }}
+>
+  {game.name}
+</h3>
 
-          {formatReleaseDateForDisplay(game) && (
-            <span className="gameCardDate">
-              {formatReleaseDateForDisplay(game)}
-            </span>
-          )}
+{formatReleaseDateForDisplay(game) && (
+  <span
+    className="gameCardDate"
+    style={{
+      display: "inline-block",
+      marginTop: "6px",
+      color: "#9aa3b2",
+      fontSize: "0.84rem",
+      fontWeight: 600,
+      lineHeight: 1.4
+    }}
+  >
+    {formatReleaseDateForDisplay(game)}
+  </span>
+)}
 
 {(() => {
   const days = getDaysUntilRelease(game.releaseDate);
@@ -222,13 +270,22 @@ export default function GameCard({ game }: { game: GameWithLive }) {
 
   if (!text) return null;
 
-  return (
+    return (
     <div
       style={{
-        marginTop: "6px",
-        fontSize: "0.85rem",
-        fontWeight: 700,
-        color: "#8bb9ff"
+        marginTop: "8px",
+        display: "inline-flex",
+        alignItems: "center",
+        width: "fit-content",
+        maxWidth: "100%",
+        padding: "6px 10px",
+        borderRadius: "999px",
+        border: "1px solid rgba(139,185,255,0.22)",
+        background: "rgba(110,168,255,0.08)",
+        fontSize: "0.8rem",
+        fontWeight: 800,
+        color: "#8bb9ff",
+        lineHeight: 1.2
       }}
     >
       {text}
@@ -236,17 +293,27 @@ export default function GameCard({ game }: { game: GameWithLive }) {
   );
 })()}
 
-          {hasLiveViewers && (
-<div
-  className="gameCardLive"
-  style={{
-    marginTop: "6px",
-    fontWeight: 700,
-    color: "#f5f7fb"
-  }}
->
-  🔴 {formatViewerCount(game.twitchViewers!)} watching
-</div>
+{hasLiveViewers && (
+  <div
+    className="gameCardLive"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      width: "fit-content",
+      maxWidth: "100%",
+      marginTop: "2px",
+      padding: "5px 9px",
+      borderRadius: "999px",
+      background: "rgba(255,255,255,0.06)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      fontSize: "0.8rem",
+      fontWeight: 800,
+      color: "#f5f7fb",
+      lineHeight: 1.2
+    }}
+  >
+    🔴 Live now · {formatViewerCount(game.twitchViewers!)} watching
+  </div>
 )}
         </div>
       </article>

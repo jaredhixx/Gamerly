@@ -108,7 +108,7 @@ export default function FeaturedHero({
             )}
 
             <div className="heroSideContent">
-              <div className="heroSideLabel">Upcoming</div>
+              <div className="heroSideLabel">Upcoming Pick</div>
 
               <div className="heroSideTitle">{upcoming.name}</div>
 
@@ -122,7 +122,61 @@ export default function FeaturedHero({
             </div>
           </div>
         </Link>
+
+        <Link
+          href="/upcoming-games"
+          className="heroLink"
+          style={{ textDecoration: "none" }}
+        >
+          <div
+            className="heroSideCard"
+            style={{
+              minHeight: "unset",
+              padding: "20px",
+              display: "grid",
+              gap: "10px",
+              alignContent: "center"
+            }}
+          >
+            <div
+              className="heroSideLabel"
+              style={{ marginBottom: 0 }}
+            >
+              What to do next
+            </div>
+
+            <div
+              className="heroSideTitle"
+              style={{
+                fontSize: "1.15rem",
+                lineHeight: 1.35
+              }}
+            >
+              See everything releasing soon
+            </div>
+
+            <div
+              className="heroSideMeta"
+              style={{
+                lineHeight: 1.6
+              }}
+            >
+              Jump into the full upcoming releases page when you want more than
+              one featured pick.
+            </div>
+
+            <div
+              style={{
+                color: "#8bb9ff",
+                fontWeight: 800
+              }}
+            >
+              Browse upcoming games →
+            </div>
+          </div>
+        </Link>
       </div>
+
     </section>
   );
 }

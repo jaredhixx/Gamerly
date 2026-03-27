@@ -607,22 +607,26 @@ const relatedPlatformGames = allGames
   {game.name}
 </h1>
 
-        <div
-          className="gameHero"
-        >
+<div className="gameHeroShell">
+  <div
+    className="gameHero"
+  >
 
-          {game.coverUrl && (
+    {game.coverUrl && (
 <img
   src={game.coverUrl}
   alt={game.name}
   className="gameCover"
 />
-          )}
+    )}
 
 <div className="gameHeroInfo">
-  <div className="gameMeta">
-    Release Date: {formatReleaseDateForDisplay(game) ?? "TBA"}
-  </div>
+<div className="gameMeta">
+  <span className="gameMetaLabel">Release date</span>
+  <span className="gameMetaValue">
+    {formatReleaseDateForDisplay(game) ?? "TBA"}
+  </span>
+</div>
 
   <div className="gamePills">
     {game.platforms?.slice(0, 3).map((platform: string, index: number) => {
@@ -682,70 +686,79 @@ const relatedPlatformGames = allGames
       <span className="gameHeroDecisionLabel">Best for</span>
       <span className="gameHeroDecisionValue">
         {game.genres?.[0] && game.platforms?.[0]
-          ? `${game.genres[0]} players on ${game.platforms[0]}`
+          ? `${
+              typeof game.aggregated_rating === "number" &&
+              game.aggregated_rating >= 80
+                ? "Players looking for highly rated games"
+                : "Fans of " + game.genres[0] + " games"
+            }${
+              game.platforms[0]
+                ? ", especially on " + game.platforms[0]
+                : ""
+            }`
           : "Players exploring new games"}
       </span>
     </div>
 
     <div className="gameHeroDecisionRow">
-  <span className="gameHeroDecisionLabel">Rating</span>
-  <span className="gameHeroDecisionValue">
-    {typeof game.aggregated_rating === "number"
-      ? `${Math.round(game.aggregated_rating)} / 100`
-      : "No rating yet"}
-  </span>
+      <span className="gameHeroDecisionLabel">Rating</span>
+      <span className="gameHeroDecisionValue">
+        {typeof game.aggregated_rating === "number"
+          ? `${Math.round(game.aggregated_rating)} / 100`
+          : "No rating yet"}
+      </span>
+    </div>
+
+    <div className="gameHeroDecisionRow">
+      <span className="gameHeroDecisionLabel">Review coverage</span>
+      <span className="gameHeroDecisionValue">
+        {typeof game.aggregated_rating_count === "number"
+          ? game.aggregated_rating_count >= 50
+            ? "Strong"
+            : game.aggregated_rating_count >= 20
+            ? "Moderate"
+            : "Limited"
+          : "Unknown"}
+      </span>
+    </div>
+
+    <div className="gameHeroDecisionRow">
+      <span className="gameHeroDecisionLabel">Player signal</span>
+      <span
+        className={`gameHeroDecisionValue ${
+          typeof game.aggregated_rating === "number"
+            ? game.aggregated_rating >= 80 &&
+              typeof game.aggregated_rating_count === "number" &&
+              game.aggregated_rating_count >= 20
+              ? "signal-strong"
+              : game.aggregated_rating >= 70
+              ? "signal-moderate"
+              : "signal-weak"
+            : "signal-unknown"
+        }`}
+      >
+        {typeof game.aggregated_rating === "number"
+          ? game.aggregated_rating >= 80 &&
+            typeof game.aggregated_rating_count === "number" &&
+            game.aggregated_rating_count >= 20
+            ? "Strong"
+            : game.aggregated_rating >= 70
+            ? "Moderate"
+            : "Weak"
+          : "Unknown"}
+      </span>
+    </div>
+  </div>
 </div>
-
-<div className="gameHeroDecisionRow">
-  <span className="gameHeroDecisionLabel">Review coverage</span>
-  <span className="gameHeroDecisionValue">
-    {typeof game.aggregated_rating_count === "number"
-      ? game.aggregated_rating_count >= 50
-        ? "Strong"
-        : game.aggregated_rating_count >= 20
-        ? "Moderate"
-        : "Limited"
-      : "Unknown"}
-  </span>
-</div>
-
-<div className="gameHeroDecisionRow">
-  <span className="gameHeroDecisionLabel">Player signal</span>
-  <span
-    className={`gameHeroDecisionValue ${
-      typeof game.aggregated_rating === "number"
-        ? game.aggregated_rating >= 80 &&
-          typeof game.aggregated_rating_count === "number" &&
-          game.aggregated_rating_count >= 20
-          ? "signal-strong"
-          : game.aggregated_rating >= 70
-          ? "signal-moderate"
-          : "signal-weak"
-        : "signal-unknown"
-    }`}
-  >
-    {typeof game.aggregated_rating === "number"
-      ? game.aggregated_rating >= 80 &&
-        typeof game.aggregated_rating_count === "number" &&
-        game.aggregated_rating_count >= 20
-        ? "Strong"
-        : game.aggregated_rating >= 70
-        ? "Moderate"
-        : "Weak"
-      : "Unknown"}
-  </span>
-</div>
-
-
   </div>
 
-  {game.summary && (
-    <div className="gameHeroSummary">
-      <ExpandableSummary summary={game.summary} />
-    </div>
-  )}
+{game.summary && (
+  <section className="gameHeroSummaryBlock">
+    <h2 className="gameHeroSummaryHeading">About {game.name}</h2>
+    <ExpandableSummary summary={game.summary} />
+  </section>
+)}
 </div>
-        </div>
 
 {game.trailer && (
   <section className="gameSection gameMediaSection">

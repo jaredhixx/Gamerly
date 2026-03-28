@@ -1642,6 +1642,20 @@ p + p {
   text-align: center;
 }
 
+.gameTitleSub {
+  font-weight: 500;
+  font-size: 0.6em;
+  opacity: 0.7;
+  margin-left: 6px;
+}
+
+.sectionSub {
+  font-weight: 500;
+  font-size: 0.65em;
+  opacity: 0.7;
+  margin-left: 6px;
+}
+
 .gameHeroInfo {
   display: flex;
   flex-direction: column;

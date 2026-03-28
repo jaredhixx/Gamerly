@@ -490,13 +490,13 @@ const titleParts = [
 const seoTitle = titleParts.join(" | ");
 
 const seoDescriptionParts = [
-  `View ${game.name} release date${releaseYear ? ` (${releaseYear})` : ""}.`,
+  `${game.name} release date${releaseYear ? ` (${releaseYear})` : ""}, platforms, trailer, and gameplay details.`,
   primaryPlatform ? `Available on ${primaryPlatform}.` : null,
-  primaryGenre ? `A ${primaryGenre} game.` : null,
+  primaryGenre ? `${primaryGenre} game.` : null,
   typeof game.aggregated_rating === "number"
     ? `Rated ${Math.round(game.aggregated_rating)}/100.`
     : null,
-  "See screenshots, trailer, and similar games."
+  "View screenshots and discover similar games."
 ].filter(Boolean);
 
 const seoDescription = seoDescriptionParts.join(" ");
@@ -653,6 +653,9 @@ const relatedPlatformGames = allGames
 <main className="gamePage">
 <h1 className="gameTitle">
   {game.name}
+  <span className="gameTitleSub">
+    {" "}– Release Date, Platforms, Trailer & Gameplay
+  </span>
 </h1>
 
 <div className="gameHeroShell">
@@ -887,6 +890,44 @@ const relatedPlatformGames = allGames
     <ExpandableSummary summary={game.summary} />
   </section>
 )}
+
+<section className="gameSection" style={{ textAlign: "center" }}>
+  <h2>About {game.name}</h2>
+
+  <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
+    {game.name}
+    {game.releaseDate
+      ? ` was released ${
+          new Date(game.releaseDate).getTime() <= Date.now()
+            ? "on"
+            : "on"
+        } ${formatReleaseDateForDisplay(game)}`
+      : " does not yet have a confirmed release date"}.
+    {game.platforms && game.platforms.length > 0
+      ? ` It is available on ${game.platforms.join(", ")}.`
+      : ""}
+    {game.genres && game.genres.length > 0
+      ? ` This game falls under the ${game.genres.join(", ")} genre${game.genres.length > 1 ? "s" : ""}.`
+      : ""}
+  </p>
+
+  {typeof game.aggregated_rating === "number" && (
+    <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
+      {game.name} currently has an average rating of{" "}
+      {Math.round(game.aggregated_rating)} out of 100
+      {typeof game.aggregated_rating_count === "number"
+        ? ` based on ${game.aggregated_rating_count} reviews`
+        : ""}.
+    </p>
+  )}
+
+  <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
+    On this page, you can view the latest information about {game.name},
+    including its release date, platforms, trailer, screenshots, and
+    similar games to help you decide if it is worth playing.
+  </p>
+</section>
+
 </div>
 
 {game.trailer && (
@@ -917,7 +958,12 @@ const relatedPlatformGames = allGames
 
 {moreLikeThisGames.length > 0 && (
   <section className="gameSection">
-    <h2>Games Like {game.name}</h2>
+<h2>
+  Games Like {game.name}
+  <span className="sectionSub">
+    {" "}– Similar Games to Try
+  </span>
+</h2>
 
     <GameCarousel games={moreLikeThisGames} />
   </section>
@@ -925,17 +971,26 @@ const relatedPlatformGames = allGames
 
 {game.genres && game.genres.length > 0 && (
   <section className="gameSection">
-    <h2>Similar {game.genres[0]} Games</h2>
+<h2>
+  Similar {game.genres[0]} Games
+  <span className="sectionSub">
+    {" "}– Best {game.genres[0]} Games to Play
+  </span>
+</h2>
 
             <GameGrid games={relatedGenreGames} />
 
 <div style={{ marginTop: "14px" }}>
-  <Link
-    href={`/genre/${game.genres[0].toLowerCase()}`}
-    className="browseAllLink"
-  >
-    Browse all {game.genres[0]} games →
-  </Link>
+<Link
+  href={
+    game.genreSlugs?.[0]
+      ? `/genre/${game.genreSlugs[0]}`
+      : `/genre/${game.genres[0].toLowerCase()}`
+  }
+  className="browseAllLink"
+>
+View all {game.genres[0]} games →
+</Link>
 </div>
 
           </section>
@@ -943,24 +998,40 @@ const relatedPlatformGames = allGames
 
 {game.platforms && game.platforms.length > 0 && (
   <section className="gameSection">
-    <h2>More {game.platforms[0]} Games Like {game.name}</h2>
+<h2>
+  {game.genres?.[0] && game.platforms?.[0]
+    ? `More ${game.genres[0]} Games Like ${game.name} on ${game.platforms[0]}`
+    : `More Games Like ${game.name}`}
+  <span className="sectionSub">
+    {" "}– Similar Games to Try
+  </span>
+</h2>
 
             <GameGrid games={relatedPlatformGames} />
 
 <div style={{ marginTop: "14px" }}>
-  <Link
-    href={`/platform/${game.platforms[0].toLowerCase()}`}
-    className="browseAllLink"
-  >
-    Browse all {game.platforms[0]} games →
-  </Link>
+<Link
+  href={
+    game.platformSlugs?.[0]
+      ? `/platform/${game.platformSlugs[0]}`
+      : `/platform/${game.platforms[0].toLowerCase()}`
+  }
+  className="browseAllLink"
+>
+View all {game.platforms[0]} games →
+</Link>
 </div>
 
           </section>
         )}
 
-        <section className="gameSection discoverSection">
-          <h2>Discover More Games</h2>
+<section className="gameSection discoverSection">
+  <h2>
+    Discover More Games
+    <span className="sectionSub">
+      {" "}– Browse by Platform, Genre, and Release
+    </span>
+  </h2>
 
 <ul>
   <li><Link href="/new-games">New Games</Link></li>

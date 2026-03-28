@@ -125,6 +125,12 @@ export default async function BestGamesByYearPage({
     surface the titles with the clearest quality signals while filtering out
     unreleased or low-signal entries.
   </p>
+
+  <p>
+    Looking for platform-specific rankings? Browse the{" "}
+    <Link href="/best-pc-games">best PC games</Link>{" "}
+    to explore top games by platform.
+  </p>
 </div>
 
       <section style={{ marginBottom: "40px" }}>

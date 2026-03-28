@@ -989,7 +989,7 @@ const relatedPlatformGames = allGames
   }
   className="browseAllLink"
 >
-View all {game.genres[0]} games →
+View all {game.genres[0]} games and top picks →
 </Link>
 </div>
 
@@ -1018,7 +1018,7 @@ View all {game.genres[0]} games →
   }
   className="browseAllLink"
 >
-View all {game.platforms[0]} games →
+View all {game.platforms[0]} games and top picks →
 </Link>
 </div>
 
@@ -1035,6 +1035,8 @@ View all {game.platforms[0]} games →
 
 <ul>
   <li><Link href="/new-games">New Games</Link></li>
+  <li><Link href="/best-games-2026">Best Games of 2026</Link></li>
+  <li><Link href="/best-pc-games">Best PC Games</Link></li>
   <li><Link href="/upcoming-games">Upcoming Games</Link></li>
   <li><Link href="/games-releasing-this-month">Games Releasing This Month</Link></li>
   <li><Link href="/platform/pc">PC Games</Link></li>

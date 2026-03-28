@@ -102,9 +102,9 @@ export default async function BestGenreGamesPage({
               Browse all {pageTitle.replace("Best ", "").replace(" Games", "")} games
             </Link>
           </li>
-          <li>
-            <Link href="/best-games-2025">Browse best games of 2025</Link>
-          </li>
+<li>
+  <Link href="/best-games-2026">Browse best games of 2026</Link>
+</li>
         </ul>
       </section>
 

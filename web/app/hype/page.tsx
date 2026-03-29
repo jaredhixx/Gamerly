@@ -24,7 +24,8 @@ export const metadata: Metadata = {
 };
 
 export default async function HypePage() {
-  const games = await fetchGames();
+const allGames = await fetchGames();
+const games = allGames.slice(0, 5000);
   const streams = await fetchTwitchStreams();
 
   const twitchMap: Record<string, { viewers: number; streams: number }> = {};

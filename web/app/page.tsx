@@ -260,6 +260,7 @@ const bestPageClusters = [
     title: "Best PC Games in 2025",
     links: [
       { href: "/best-pc-games-2025", label: "Best PC Games of 2025" },
+      { href: "/best-rpg-games-pc-2025", label: "Best PC RPG Games of 2025" },
       { href: "/best-shooter-games-pc-2025", label: "Best PC Shooter Games of 2025" },
       { href: "/best-strategy-games-pc-2025", label: "Best PC Strategy Games of 2025" },
       { href: "/best-adventure-games-pc-2025", label: "Best PC Adventure Games of 2025" },
@@ -270,6 +271,7 @@ const bestPageClusters = [
   {
     title: "Best PlayStation Games in 2025",
     links: [
+      { href: "/best-playstation-games-2025", label: "Best PlayStation Games of 2025" },
       { href: "/best-rpg-games-playstation-2025", label: "Best PlayStation RPG Games of 2025" },
       { href: "/best-shooter-games-playstation-2025", label: "Best PlayStation Shooter Games of 2025" },
       { href: "/best-strategy-games-playstation-2025", label: "Best PlayStation Strategy Games of 2025" },
@@ -281,6 +283,7 @@ const bestPageClusters = [
   {
     title: "Best Xbox Games in 2025",
     links: [
+      { href: "/best-xbox-games-2025", label: "Best Xbox Games of 2025" },
       { href: "/best-rpg-games-xbox-2025", label: "Best Xbox RPG Games of 2025" },
       { href: "/best-shooter-games-xbox-2025", label: "Best Xbox Shooter Games of 2025" },
       { href: "/best-strategy-games-xbox-2025", label: "Best Xbox Strategy Games of 2025" },
@@ -292,6 +295,7 @@ const bestPageClusters = [
   {
     title: "Best Switch Games in 2025",
     links: [
+      { href: "/best-switch-games-2025", label: "Best Switch Games of 2025" },
       { href: "/best-rpg-games-switch-2025", label: "Best Switch RPG Games of 2025" },
       { href: "/best-shooter-games-switch-2025", label: "Best Switch Shooter Games of 2025" },
       { href: "/best-strategy-games-switch-2025", label: "Best Switch Strategy Games of 2025" },
@@ -864,6 +868,94 @@ const bestPageClusters = [
     }}
   >
     {bestPageClusters.map((cluster) => (
+      <div
+        key={cluster.title}
+        style={{
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "18px",
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.025))",
+          padding: "18px"
+        }}
+      >
+        <div
+          style={{
+            color: "#f5f7fb",
+            fontSize: "1rem",
+            fontWeight: 800,
+            lineHeight: 1.35,
+            marginBottom: "12px"
+          }}
+        >
+          {cluster.title}
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gap: "10px"
+          }}
+        >
+          {cluster.links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              style={{
+                color: "#8bb9ff",
+                textDecoration: "none",
+                fontWeight: 700,
+                lineHeight: 1.5
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</SectionBlock>
+
+<SectionBlock>
+  <SectionHeading
+    title="Best Games by Platform in 2026"
+    subtitle="Explore the strongest games released in 2026 across each platform."
+  />
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+      gap: "16px",
+      marginBottom: "18px"
+    }}
+  >
+    {[
+      {
+        title: "Best PC Games in 2026",
+        links: [
+          { href: "/best-pc-games-2026", label: "Best PC Games of 2026" }
+        ]
+      },
+      {
+        title: "Best PlayStation Games in 2026",
+        links: [
+          { href: "/best-playstation-games-2026", label: "Best PlayStation Games of 2026" }
+        ]
+      },
+      {
+        title: "Best Xbox Games in 2026",
+        links: [
+          { href: "/best-xbox-games-2026", label: "Best Xbox Games of 2026" }
+        ]
+      },
+      {
+        title: "Best Switch Games in 2026",
+        links: [
+          { href: "/best-switch-games-2026", label: "Best Switch Games of 2026" }
+        ]
+      }
+    ].map((cluster) => (
       <div
         key={cluster.title}
         style={{

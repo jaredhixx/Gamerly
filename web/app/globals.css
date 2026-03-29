@@ -166,12 +166,13 @@ p + p {
   flex: 1;
   height: 1px;
   background: linear-gradient(
-  to right,
-  rgba(110,168,255,0.65),
-  rgba(110,168,255,0.2),
-  transparent
-);
-  opacity: 0.5;
+    to right,
+    rgba(110, 168, 255, 0.78),
+    rgba(110, 168, 255, 0.32),
+    rgba(110, 168, 255, 0.08),
+    transparent
+  );
+  opacity: 0.72;
 }
 
 .sectionHeadingSubtitle {
@@ -180,6 +181,38 @@ p + p {
   color: var(--text-secondary);
   max-width: 700px;
   line-height: 1.4;
+}
+
+.sectionHeadingCentered {
+  text-align: center;
+}
+
+.sectionHeadingCentered .sectionHeadingTop {
+  display: block;
+}
+
+.sectionHeadingCentered .sectionHeadingTitle {
+  white-space: normal;
+}
+
+.sectionHeadingCentered .sectionHeadingDivider {
+  width: 160px;
+  flex: none;
+  margin: 12px auto 0;
+  background: linear-gradient(
+    90deg,
+    rgba(110,168,255,0),
+    rgba(110,168,255,0.35),
+    rgba(110,168,255,0.85),
+    rgba(110,168,255,0.35),
+    rgba(110,168,255,0)
+  );
+  opacity: 0.9;
+}
+
+.sectionHeadingCentered .sectionHeadingSubtitle {
+  margin: 12px auto 0;
+  max-width: 620px;
 }
 
 /* -----------------------------

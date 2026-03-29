@@ -20,6 +20,44 @@ type Props = {
   fullListHeading: string;
 };
 
+const READABLE_WIDTH = "820px";
+const GRID_WIDTH = "1100px";
+
+const READABLE_SECTION_STYLE = {
+  maxWidth: READABLE_WIDTH,
+  margin: "0 auto 40px"
+} as const;
+
+const INTRO_SECTION_STYLE = {
+  maxWidth: "760px",
+  margin: "0 auto 40px",
+  textAlign: "left"
+} as const;
+
+const READABLE_SECTION_HEADER_STYLE = {
+  maxWidth: READABLE_WIDTH,
+  margin: "0 auto 20px"
+} as const;
+
+const CENTERED_READABLE_SECTION_HEADER_STYLE = {
+  maxWidth: READABLE_WIDTH,
+  margin: "0 auto 20px",
+  textAlign: "center"
+} as const;
+
+const GRID_SECTION_STYLE = {
+  maxWidth: GRID_WIDTH,
+  margin: "0 auto 40px"
+} as const;
+
+const EXPLORE_SECTION_STYLE = {
+  ...READABLE_SECTION_STYLE,
+  padding: "24px",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: "20px",
+  background: "rgba(255, 255, 255, 0.02)"
+} as const;
+
 export default async function BestGenrePlatformGamesByYearPage({
   year,
   genreSlug,
@@ -109,83 +147,108 @@ export default async function BestGenrePlatformGamesByYearPage({
 
   return (
     <PageContainer>
-      <SectionHeading title={pageTitle} subtitle={pageSubtitle} />
+      <div style={READABLE_SECTION_STYLE}>
+        <SectionHeading
+          title={pageTitle}
+          subtitle={pageSubtitle}
+          centered
+        />
+      </div>
 
-<div style={{ maxWidth: "800px", marginBottom: "40px" }}>
-  <p>{introParagraphOne}</p>
-  <p>{introParagraphTwo}</p>
+      <div style={INTRO_SECTION_STYLE}>
+        <p style={{ maxWidth: "none" }}>{introParagraphOne}</p>
+        <p style={{ maxWidth: "none" }}>{introParagraphTwo}</p>
 
-  <p style={{ marginTop: "16px" }}>
-  <strong>How these games are ranked:</strong> Rankings are based on a combination of
-  critic scores, player interest, and overall release impact. Games with stronger
-  review performance, higher engagement, and more lasting relevance are prioritized
-  higher on the list, while lower-signal or newly released titles may appear lower
-  until more data becomes available.
-</p>
+        <p style={{ marginTop: "16px", maxWidth: "none" }}>
+          <strong>How these games are ranked:</strong> Rankings are based on a combination of
+          critic scores, player interest, and overall release impact. Games with stronger
+          review performance, higher engagement, and more lasting relevance are prioritized
+          higher on the list, while lower-signal or newly released titles may appear lower
+          until more data becomes available.
+        </p>
 
-<p>
-  This list of the best{" "}
-  <Link href={`/best-${genreSlug}-games`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
-    {genreSlug} games
-  </Link>{" "}
-  on{" "}
-  <Link href={`/platform/${platformSlug}`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
-    {platformSlug}
-  </Link>{" "}
-  in{" "}
-  <Link href={`/best-games-${year}`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
-    {year}
-  </Link>{" "}
-  focuses on titles that have already released and built real momentum with players.
-  Rankings are based on a combination of critic scores, player reception,
-  and overall visibility within the current gaming landscape.
-</p>
+        <p style={{ maxWidth: "none" }}>
+          This list of the best{" "}
+          <Link
+            href={`/best-${genreSlug}-games`}
+            style={{ color: "#8bb9ff", fontWeight: 600 }}
+          >
+            {genreSlug} games
+          </Link>{" "}
+          on{" "}
+          <Link
+            href={`/platform/${platformSlug}`}
+            style={{ color: "#8bb9ff", fontWeight: 600 }}
+          >
+            {platformSlug}
+          </Link>{" "}
+          in{" "}
+          <Link
+            href={`/best-games-${year}`}
+            style={{ color: "#8bb9ff", fontWeight: 600 }}
+          >
+            {year}
+          </Link>{" "}
+          focuses on titles that have already released and built real momentum with players.
+          Rankings are based on a combination of critic scores, player reception,
+          and overall visibility within the current gaming landscape.
+        </p>
 
-  <p>
-    Whether you are looking for the highest rated releases or hidden gems that
-    gained traction over time, this page highlights the strongest {genreSlug}
-    experiences available on {platformSlug} in {year} without including
-    unreleased or low-signal titles.
-  </p>
-</div>
+        <p style={{ maxWidth: "none" }}>
+          Whether you are looking for the highest rated releases or hidden gems that
+          gained traction over time, this page highlights the strongest {genreSlug}
+          experiences available on {platformSlug} in {year} without including
+          unreleased or low-signal titles.
+        </p>
+      </div>
 
-      <section style={{ marginBottom: "40px" }}>
-        <h2>{exploreHeading}</h2>
+      <section style={EXPLORE_SECTION_STYLE}>
+        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+          <h2>{exploreHeading}</h2>
 
-        <ul style={{ paddingLeft: "20px", margin: "16px 0 0" }}>
-          <li>
-            <Link href={`/platform/${platformSlug}/${genreSlug}`}>
-              Browse all {genreSlug.toUpperCase()} games on {platformSlug}
-            </Link>
-          </li>
-          <li>
-            <Link href={`/genre/${genreSlug}`}>
-              Browse all {genreSlug.toUpperCase()} games
-            </Link>
-          </li>
-          <li>
-            <Link href={`/platform/${platformSlug}`}>
-              Browse all {platformSlug} games
-            </Link>
-          </li>
-          <li>
-            <Link href={`/best-games-${year}`}>Browse best games of {year}</Link>
-          </li>
-          <li>
-            <Link href="/new-games">Browse newly released games</Link>
-          </li>
-          <li>
-            <Link href="/upcoming-games">Browse upcoming games</Link>
-          </li>
-        </ul>
+          <ul
+            style={{
+              listStylePosition: "inside",
+              paddingLeft: 0,
+              margin: "16px 0 0"
+            }}
+          >
+            <li>
+              <Link href={`/platform/${platformSlug}/${genreSlug}`}>
+                Browse all {genreSlug.toUpperCase()} games on {platformSlug}
+              </Link>
+            </li>
+            <li>
+              <Link href={`/genre/${genreSlug}`}>
+                Browse all {genreSlug.toUpperCase()} games
+              </Link>
+            </li>
+            <li>
+              <Link href={`/platform/${platformSlug}`}>
+                Browse all {platformSlug} games
+              </Link>
+            </li>
+            <li>
+              <Link href={`/best-games-${year}`}>Browse best games of {year}</Link>
+            </li>
+            <li>
+              <Link href="/new-games">Browse newly released games</Link>
+            </li>
+            <li>
+              <Link href="/upcoming-games">Browse upcoming games</Link>
+            </li>
+          </ul>
+        </div>
       </section>
 
-      <section style={{ marginBottom: "40px" }}>
-        <h2>{topSectionHeading}</h2>
+      <section style={GRID_SECTION_STYLE}>
+        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+          <h2>{topSectionHeading}</h2>
 
-        <p style={{ maxWidth: "800px", marginBottom: "20px" }}>
-          {topSectionIntro}
-        </p>
+          <p style={{ maxWidth: "none" }}>
+            {topSectionIntro}
+          </p>
+        </div>
 
         {topPicks.length > 0 ? (
           <GameGrid
@@ -193,15 +256,19 @@ export default async function BestGenrePlatformGamesByYearPage({
             prioritizedPlatformSlug={platformSlug}
           />
         ) : (
-          <p>
-            There are no strong ranked games for this combination yet, but you
-            can still browse other released games below.
-          </p>
+          <div style={READABLE_SECTION_HEADER_STYLE}>
+            <p>
+              There are no strong ranked games for this combination yet, but you
+              can still browse other released games below.
+            </p>
+          </div>
         )}
       </section>
 
-      <section style={{ marginBottom: "40px" }}>
-        <h2>{fullListHeading}</h2>
+      <section style={GRID_SECTION_STYLE}>
+        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+          <h2>{fullListHeading}</h2>
+        </div>
 
         {fullList.length > 0 ? (
           <GameGrid
@@ -209,7 +276,9 @@ export default async function BestGenrePlatformGamesByYearPage({
             prioritizedPlatformSlug={platformSlug}
           />
         ) : (
-          <p>No additional released games are available for this combination yet.</p>
+          <div style={READABLE_SECTION_HEADER_STYLE}>
+            <p>No additional released games are available for this combination yet.</p>
+          </div>
         )}
       </section>
     </PageContainer>

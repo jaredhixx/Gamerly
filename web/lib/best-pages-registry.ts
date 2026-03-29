@@ -331,7 +331,23 @@ export const bestPagesRegistry: BestPageRegistryEntry[] = [
     topSectionIntro: bestPlatformGamesByYearContent.pc[2025].topSectionIntro,
     fullListHeading: bestPlatformGamesByYearContent.pc[2025].fullListHeading
   },
-  {
+    {
+    type: "platform-year",
+    slug: "best-pc-games-2026",
+    canonicalPath: "/best-pc-games-2026",
+    platformSlug: "pc",
+    year: 2026,
+    pageTitle: bestPlatformGamesByYearContent.pc[2026].pageTitle,
+    pageSubtitle: bestPlatformGamesByYearContent.pc[2026].pageSubtitle,
+    description: bestPlatformGamesByYearContent.pc[2026].description,
+    introParagraphOne: bestPlatformGamesByYearContent.pc[2026].introParagraphOne,
+    introParagraphTwo: bestPlatformGamesByYearContent.pc[2026].introParagraphTwo,
+    exploreHeading: bestPlatformGamesByYearContent.pc[2026].exploreHeading,
+    topSectionHeading: bestPlatformGamesByYearContent.pc[2026].topSectionHeading,
+    topSectionIntro: bestPlatformGamesByYearContent.pc[2026].topSectionIntro,
+    fullListHeading: bestPlatformGamesByYearContent.pc[2026].fullListHeading
+  },
+{
   type: "platform-year",
   slug: "best-playstation-games-2025",
   canonicalPath: "/best-playstation-games-2025",
@@ -346,7 +362,23 @@ export const bestPagesRegistry: BestPageRegistryEntry[] = [
   topSectionHeading: bestPlatformGamesByYearContent.playstation[2025].topSectionHeading,
   topSectionIntro: bestPlatformGamesByYearContent.playstation[2025].topSectionIntro,
   fullListHeading: bestPlatformGamesByYearContent.playstation[2025].fullListHeading
-  },
+},
+{
+  type: "platform-year",
+  slug: "best-playstation-games-2026",
+  canonicalPath: "/best-playstation-games-2026",
+  platformSlug: "playstation",
+  year: 2026,
+  pageTitle: bestPlatformGamesByYearContent.playstation[2026].pageTitle,
+  pageSubtitle: bestPlatformGamesByYearContent.playstation[2026].pageSubtitle,
+  description: bestPlatformGamesByYearContent.playstation[2026].description,
+  introParagraphOne: bestPlatformGamesByYearContent.playstation[2026].introParagraphOne,
+  introParagraphTwo: bestPlatformGamesByYearContent.playstation[2026].introParagraphTwo,
+  exploreHeading: bestPlatformGamesByYearContent.playstation[2026].exploreHeading,
+  topSectionHeading: bestPlatformGamesByYearContent.playstation[2026].topSectionHeading,
+  topSectionIntro: bestPlatformGamesByYearContent.playstation[2026].topSectionIntro,
+  fullListHeading: bestPlatformGamesByYearContent.playstation[2026].fullListHeading
+},
 {
   type: "platform-year",
   slug: "best-xbox-games-2025",
@@ -363,7 +395,23 @@ export const bestPagesRegistry: BestPageRegistryEntry[] = [
   topSectionIntro: bestPlatformGamesByYearContent.xbox[2025].topSectionIntro,
   fullListHeading: bestPlatformGamesByYearContent.xbox[2025].fullListHeading
 },
- {
+{
+  type: "platform-year",
+  slug: "best-xbox-games-2026",
+  canonicalPath: "/best-xbox-games-2026",
+  platformSlug: "xbox",
+  year: 2026,
+  pageTitle: bestPlatformGamesByYearContent.xbox[2026].pageTitle,
+  pageSubtitle: bestPlatformGamesByYearContent.xbox[2026].pageSubtitle,
+  description: bestPlatformGamesByYearContent.xbox[2026].description,
+  introParagraphOne: bestPlatformGamesByYearContent.xbox[2026].introParagraphOne,
+  introParagraphTwo: bestPlatformGamesByYearContent.xbox[2026].introParagraphTwo,
+  exploreHeading: bestPlatformGamesByYearContent.xbox[2026].exploreHeading,
+  topSectionHeading: bestPlatformGamesByYearContent.xbox[2026].topSectionHeading,
+  topSectionIntro: bestPlatformGamesByYearContent.xbox[2026].topSectionIntro,
+  fullListHeading: bestPlatformGamesByYearContent.xbox[2026].fullListHeading
+},
+{
   type: "platform-year",
   slug: "best-switch-games-2025",
   canonicalPath: "/best-switch-games-2025",
@@ -378,7 +426,23 @@ export const bestPagesRegistry: BestPageRegistryEntry[] = [
   topSectionHeading: bestPlatformGamesByYearContent.switch[2025].topSectionHeading,
   topSectionIntro: bestPlatformGamesByYearContent.switch[2025].topSectionIntro,
   fullListHeading: bestPlatformGamesByYearContent.switch[2025].fullListHeading
-  },
+},
+{
+  type: "platform-year",
+  slug: "best-switch-games-2026",
+  canonicalPath: "/best-switch-games-2026",
+  platformSlug: "switch",
+  year: 2026,
+  pageTitle: bestPlatformGamesByYearContent.switch[2026].pageTitle,
+  pageSubtitle: bestPlatformGamesByYearContent.switch[2026].pageSubtitle,
+  description: bestPlatformGamesByYearContent.switch[2026].description,
+  introParagraphOne: bestPlatformGamesByYearContent.switch[2026].introParagraphOne,
+  introParagraphTwo: bestPlatformGamesByYearContent.switch[2026].introParagraphTwo,
+  exploreHeading: bestPlatformGamesByYearContent.switch[2026].exploreHeading,
+  topSectionHeading: bestPlatformGamesByYearContent.switch[2026].topSectionHeading,
+  topSectionIntro: bestPlatformGamesByYearContent.switch[2026].topSectionIntro,
+  fullListHeading: bestPlatformGamesByYearContent.switch[2026].fullListHeading
+},
   {
     type: "genre-platform-year",
     slug: "best-shooter-games-pc-2025",

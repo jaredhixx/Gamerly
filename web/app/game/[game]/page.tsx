@@ -1036,7 +1036,7 @@ View all {game.platforms[0]} games and top picks →
 <ul>
   <li><Link href="/new-games">New Games</Link></li>
   <li><Link href="/best-games-2026">Best Games of 2026</Link></li>
-  <li><Link href="/best-pc-games">Best PC Games</Link></li>
+<li><Link href="/best-pc-games-2025">Best PC Games of 2025</Link></li>
   <li><Link href="/upcoming-games">Upcoming Games</Link></li>
   <li><Link href="/games-releasing-this-month">Games Releasing This Month</Link></li>
   <li><Link href="/platform/pc">PC Games</Link></li>

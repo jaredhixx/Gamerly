@@ -529,8 +529,7 @@ export default async function GamePage(props: any) {
     notFound();
   }
 
-  const moreLikeThisGames = allGames
-  .filter(
+  const relatedCandidates = allGames.filter(
     (g) =>
       g.id !== game.id &&
       isReleasedGame(g) &&
@@ -542,45 +541,43 @@ export default async function GamePage(props: any) {
           game.platforms &&
           g.platforms.some((platform: string) => game.platforms.includes(platform)))
       )
-  )
-  .sort((leftGame, rightGame) =>
-    compareRelatedGames(game, leftGame, rightGame, getMoreLikeThisScore)
-  )
-  .slice(0, 8);
+  );
 
-const moreLikeThisIds = new Set(moreLikeThisGames.map((g) => g.id));
+  const moreLikeThisGames = relatedCandidates
+    .sort((leftGame, rightGame) =>
+      compareRelatedGames(game, leftGame, rightGame, getMoreLikeThisScore)
+    )
+    .slice(0, 8);
 
-const relatedGenreGames = allGames
-  .filter(
-    (g) =>
-      g.id !== game.id &&
-      !moreLikeThisIds.has(g.id) &&
-      isReleasedGame(g) &&
-      g.genres &&
-      g.genres.some((genre: string) => game.genres?.includes(genre))
-  )
-  .sort((leftGame, rightGame) =>
-    compareRelatedGames(game, leftGame, rightGame, getGenreRelatedScore)
-  )
-  .slice(0, 8);
+  const moreLikeThisIds = new Set(moreLikeThisGames.map((g) => g.id));
 
-const relatedGenreIds = new Set(relatedGenreGames.map((g) => g.id));
+  const relatedGenreGames = relatedCandidates
+    .filter(
+      (g) =>
+        !moreLikeThisIds.has(g.id) &&
+        g.genres &&
+        g.genres.some((genre: string) => game.genres?.includes(genre))
+    )
+    .sort((leftGame, rightGame) =>
+      compareRelatedGames(game, leftGame, rightGame, getGenreRelatedScore)
+    )
+    .slice(0, 8);
 
-const relatedPlatformGames = allGames
-  .filter(
-    (g) =>
-      g.id !== game.id &&
-      !moreLikeThisIds.has(g.id) &&
-      !relatedGenreIds.has(g.id) &&
-      isReleasedGame(g) &&
-      g.platforms &&
-      game.platforms &&
-      g.platforms.some((platform: string) => game.platforms.includes(platform))
-  )
-  .sort((leftGame, rightGame) =>
-    compareRelatedGames(game, leftGame, rightGame, getPlatformRelatedScore)
-  )
-  .slice(0, 8);
+  const relatedGenreIds = new Set(relatedGenreGames.map((g) => g.id));
+
+  const relatedPlatformGames = relatedCandidates
+    .filter(
+      (g) =>
+        !moreLikeThisIds.has(g.id) &&
+        !relatedGenreIds.has(g.id) &&
+        g.platforms &&
+        game.platforms &&
+        g.platforms.some((platform: string) => game.platforms.includes(platform))
+    )
+    .sort((leftGame, rightGame) =>
+      compareRelatedGames(game, leftGame, rightGame, getPlatformRelatedScore)
+    )
+    .slice(0, 8);
 
   return (
     <>
@@ -665,7 +662,7 @@ const relatedPlatformGames = allGames
 
     {game.coverUrl && (
 <img
-  src={game.coverUrl}
+  src={game.coverUrl?.replace("t_cover_big", "t_cover_small")}
   alt={game.name}
   className="gameCover"
 />

@@ -99,7 +99,8 @@ function buildUpcomingWindowGames(
 }
 
 export default async function Home() {
-const games = await fetchGames();
+const allGames = await fetchGames();
+const games = allGames.slice(0, 5000);
 const streams = await fetchTwitchStreams().catch(() => []);
 
   const roughTwitchMap = buildRoughTwitchMap(streams);
@@ -164,7 +165,7 @@ const streams = await fetchTwitchStreams().catch(() => []);
   const hasUpcomingGames = upcomingGames.length > 0;
   const hasReleasingSoonGames = releasingSoonGames.length > 0;
 
-  const totalGamesCount = games.length;
+const totalGamesCount = allGames.length;
   const trackedLiveSignalCount = scoredGames.filter(
     (game) => (game.twitchViewers ?? 0) > 0
   ).length;

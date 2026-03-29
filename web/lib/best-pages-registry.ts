@@ -859,6 +859,32 @@ export const bestPagesRegistry: BestPageRegistryEntry[] = [
   fullListHeading:
     bestGenrePlatformGamesByYearContent.pc.rpg[2025].fullListHeading
  },
+ {
+  type: "genre-platform-year",
+  slug: "best-rpg-games-pc-2026",
+  canonicalPath: "/best-rpg-games-pc-2026",
+  genreSlug: "rpg",
+  platformSlug: "pc",
+  year: 2026,
+  pageTitle:
+    bestGenrePlatformGamesByYearContent.pc.rpg[2026].pageTitle,
+  pageSubtitle:
+    bestGenrePlatformGamesByYearContent.pc.rpg[2026].pageSubtitle,
+  description:
+    bestGenrePlatformGamesByYearContent.pc.rpg[2026].description,
+  introParagraphOne:
+    bestGenrePlatformGamesByYearContent.pc.rpg[2026].introParagraphOne,
+  introParagraphTwo:
+    bestGenrePlatformGamesByYearContent.pc.rpg[2026].introParagraphTwo,
+  exploreHeading:
+    bestGenrePlatformGamesByYearContent.pc.rpg[2026].exploreHeading,
+  topSectionHeading:
+    bestGenrePlatformGamesByYearContent.pc.rpg[2026].topSectionHeading,
+  topSectionIntro:
+    bestGenrePlatformGamesByYearContent.pc.rpg[2026].topSectionIntro,
+  fullListHeading:
+    bestGenrePlatformGamesByYearContent.pc.rpg[2026].fullListHeading
+},
   {
     type: "genre-platform-year",
     slug: "best-rpg-games-playstation-2025",

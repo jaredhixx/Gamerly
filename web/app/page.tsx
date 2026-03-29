@@ -935,7 +935,8 @@ const bestPageClusters = [
       {
         title: "Best PC Games in 2026",
         links: [
-          { href: "/best-pc-games-2026", label: "Best PC Games of 2026" }
+          { href: "/best-pc-games-2026", label: "Best PC Games of 2026" },
+          { href: "/best-rpg-games-pc-2026", label: "Best PC RPG Games of 2026" }
         ]
       },
       {

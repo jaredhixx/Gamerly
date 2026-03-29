@@ -170,6 +170,11 @@ export default async function BestGamesByYearPage({
           Best PC games of 2026
         </Link>
       </li>
+    <li>
+      <Link href="/best-rpg-games-pc-2026">
+        Best RPG games on PC in 2026
+      </Link>
+    </li>
       <li>
         <Link href="/best-playstation-games-2026">
           Best PlayStation games of 2026

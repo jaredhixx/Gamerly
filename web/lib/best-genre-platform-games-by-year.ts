@@ -16,6 +16,22 @@ introParagraphTwo:
         topSectionIntro:
   "These are the best RPG games released on PC in 2025, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest PC RPG releases of the year and is designed to quickly surface the top role-playing games worth playing.",
         fullListHeading: "Full List of Best RPG Games on PC in 2025"
+      },
+      2026: {
+        pageTitle: "Best RPG Games on PC in 2026",
+        pageSubtitle:
+          "Top-rated RPG games released in 2026 on PC, ranked by quality and popularity.",
+        description:
+          "Discover the best RPG games on PC in 2026, including the top-rated role-playing games released on PC this year.",
+        introParagraphOne:
+  "The best RPG games on PC in 2026 are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on role-playing games released in 2026 that are playable on PC, highlighting the titles that stand out the most across a wide range of RPG styles.",
+introParagraphTwo:
+  "If you are searching for the best RPG games on PC in 2026 to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player reception, and lasting relevance within the RPG genre. For a broader view across all genres, explore the best PC games of 2026 to see the top releases across the entire platform. If you are also interested in fast-paced action, check out the best shooter games on PC in 2026 to discover top FPS and shooter experiences this year.",
+        exploreHeading: "Explore More PC RPG Pages",
+        topSectionHeading: "Top RPG Games Released on PC in 2026",
+        topSectionIntro:
+  "These are the best RPG games released on PC in 2026, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest PC RPG releases of the year and is designed to quickly surface the top role-playing games worth playing.",
+        fullListHeading: "Full List of Best RPG Games on PC in 2026"
       }
     },
     shooter: {

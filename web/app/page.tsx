@@ -194,6 +194,13 @@ const totalGamesCount = allGames.length;
       linkLabel: "View new releases"
     },
     {
+      title: "New Games This Month",
+      description:
+        "See the games releasing this month when you want the most current release view without digging through the full archive.",
+      href: "/new-games-this-month",
+      linkLabel: "Browse this month’s releases"
+    },
+    {
       title: "Release Calendar",
       description:
         "Plan ahead by month when you want a broader view than a single homepage snapshot.",

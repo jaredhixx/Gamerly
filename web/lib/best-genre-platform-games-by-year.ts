@@ -50,6 +50,22 @@ introParagraphTwo:
         topSectionIntro:
   "These are the best shooter games released on PC in 2025, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest PC shooter releases of the year and is designed to quickly surface the top shooter games worth playing.",
         fullListHeading: "Full List of Best Shooter Games on PC in 2025"
+      },
+      2026: {
+        pageTitle: "Best Shooter Games on PC in 2026",
+        pageSubtitle:
+          "Top-rated shooter games released in 2026 on PC, ranked by quality and popularity.",
+        description:
+          "Discover the best shooter games on PC in 2026, including the top-rated FPS and third-person shooters released this year.",
+        introParagraphOne:
+          "The best shooter games on PC in 2026 are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on shooter games released in 2026 that are playable on PC, highlighting the titles that stand out the most across both competitive and single-player experiences.",
+        introParagraphTwo:
+          "If you are searching for the best shooter games on PC in 2026 to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player engagement, and lasting relevance within the shooter genre. For a broader view across all genres, explore the best PC games of 2026 to see the top releases across the entire platform. If you prefer slower, more tactical decision-making, check out the best strategy games on PC in 2026 to discover the top strategy releases this year.",
+        exploreHeading: "Explore More PC Shooter Pages",
+        topSectionHeading: "Top Shooter Games Released on PC in 2026",
+        topSectionIntro:
+          "These are the best shooter games released on PC in 2026, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest PC shooter releases of the year and is designed to quickly surface the top shooter games worth playing.",
+        fullListHeading: "Full List of Best Shooter Games on PC in 2026"
       }
     },
 
@@ -69,6 +85,22 @@ introParagraphTwo:
         topSectionIntro:
   "These are the best strategy games released on PC in 2025, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest PC strategy releases of the year and is designed to quickly surface the top strategy games worth playing.",
         fullListHeading: "Full List of Best Strategy Games on PC in 2025"
+      },
+      2026: {
+        pageTitle: "Best Strategy Games on PC in 2026",
+        pageSubtitle:
+          "Top-rated strategy games released in 2026 on PC, ranked by quality and popularity.",
+        description:
+          "Discover the best strategy games on PC in 2026, including the top RTS and turn-based strategy games released this year.",
+        introParagraphOne:
+          "The best strategy games on PC in 2026 are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on strategy games released in 2026 that are playable on PC, highlighting the titles that stand out across both real-time and turn-based strategy experiences.",
+        introParagraphTwo:
+          "If you are searching for the best strategy games on PC in 2026 to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player engagement, and lasting relevance within the strategy genre. For a broader view across all genres, explore the best PC games of 2026 to see the top releases across the entire platform. If you want more character progression, world-building, and role-playing depth, explore the best RPG games on PC in 2026 to discover the top PC RPG releases this year.",
+        exploreHeading: "Explore More PC Strategy Pages",
+        topSectionHeading: "Top Strategy Games Released on PC in 2026",
+        topSectionIntro:
+          "These are the best strategy games released on PC in 2026, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest PC strategy releases of the year and is designed to quickly surface the top strategy games worth playing.",
+        fullListHeading: "Full List of Best Strategy Games on PC in 2026"
       }
     },
 
@@ -88,6 +120,22 @@ introParagraphTwo:
         topSectionIntro:
           "These are the standout adventure games released on PC in 2025 based on quality and popularity signals.",
         fullListHeading: "Full List of Best Adventure Games on PC in 2025"
+      },
+      2026: {
+        pageTitle: "Best Adventure Games on PC in 2026",
+        pageSubtitle:
+          "Top-rated adventure games released in 2026 on PC, ranked by quality and popularity.",
+        description:
+          "Discover the best adventure games on PC in 2026, including the top story-driven and exploration-focused titles released this year.",
+        introParagraphOne:
+          "The best adventure games on PC in 2026 include the strongest narrative-driven and exploration-focused releases available this year, from cinematic experiences to open-ended journeys.",
+        introParagraphTwo:
+          "If you want to find the most worth-playing adventure games on PC released in 2026, this page highlights the top options based on review scores and player interest. For a broader view across all genres, explore the best PC games of 2026 to see the top releases across the entire platform.",
+        exploreHeading: "Explore More PC Adventure Pages",
+        topSectionHeading: "Top Adventure Games Released on PC in 2026",
+        topSectionIntro:
+          "These are the standout adventure games released on PC in 2026 based on quality and popularity signals.",
+        fullListHeading: "Full List of Best Adventure Games on PC in 2026"
       }
     },
 

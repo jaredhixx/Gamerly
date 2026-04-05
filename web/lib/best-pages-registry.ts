@@ -69,52 +69,110 @@ export type BestPageRegistryEntry =
       fullListHeading: string;
     };
 
+function buildYearPageEntry(
+  year: keyof typeof bestGamesByYearContent
+): BestPageRegistryEntry {
+  const content = bestGamesByYearContent[year];
+
+  return {
+    type: "year",
+    slug: `best-games-${year}`,
+    canonicalPath: `/best-games-${year}`,
+    year,
+    pageTitle: content.pageTitle,
+    pageSubtitle: content.pageSubtitle,
+    description: content.description,
+    introParagraphOne: content.introParagraphOne,
+    introParagraphTwo: content.introParagraphTwo,
+    exploreHeading: content.exploreHeading,
+    topSectionHeading: content.topSectionHeading,
+    topSectionIntro: content.topSectionIntro,
+    fullListHeading: content.fullListHeading
+  };
+}
+
+const generatedYearPages: BestPageRegistryEntry[] = (
+  Object.keys(bestGamesByYearContent).map(Number) as Array<keyof typeof bestGamesByYearContent>
+).map((year) => buildYearPageEntry(year));
+
+function buildPlatformYearEntry(
+  platformSlug: keyof typeof bestPlatformGamesByYearContent,
+  year: keyof (typeof bestPlatformGamesByYearContent)[keyof typeof bestPlatformGamesByYearContent]
+): BestPageRegistryEntry {
+  const content = bestPlatformGamesByYearContent[platformSlug][year];
+
+  return {
+    type: "platform-year",
+    slug: `best-${platformSlug}-games-${year}`,
+    canonicalPath: `/best-${platformSlug}-games-${year}`,
+    platformSlug,
+    year,
+    pageTitle: content.pageTitle,
+    pageSubtitle: content.pageSubtitle,
+    description: content.description,
+    introParagraphOne: content.introParagraphOne,
+    introParagraphTwo: content.introParagraphTwo,
+    exploreHeading: content.exploreHeading,
+    topSectionHeading: content.topSectionHeading,
+    topSectionIntro: content.topSectionIntro,
+    fullListHeading: content.fullListHeading
+  };
+}
+
+const generatedPlatformYearPages: BestPageRegistryEntry[] =
+  Object.entries(bestPlatformGamesByYearContent).flatMap(
+    ([platformSlug, years]) =>
+      Object.keys(years).map((year) =>
+        buildPlatformYearEntry(
+          platformSlug as keyof typeof bestPlatformGamesByYearContent,
+          Number(year) as keyof (typeof bestPlatformGamesByYearContent)[keyof typeof bestPlatformGamesByYearContent]
+        )
+      )
+  );
+
+function buildGenrePlatformYearEntry(
+  platformSlug: keyof typeof bestGenrePlatformGamesByYearContent,
+  genreSlug: keyof typeof bestGenrePlatformGamesByYearContent[keyof typeof bestGenrePlatformGamesByYearContent],
+  year: keyof (typeof bestGenrePlatformGamesByYearContent)[keyof typeof bestGenrePlatformGamesByYearContent][keyof typeof bestGenrePlatformGamesByYearContent[keyof typeof bestGenrePlatformGamesByYearContent]]
+): BestPageRegistryEntry {
+  const content =
+    bestGenrePlatformGamesByYearContent[platformSlug][genreSlug][year];
+
+  return {
+    type: "genre-platform-year",
+    slug: `best-${genreSlug}-games-${platformSlug}-${year}`,
+    canonicalPath: `/best-${genreSlug}-games-${platformSlug}-${year}`,
+    genreSlug,
+    platformSlug,
+    year,
+    pageTitle: content.pageTitle,
+    pageSubtitle: content.pageSubtitle,
+    description: content.description,
+    introParagraphOne: content.introParagraphOne,
+    introParagraphTwo: content.introParagraphTwo,
+    exploreHeading: content.exploreHeading,
+    topSectionHeading: content.topSectionHeading,
+    topSectionIntro: content.topSectionIntro,
+    fullListHeading: content.fullListHeading
+  };
+}
+
+const generatedGenrePlatformYearPages: BestPageRegistryEntry[] =
+  Object.entries(bestGenrePlatformGamesByYearContent).flatMap(
+    ([platformSlug, genres]) =>
+      Object.entries(genres).flatMap(([genreSlug, years]) =>
+        Object.keys(years).map((year) =>
+          buildGenrePlatformYearEntry(
+            platformSlug as keyof typeof bestGenrePlatformGamesByYearContent,
+            genreSlug as keyof typeof bestGenrePlatformGamesByYearContent[keyof typeof bestGenrePlatformGamesByYearContent],
+            Number(year) as keyof (typeof bestGenrePlatformGamesByYearContent)[keyof typeof bestGenrePlatformGamesByYearContent][keyof typeof bestGenrePlatformGamesByYearContent[keyof typeof bestGenrePlatformGamesByYearContent]]
+          )
+        )
+      )
+  );
+
 export const bestPagesRegistry: BestPageRegistryEntry[] = [
-  {
-    type: "year",
-    slug: "best-games-2024",
-    canonicalPath: "/best-games-2024",
-    year: 2024,
-    pageTitle: bestGamesByYearContent[2024].pageTitle,
-    pageSubtitle: bestGamesByYearContent[2024].pageSubtitle,
-    description: bestGamesByYearContent[2024].description,
-    introParagraphOne: bestGamesByYearContent[2024].introParagraphOne,
-    introParagraphTwo: bestGamesByYearContent[2024].introParagraphTwo,
-    exploreHeading: bestGamesByYearContent[2024].exploreHeading,
-    topSectionHeading: bestGamesByYearContent[2024].topSectionHeading,
-    topSectionIntro: bestGamesByYearContent[2024].topSectionIntro,
-    fullListHeading: bestGamesByYearContent[2024].fullListHeading
-  },
-  {
-    type: "year",
-    slug: "best-games-2025",
-    canonicalPath: "/best-games-2025",
-    year: 2025,
-    pageTitle: bestGamesByYearContent[2025].pageTitle,
-    pageSubtitle: bestGamesByYearContent[2025].pageSubtitle,
-    description: bestGamesByYearContent[2025].description,
-    introParagraphOne: bestGamesByYearContent[2025].introParagraphOne,
-    introParagraphTwo: bestGamesByYearContent[2025].introParagraphTwo,
-    exploreHeading: bestGamesByYearContent[2025].exploreHeading,
-    topSectionHeading: bestGamesByYearContent[2025].topSectionHeading,
-    topSectionIntro: bestGamesByYearContent[2025].topSectionIntro,
-    fullListHeading: bestGamesByYearContent[2025].fullListHeading
-  },
-  {
-    type: "year",
-    slug: "best-games-2026",
-    canonicalPath: "/best-games-2026",
-    year: 2026,
-    pageTitle: bestGamesByYearContent[2026].pageTitle,
-    pageSubtitle: bestGamesByYearContent[2026].pageSubtitle,
-    description: bestGamesByYearContent[2026].description,
-    introParagraphOne: bestGamesByYearContent[2026].introParagraphOne,
-    introParagraphTwo: bestGamesByYearContent[2026].introParagraphTwo,
-    exploreHeading: bestGamesByYearContent[2026].exploreHeading,
-    topSectionHeading: bestGamesByYearContent[2026].topSectionHeading,
-    topSectionIntro: bestGamesByYearContent[2026].topSectionIntro,
-    fullListHeading: bestGamesByYearContent[2026].fullListHeading
-  },
+  ...generatedYearPages,
   {
     type: "genre",
     slug: "best-rpg-games",
@@ -315,784 +373,8 @@ export const bestPagesRegistry: BestPageRegistryEntry[] = [
       "These are the standout sports games available right now, selected based on critical reception, player engagement, and overall impact.",
     fullListHeading: "Full List of Best Sports Games"
   },
-  {
-    type: "platform-year",
-    slug: "best-pc-games-2025",
-    canonicalPath: "/best-pc-games-2025",
-    platformSlug: "pc",
-    year: 2025,
-    pageTitle: bestPlatformGamesByYearContent.pc[2025].pageTitle,
-    pageSubtitle: bestPlatformGamesByYearContent.pc[2025].pageSubtitle,
-    description: bestPlatformGamesByYearContent.pc[2025].description,
-    introParagraphOne: bestPlatformGamesByYearContent.pc[2025].introParagraphOne,
-    introParagraphTwo: bestPlatformGamesByYearContent.pc[2025].introParagraphTwo,
-    exploreHeading: bestPlatformGamesByYearContent.pc[2025].exploreHeading,
-    topSectionHeading: bestPlatformGamesByYearContent.pc[2025].topSectionHeading,
-    topSectionIntro: bestPlatformGamesByYearContent.pc[2025].topSectionIntro,
-    fullListHeading: bestPlatformGamesByYearContent.pc[2025].fullListHeading
-  },
-    {
-    type: "platform-year",
-    slug: "best-pc-games-2026",
-    canonicalPath: "/best-pc-games-2026",
-    platformSlug: "pc",
-    year: 2026,
-    pageTitle: bestPlatformGamesByYearContent.pc[2026].pageTitle,
-    pageSubtitle: bestPlatformGamesByYearContent.pc[2026].pageSubtitle,
-    description: bestPlatformGamesByYearContent.pc[2026].description,
-    introParagraphOne: bestPlatformGamesByYearContent.pc[2026].introParagraphOne,
-    introParagraphTwo: bestPlatformGamesByYearContent.pc[2026].introParagraphTwo,
-    exploreHeading: bestPlatformGamesByYearContent.pc[2026].exploreHeading,
-    topSectionHeading: bestPlatformGamesByYearContent.pc[2026].topSectionHeading,
-    topSectionIntro: bestPlatformGamesByYearContent.pc[2026].topSectionIntro,
-    fullListHeading: bestPlatformGamesByYearContent.pc[2026].fullListHeading
-  },
-{
-  type: "platform-year",
-  slug: "best-playstation-games-2025",
-  canonicalPath: "/best-playstation-games-2025",
-  platformSlug: "playstation",
-  year: 2025,
-  pageTitle: bestPlatformGamesByYearContent.playstation[2025].pageTitle,
-  pageSubtitle: bestPlatformGamesByYearContent.playstation[2025].pageSubtitle,
-  description: bestPlatformGamesByYearContent.playstation[2025].description,
-  introParagraphOne: bestPlatformGamesByYearContent.playstation[2025].introParagraphOne,
-  introParagraphTwo: bestPlatformGamesByYearContent.playstation[2025].introParagraphTwo,
-  exploreHeading: bestPlatformGamesByYearContent.playstation[2025].exploreHeading,
-  topSectionHeading: bestPlatformGamesByYearContent.playstation[2025].topSectionHeading,
-  topSectionIntro: bestPlatformGamesByYearContent.playstation[2025].topSectionIntro,
-  fullListHeading: bestPlatformGamesByYearContent.playstation[2025].fullListHeading
-},
-{
-  type: "platform-year",
-  slug: "best-playstation-games-2026",
-  canonicalPath: "/best-playstation-games-2026",
-  platformSlug: "playstation",
-  year: 2026,
-  pageTitle: bestPlatformGamesByYearContent.playstation[2026].pageTitle,
-  pageSubtitle: bestPlatformGamesByYearContent.playstation[2026].pageSubtitle,
-  description: bestPlatformGamesByYearContent.playstation[2026].description,
-  introParagraphOne: bestPlatformGamesByYearContent.playstation[2026].introParagraphOne,
-  introParagraphTwo: bestPlatformGamesByYearContent.playstation[2026].introParagraphTwo,
-  exploreHeading: bestPlatformGamesByYearContent.playstation[2026].exploreHeading,
-  topSectionHeading: bestPlatformGamesByYearContent.playstation[2026].topSectionHeading,
-  topSectionIntro: bestPlatformGamesByYearContent.playstation[2026].topSectionIntro,
-  fullListHeading: bestPlatformGamesByYearContent.playstation[2026].fullListHeading
-},
-{
-  type: "platform-year",
-  slug: "best-xbox-games-2025",
-  canonicalPath: "/best-xbox-games-2025",
-  platformSlug: "xbox",
-  year: 2025,
-  pageTitle: bestPlatformGamesByYearContent.xbox[2025].pageTitle,
-  pageSubtitle: bestPlatformGamesByYearContent.xbox[2025].pageSubtitle,
-  description: bestPlatformGamesByYearContent.xbox[2025].description,
-  introParagraphOne: bestPlatformGamesByYearContent.xbox[2025].introParagraphOne,
-  introParagraphTwo: bestPlatformGamesByYearContent.xbox[2025].introParagraphTwo,
-  exploreHeading: bestPlatformGamesByYearContent.xbox[2025].exploreHeading,
-  topSectionHeading: bestPlatformGamesByYearContent.xbox[2025].topSectionHeading,
-  topSectionIntro: bestPlatformGamesByYearContent.xbox[2025].topSectionIntro,
-  fullListHeading: bestPlatformGamesByYearContent.xbox[2025].fullListHeading
-},
-{
-  type: "platform-year",
-  slug: "best-xbox-games-2026",
-  canonicalPath: "/best-xbox-games-2026",
-  platformSlug: "xbox",
-  year: 2026,
-  pageTitle: bestPlatformGamesByYearContent.xbox[2026].pageTitle,
-  pageSubtitle: bestPlatformGamesByYearContent.xbox[2026].pageSubtitle,
-  description: bestPlatformGamesByYearContent.xbox[2026].description,
-  introParagraphOne: bestPlatformGamesByYearContent.xbox[2026].introParagraphOne,
-  introParagraphTwo: bestPlatformGamesByYearContent.xbox[2026].introParagraphTwo,
-  exploreHeading: bestPlatformGamesByYearContent.xbox[2026].exploreHeading,
-  topSectionHeading: bestPlatformGamesByYearContent.xbox[2026].topSectionHeading,
-  topSectionIntro: bestPlatformGamesByYearContent.xbox[2026].topSectionIntro,
-  fullListHeading: bestPlatformGamesByYearContent.xbox[2026].fullListHeading
-},
-{
-  type: "platform-year",
-  slug: "best-switch-games-2025",
-  canonicalPath: "/best-switch-games-2025",
-  platformSlug: "switch",
-  year: 2025,
-  pageTitle: bestPlatformGamesByYearContent.switch[2025].pageTitle,
-  pageSubtitle: bestPlatformGamesByYearContent.switch[2025].pageSubtitle,
-  description: bestPlatformGamesByYearContent.switch[2025].description,
-  introParagraphOne: bestPlatformGamesByYearContent.switch[2025].introParagraphOne,
-  introParagraphTwo: bestPlatformGamesByYearContent.switch[2025].introParagraphTwo,
-  exploreHeading: bestPlatformGamesByYearContent.switch[2025].exploreHeading,
-  topSectionHeading: bestPlatformGamesByYearContent.switch[2025].topSectionHeading,
-  topSectionIntro: bestPlatformGamesByYearContent.switch[2025].topSectionIntro,
-  fullListHeading: bestPlatformGamesByYearContent.switch[2025].fullListHeading
-},
-{
-  type: "platform-year",
-  slug: "best-switch-games-2026",
-  canonicalPath: "/best-switch-games-2026",
-  platformSlug: "switch",
-  year: 2026,
-  pageTitle: bestPlatformGamesByYearContent.switch[2026].pageTitle,
-  pageSubtitle: bestPlatformGamesByYearContent.switch[2026].pageSubtitle,
-  description: bestPlatformGamesByYearContent.switch[2026].description,
-  introParagraphOne: bestPlatformGamesByYearContent.switch[2026].introParagraphOne,
-  introParagraphTwo: bestPlatformGamesByYearContent.switch[2026].introParagraphTwo,
-  exploreHeading: bestPlatformGamesByYearContent.switch[2026].exploreHeading,
-  topSectionHeading: bestPlatformGamesByYearContent.switch[2026].topSectionHeading,
-  topSectionIntro: bestPlatformGamesByYearContent.switch[2026].topSectionIntro,
-  fullListHeading: bestPlatformGamesByYearContent.switch[2026].fullListHeading
-},
-  {
-    type: "genre-platform-year",
-    slug: "best-shooter-games-pc-2025",
-    canonicalPath: "/best-shooter-games-pc-2025",
-    genreSlug: "shooter",
-    platformSlug: "pc",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.pc.shooter[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.pc.shooter[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.pc.shooter[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.pc.shooter[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.pc.shooter[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.pc.shooter[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.pc.shooter[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.pc.shooter[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.pc.shooter[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-strategy-games-pc-2025",
-    canonicalPath: "/best-strategy-games-pc-2025",
-    genreSlug: "strategy",
-    platformSlug: "pc",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.pc.strategy[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.pc.strategy[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.pc.strategy[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.pc.strategy[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.pc.strategy[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.pc.strategy[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.pc.strategy[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.pc.strategy[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.pc.strategy[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-adventure-games-pc-2025",
-    canonicalPath: "/best-adventure-games-pc-2025",
-    genreSlug: "adventure",
-    platformSlug: "pc",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.pc.adventure[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.pc.adventure[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.pc.adventure[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.pc.adventure[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.pc.adventure[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.pc.adventure[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.pc.adventure[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.pc.adventure[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.pc.adventure[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-simulation-games-pc-2025",
-    canonicalPath: "/best-simulation-games-pc-2025",
-    genreSlug: "simulation",
-    platformSlug: "pc",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.pc.simulation[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.pc.simulation[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.pc.simulation[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.pc.simulation[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.pc.simulation[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.pc.simulation[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.pc.simulation[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.pc.simulation[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.pc.simulation[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-indie-games-pc-2025",
-    canonicalPath: "/best-indie-games-pc-2025",
-    genreSlug: "indie",
-    platformSlug: "pc",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.pc.indie[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.pc.indie[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.pc.indie[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.pc.indie[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.pc.indie[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.pc.indie[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.pc.indie[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.pc.indie[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.pc.indie[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-shooter-games-playstation-2025",
-    canonicalPath: "/best-shooter-games-playstation-2025",
-    genreSlug: "shooter",
-    platformSlug: "playstation",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.playstation.shooter[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.playstation.shooter[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.playstation.shooter[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.playstation.shooter[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.playstation.shooter[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.playstation.shooter[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.playstation.shooter[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.playstation.shooter[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.playstation.shooter[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-strategy-games-playstation-2025",
-    canonicalPath: "/best-strategy-games-playstation-2025",
-    genreSlug: "strategy",
-    platformSlug: "playstation",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.playstation.strategy[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.playstation.strategy[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.playstation.strategy[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.playstation.strategy[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.playstation.strategy[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.playstation.strategy[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.playstation.strategy[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.playstation.strategy[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.playstation.strategy[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-adventure-games-playstation-2025",
-    canonicalPath: "/best-adventure-games-playstation-2025",
-    genreSlug: "adventure",
-    platformSlug: "playstation",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.playstation.adventure[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.playstation.adventure[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.playstation.adventure[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.playstation.adventure[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.playstation.adventure[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.playstation.adventure[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.playstation.adventure[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.playstation.adventure[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.playstation.adventure[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-simulation-games-playstation-2025",
-    canonicalPath: "/best-simulation-games-playstation-2025",
-    genreSlug: "simulation",
-    platformSlug: "playstation",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.playstation.simulation[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.playstation.simulation[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.playstation.simulation[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.playstation.simulation[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.playstation.simulation[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.playstation.simulation[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.playstation.simulation[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.playstation.simulation[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.playstation.simulation[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-indie-games-playstation-2025",
-    canonicalPath: "/best-indie-games-playstation-2025",
-    genreSlug: "indie",
-    platformSlug: "playstation",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.playstation.indie[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.playstation.indie[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.playstation.indie[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.playstation.indie[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.playstation.indie[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.playstation.indie[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.playstation.indie[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.playstation.indie[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.playstation.indie[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-shooter-games-xbox-2025",
-    canonicalPath: "/best-shooter-games-xbox-2025",
-    genreSlug: "shooter",
-    platformSlug: "xbox",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.xbox.shooter[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.xbox.shooter[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.xbox.shooter[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.xbox.shooter[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.xbox.shooter[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.xbox.shooter[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.xbox.shooter[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.xbox.shooter[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.xbox.shooter[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-strategy-games-xbox-2025",
-    canonicalPath: "/best-strategy-games-xbox-2025",
-    genreSlug: "strategy",
-    platformSlug: "xbox",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.xbox.strategy[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.xbox.strategy[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.xbox.strategy[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.xbox.strategy[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.xbox.strategy[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.xbox.strategy[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.xbox.strategy[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.xbox.strategy[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.xbox.strategy[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-adventure-games-xbox-2025",
-    canonicalPath: "/best-adventure-games-xbox-2025",
-    genreSlug: "adventure",
-    platformSlug: "xbox",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.xbox.adventure[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.xbox.adventure[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.xbox.adventure[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.xbox.adventure[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.xbox.adventure[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.xbox.adventure[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.xbox.adventure[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.xbox.adventure[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.xbox.adventure[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-simulation-games-xbox-2025",
-    canonicalPath: "/best-simulation-games-xbox-2025",
-    genreSlug: "simulation",
-    platformSlug: "xbox",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.xbox.simulation[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.xbox.simulation[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.xbox.simulation[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.xbox.simulation[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.xbox.simulation[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.xbox.simulation[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.xbox.simulation[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.xbox.simulation[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.xbox.simulation[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-indie-games-xbox-2025",
-    canonicalPath: "/best-indie-games-xbox-2025",
-    genreSlug: "indie",
-    platformSlug: "xbox",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.xbox.indie[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.xbox.indie[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.xbox.indie[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.xbox.indie[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.xbox.indie[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.xbox.indie[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.xbox.indie[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.xbox.indie[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.xbox.indie[2025].fullListHeading
-  },
-  {
-  type: "genre-platform-year",
-  slug: "best-rpg-games-pc-2025",
-  canonicalPath: "/best-rpg-games-pc-2025",
-  genreSlug: "rpg",
-  platformSlug: "pc",
-  year: 2025,
-  pageTitle:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2025].pageTitle,
-  pageSubtitle:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2025].pageSubtitle,
-  description:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2025].description,
-  introParagraphOne:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2025].introParagraphOne,
-  introParagraphTwo:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2025].introParagraphTwo,
-  exploreHeading:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2025].exploreHeading,
-  topSectionHeading:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2025].topSectionHeading,
-  topSectionIntro:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2025].topSectionIntro,
-  fullListHeading:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2025].fullListHeading
- },
- {
-  type: "genre-platform-year",
-  slug: "best-rpg-games-pc-2026",
-  canonicalPath: "/best-rpg-games-pc-2026",
-  genreSlug: "rpg",
-  platformSlug: "pc",
-  year: 2026,
-  pageTitle:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2026].pageTitle,
-  pageSubtitle:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2026].pageSubtitle,
-  description:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2026].description,
-  introParagraphOne:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2026].introParagraphOne,
-  introParagraphTwo:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2026].introParagraphTwo,
-  exploreHeading:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2026].exploreHeading,
-  topSectionHeading:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2026].topSectionHeading,
-  topSectionIntro:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2026].topSectionIntro,
-  fullListHeading:
-    bestGenrePlatformGamesByYearContent.pc.rpg[2026].fullListHeading
-},
-  {
-    type: "genre-platform-year",
-    slug: "best-rpg-games-playstation-2025",
-    canonicalPath: "/best-rpg-games-playstation-2025",
-    genreSlug: "rpg",
-    platformSlug: "playstation",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.playstation.rpg[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.playstation.rpg[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.playstation.rpg[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.playstation.rpg[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.playstation.rpg[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.playstation.rpg[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.playstation.rpg[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.playstation.rpg[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.playstation.rpg[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-rpg-games-xbox-2025",
-    canonicalPath: "/best-rpg-games-xbox-2025",
-    genreSlug: "rpg",
-    platformSlug: "xbox",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.xbox.rpg[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.xbox.rpg[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.xbox.rpg[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.xbox.rpg[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.xbox.rpg[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.xbox.rpg[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.xbox.rpg[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.xbox.rpg[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.xbox.rpg[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-rpg-games-switch-2025",
-    canonicalPath: "/best-rpg-games-switch-2025",
-    genreSlug: "rpg",
-    platformSlug: "switch",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.switch.rpg[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.switch.rpg[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.switch.rpg[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.switch.rpg[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.switch.rpg[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.switch.rpg[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.switch.rpg[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.switch.rpg[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.switch.rpg[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-shooter-games-switch-2025",
-    canonicalPath: "/best-shooter-games-switch-2025",
-    genreSlug: "shooter",
-    platformSlug: "switch",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.switch.shooter[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.switch.shooter[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.switch.shooter[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.switch.shooter[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.switch.shooter[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.switch.shooter[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.switch.shooter[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.switch.shooter[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.switch.shooter[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-strategy-games-switch-2025",
-    canonicalPath: "/best-strategy-games-switch-2025",
-    genreSlug: "strategy",
-    platformSlug: "switch",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.switch.strategy[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.switch.strategy[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.switch.strategy[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.switch.strategy[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.switch.strategy[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.switch.strategy[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.switch.strategy[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.switch.strategy[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.switch.strategy[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-adventure-games-switch-2025",
-    canonicalPath: "/best-adventure-games-switch-2025",
-    genreSlug: "adventure",
-    platformSlug: "switch",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.switch.adventure[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.switch.adventure[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.switch.adventure[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.switch.adventure[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.switch.adventure[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.switch.adventure[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.switch.adventure[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.switch.adventure[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.switch.adventure[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-simulation-games-switch-2025",
-    canonicalPath: "/best-simulation-games-switch-2025",
-    genreSlug: "simulation",
-    platformSlug: "switch",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.switch.simulation[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.switch.simulation[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.switch.simulation[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.switch.simulation[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.switch.simulation[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.switch.simulation[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.switch.simulation[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.switch.simulation[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.switch.simulation[2025].fullListHeading
-  },
-  {
-    type: "genre-platform-year",
-    slug: "best-indie-games-switch-2025",
-    canonicalPath: "/best-indie-games-switch-2025",
-    genreSlug: "indie",
-    platformSlug: "switch",
-    year: 2025,
-    pageTitle:
-      bestGenrePlatformGamesByYearContent.switch.indie[2025].pageTitle,
-    pageSubtitle:
-      bestGenrePlatformGamesByYearContent.switch.indie[2025].pageSubtitle,
-    description:
-      bestGenrePlatformGamesByYearContent.switch.indie[2025].description,
-    introParagraphOne:
-      bestGenrePlatformGamesByYearContent.switch.indie[2025].introParagraphOne,
-    introParagraphTwo:
-      bestGenrePlatformGamesByYearContent.switch.indie[2025].introParagraphTwo,
-    exploreHeading:
-      bestGenrePlatformGamesByYearContent.switch.indie[2025].exploreHeading,
-    topSectionHeading:
-      bestGenrePlatformGamesByYearContent.switch.indie[2025].topSectionHeading,
-    topSectionIntro:
-      bestGenrePlatformGamesByYearContent.switch.indie[2025].topSectionIntro,
-    fullListHeading:
-      bestGenrePlatformGamesByYearContent.switch.indie[2025].fullListHeading
-  }
+  ...generatedPlatformYearPages,
+  ...generatedGenrePlatformYearPages
 ];
 
 export function getBestPageBySlug(slug: string) {

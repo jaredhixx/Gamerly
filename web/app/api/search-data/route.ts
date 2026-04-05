@@ -1,12 +1,10 @@
-export const dynamic = "force-dynamic";
-
 import { fetchGames } from "../../../lib/igdb";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim().toLowerCase() ?? "";
 
-  if (query.length < 2) {
+  if (query.length < 3) {
     return Response.json([]);
   }
 

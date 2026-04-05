@@ -25,32 +25,35 @@ export default function ScreenshotLightbox({ images }: Props) {
   }
 
   useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (activeIndex === null) return;
 
-  function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setActiveIndex(null);
+      }
 
-    if (activeIndex === null) return;
+      if (e.key === "ArrowRight") {
+        setActiveIndex((activeIndex + 1) % images.length);
+      }
 
-    if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") {
+        setActiveIndex((activeIndex - 1 + images.length) % images.length);
+      }
+    }
 
-    if (e.key === "ArrowRight") next();
+    if (activeIndex !== null) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
 
-    if (e.key === "ArrowLeft") prev();
-  }
+    window.addEventListener("keydown", handleKey);
 
-  if (activeIndex !== null) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "";
-  }
-
-  window.addEventListener("keydown", handleKey);
-
-  return () => {
-    window.removeEventListener("keydown", handleKey);
-    document.body.style.overflow = "";
-  };
-
-}, [activeIndex]);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "";
+    };
+  }, [activeIndex, images.length]);
 
 useEffect(() => {
 

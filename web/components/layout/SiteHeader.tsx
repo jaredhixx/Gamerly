@@ -35,7 +35,7 @@ export default function SiteHeader() {
   const [results, setResults] = useState<any[]>([]);
 
   useEffect(() => {
-    if (query.trim().length < 2) {
+    if (query.trim().length < 3) {
       setResults([]);
       return;
     }
@@ -61,7 +61,7 @@ export default function SiteHeader() {
           setResults([]);
         }
       }
-    }, 150);
+    }, 300);
 
     return () => {
       controller.abort();

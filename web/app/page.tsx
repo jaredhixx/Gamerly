@@ -148,49 +148,41 @@ const games = allGames
     return Math.abs(aDiffDays) - Math.abs(bDiffDays);
   })
   .slice(0, 1200);
+
 const streams = await fetchTwitchStreams().catch(() => []);
 
-  const roughTwitchMap = buildRoughTwitchMap(streams);
+const roughTwitchMap = buildRoughTwitchMap(streams);
 
-  const roughScoredGames = games.map((game) => {
-    const twitch =
-      roughTwitchMap[normalizeTwitchName(game.name)] || {
-        viewers: 0,
-        streams: 0
-      };
-
-    const hypeScore = calculateHypeRankingScore({
-      ...game,
-      twitchViewers: twitch.viewers,
-      twitchStreams: twitch.streams
-    });
-
-    return {
-      ...game,
-      twitchViewers: twitch.viewers,
-      twitchStreams: twitch.streams,
-      hypeScore
+const roughScoredGames = games.map((game) => {
+  const twitch =
+    roughTwitchMap[normalizeTwitchName(game.name)] || {
+      viewers: 0,
+      streams: 0
     };
+
+  const hypeScore = calculateHypeRankingScore({
+    ...game,
+    twitchViewers: twitch.viewers,
+    twitchStreams: twitch.streams
   });
 
-  const roughFeaturedGame =
-    selectHomepageFeaturedGame(roughScoredGames) || roughScoredGames[0];
-
-  const roughHypeGames = selectHomepageHypeGames(roughScoredGames).slice(0, 12);
+  return {
+    ...game,
+    twitchViewers: twitch.viewers,
+    twitchStreams: twitch.streams,
+    hypeScore
+  };
+});
 
 const scoredGames = roughScoredGames;
 
 const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
 const hypeGames = selectHomepageHypeGames(scoredGames).slice(0, 24);
-const upcomingHero =
-  selectHomepageUpcomingHero(scoredGames) || scoredGames[1] || scoredGames[0];
 
-// Fetch exact Twitch totals ONLY for the featured game
 const exactTwitchMap = await fetchExactTwitchTotalsForGameNames(
   featuredGame?.name ? [featuredGame.name] : []
 );
 
-// Override Twitch data with exact values
 const enhancedScoredGames = scoredGames.map((game) => {
   const exact = exactTwitchMap[game.name];
 
@@ -205,7 +197,6 @@ const enhancedScoredGames = scoredGames.map((game) => {
   };
 });
 
-// Recompute selections with accurate data
 const finalFeaturedGame =
   selectHomepageFeaturedGame(enhancedScoredGames) || enhancedScoredGames[0];
 

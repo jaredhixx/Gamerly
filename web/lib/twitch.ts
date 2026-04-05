@@ -30,6 +30,26 @@ type ExactTwitchTotals = {
   matchedCategoryName?: string;
 };
 
+const TWITCH_CACHE_TTL_MS = 5 * 60 * 1000;
+
+let cachedAccessToken: {
+  value: string;
+  expiresAt: number;
+} | null = null;
+
+let cachedStreamsResult: {
+  value: TwitchStream[];
+  expiresAt: number;
+} | null = null;
+
+const cachedExactTotalsByKey = new Map<
+  string,
+  {
+    value: Record<string, ExactTwitchTotals>;
+    expiresAt: number;
+  }
+>();
+
 function normalizeTwitchName(name?: string | null): string {
   if (!name) {
     return "";
@@ -62,6 +82,12 @@ function buildCategorySearchQueries(name: string): string[] {
 }
 
 export async function getTwitchAccessToken(): Promise<string> {
+  const now = Date.now();
+
+  if (cachedAccessToken && cachedAccessToken.expiresAt > now) {
+    return cachedAccessToken.value;
+  }
+
   const clientId = process.env.TWITCH_CLIENT_ID;
   const clientSecret = process.env.TWITCH_CLIENT_SECRET;
 
@@ -88,6 +114,11 @@ export async function getTwitchAccessToken(): Promise<string> {
   if (!data?.access_token) {
     throw new Error("Twitch access token response did not include access_token.");
   }
+
+  cachedAccessToken = {
+    value: data.access_token,
+    expiresAt: now + TWITCH_CACHE_TTL_MS
+  };
 
   return data.access_token;
 }
@@ -240,6 +271,12 @@ async function fetchStreamsForGameId(
 }
 
 export async function fetchTwitchStreams(): Promise<TwitchStream[]> {
+  const now = Date.now();
+
+  if (cachedStreamsResult && cachedStreamsResult.expiresAt > now) {
+    return cachedStreamsResult.value;
+  }
+
   const token = await getTwitchAccessToken();
   const clientId = process.env.TWITCH_CLIENT_ID;
 
@@ -279,22 +316,35 @@ export async function fetchTwitchStreams(): Promise<TwitchStream[]> {
     cursor = nextCursor;
   }
 
+  cachedStreamsResult = {
+    value: allStreams,
+    expiresAt: now + TWITCH_CACHE_TTL_MS
+  };
+
   return allStreams;
 }
 
 export async function fetchExactTwitchTotalsForGameNames(
   gameNames: string[]
 ): Promise<Record<string, ExactTwitchTotals>> {
+  const uniqueGameNames = [...new Set(gameNames.map((name) => name.trim()))]
+    .filter(Boolean)
+    .slice(0, 12);
+
+  const cacheKey = uniqueGameNames.join("||");
+  const now = Date.now();
+  const cachedExactTotals = cachedExactTotalsByKey.get(cacheKey);
+
+  if (cachedExactTotals && cachedExactTotals.expiresAt > now) {
+    return cachedExactTotals.value;
+  }
+
   const token = await getTwitchAccessToken();
   const clientId = process.env.TWITCH_CLIENT_ID;
 
   if (!clientId) {
     throw new Error("Missing TWITCH_CLIENT_ID environment variable.");
   }
-
-  const uniqueGameNames = [...new Set(gameNames.map((name) => name.trim()))]
-    .filter(Boolean)
-    .slice(0, 12);
 
   const totalsByGameName: Record<string, ExactTwitchTotals> = {};
 
@@ -321,6 +371,11 @@ export async function fetchExactTwitchTotalsForGameNames(
       matchedCategoryName: category.name
     };
   }
+
+  cachedExactTotalsByKey.set(cacheKey, {
+    value: totalsByGameName,
+    expiresAt: now + TWITCH_CACHE_TTL_MS
+  });
 
   return totalsByGameName;
 }

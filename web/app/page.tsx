@@ -10,6 +10,15 @@ import {
   selectHomepageHypeGames,
   selectHomepageUpcomingHero
 } from "../lib/game-ranking";
+import {
+  applyExactHomepageTwitchTotals,
+  buildHomepageCandidateGames,
+  buildHomepageReleaseSections,
+  buildHomepageRoughTwitchMap,
+  buildHomepageScoredGames,
+  buildHomepageSelections,
+  buildHomepageSummaryStats
+} from "../lib/homepage-twitch";
 import GameCarousel from "../components/game/GameCarousel";
 import PageContainer from "../components/layout/PageContainer";
 import SectionHeading from "../components/ui/SectionHeading";
@@ -26,219 +35,51 @@ export const metadata: Metadata = {
   }
 };
 
-type TwitchStream = {
-  game_name: string;
-  viewer_count: number;
-};
-
-function normalizeTwitchName(name?: string | null): string {
-  if (!name) {
-    return "";
-  }
-
-  return name
-    .toLowerCase()
-    .replace(/['’]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function buildRoughTwitchMap(
-  streams: TwitchStream[]
-): Record<string, { viewers: number; streams: number }> {
-  const twitchMap: Record<string, { viewers: number; streams: number }> = {};
-
-  for (const stream of streams) {
-    const key = normalizeTwitchName(stream.game_name);
-
-    if (!key) {
-      continue;
-    }
-
-    if (!twitchMap[key]) {
-      twitchMap[key] = { viewers: 0, streams: 0 };
-    }
-
-    twitchMap[key].viewers += stream.viewer_count;
-    twitchMap[key].streams += 1;
-  }
-
-  return twitchMap;
-}
-
 function formatCount(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-function buildUpcomingWindowGames(
-  games: Awaited<ReturnType<typeof fetchGames>>,
-  now: number,
-  daysAhead: number
-) {
-  const endTime = now + 1000 * 60 * 60 * 24 * daysAhead;
-
-  return [...games]
-    .filter((game) => {
-      if (!game.releaseDate) {
-        return false;
-      }
-
-      const releaseTime = new Date(game.releaseDate).getTime();
-
-      if (Number.isNaN(releaseTime)) {
-        return false;
-      }
-
-      return releaseTime > now && releaseTime <= endTime;
-    })
-    .sort(
-      (a, b) =>
-        new Date(a.releaseDate || "").getTime() -
-        new Date(b.releaseDate || "").getTime()
-    );
-}
-
 export default async function Home() {
 const allGames = await fetchGames();
-const games = allGames
-  .filter((game) => {
-    if (!game.releaseDate) {
-      return false;
-    }
+const now = Date.now();
 
-    const diffDays =
-      (new Date(game.releaseDate).getTime() - Date.now()) /
-      (1000 * 60 * 60 * 24);
-
-    return (
-      (diffDays >= -180 && diffDays <= 180) ||
-      (game.aggregated_rating ?? 0) >= 75 ||
-      (game.aggregated_rating_count ?? 0) >= 10
-    );
-  })
-  .sort((a, b) => {
-    const aDiffDays =
-      (new Date(a.releaseDate || "").getTime() - Date.now()) /
-      (1000 * 60 * 60 * 24);
-    const bDiffDays =
-      (new Date(b.releaseDate || "").getTime() - Date.now()) /
-      (1000 * 60 * 60 * 24);
-
-    const aInWindow = aDiffDays >= -180 && aDiffDays <= 180 ? 1 : 0;
-    const bInWindow = bDiffDays >= -180 && bDiffDays <= 180 ? 1 : 0;
-
-    if (bInWindow !== aInWindow) {
-      return bInWindow - aInWindow;
-    }
-
-    const aRatingCount = a.aggregated_rating_count ?? 0;
-    const bRatingCount = b.aggregated_rating_count ?? 0;
-
-    if (bRatingCount !== aRatingCount) {
-      return bRatingCount - aRatingCount;
-    }
-
-    const aRating = a.aggregated_rating ?? 0;
-    const bRating = b.aggregated_rating ?? 0;
-
-    if (bRating !== aRating) {
-      return bRating - aRating;
-    }
-
-    return Math.abs(aDiffDays) - Math.abs(bDiffDays);
-  })
-  .slice(0, 1200);
+const games = buildHomepageCandidateGames(allGames, now);
 
 const streams = await fetchTwitchStreams().catch(() => []);
 
-const roughTwitchMap = buildRoughTwitchMap(streams);
+const roughTwitchMap = buildHomepageRoughTwitchMap(streams);
 
-const roughScoredGames = games.map((game) => {
-  const twitch =
-    roughTwitchMap[normalizeTwitchName(game.name)] || {
-      viewers: 0,
-      streams: 0
-    };
-
-  const hypeScore = calculateHypeRankingScore({
-    ...game,
-    twitchViewers: twitch.viewers,
-    twitchStreams: twitch.streams
-  });
-
-  return {
-    ...game,
-    twitchViewers: twitch.viewers,
-    twitchStreams: twitch.streams,
-    hypeScore
-  };
-});
-
-const scoredGames = roughScoredGames;
+const scoredGames = buildHomepageScoredGames(games, roughTwitchMap);
 
 const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
-const hypeGames = selectHomepageHypeGames(scoredGames).slice(0, 24);
 
 const exactTwitchMap = await fetchExactTwitchTotalsForGameNames(
   featuredGame?.name ? [featuredGame.name] : []
 );
 
-const enhancedScoredGames = scoredGames.map((game) => {
-  const exact = exactTwitchMap[game.name];
+const enhancedScoredGames = applyExactHomepageTwitchTotals(scoredGames, exactTwitchMap);
 
-  if (!exact) {
-    return game;
-  }
+const {
+  finalFeaturedGame,
+  finalHypeGames,
+  finalUpcomingHero,
+  featuredViewerCount
+} = buildHomepageSelections(enhancedScoredGames);
 
-  return {
-    ...game,
-    twitchViewers: exact.viewers,
-    twitchStreams: exact.streams
-  };
-});
+  const {
+    upcomingWindowGames,
+    upcomingGames,
+    releasingSoonGames,
+    hasUpcomingGames,
+    hasReleasingSoonGames,
+    upcomingThirtyDayCount
+  } = buildHomepageReleaseSections(allGames, now);
 
-const finalFeaturedGame =
-  selectHomepageFeaturedGame(enhancedScoredGames) || enhancedScoredGames[0];
-
-const finalHypeGames =
-  selectHomepageHypeGames(enhancedScoredGames).slice(0, 24);
-
-const finalUpcomingHero =
-  selectHomepageUpcomingHero(enhancedScoredGames) ||
-  enhancedScoredGames[1] ||
-  enhancedScoredGames[0];
-
-const featuredViewerCount = finalFeaturedGame?.twitchViewers ?? 0;
-
-  const now = new Date().getTime();
-  const upcomingWindowGames = buildUpcomingWindowGames(games, now, 30);
-  const upcomingGames = upcomingWindowGames.slice(0, 24);
-  const releasingSoonGames = upcomingWindowGames
-    .filter((game) => {
-      if (!game.releaseDate) {
-        return false;
-      }
-
-      const releaseTime = new Date(game.releaseDate).getTime();
-      const fourteenDaysAhead = now + 1000 * 60 * 60 * 24 * 14;
-
-      if (Number.isNaN(releaseTime)) {
-        return false;
-      }
-
-      return releaseTime > now && releaseTime <= fourteenDaysAhead;
-    })
-    .slice(0, 24);
-
-  const hasHypeGames = hypeGames.length > 0;
-  const hasUpcomingGames = upcomingGames.length > 0;
-  const hasReleasingSoonGames = releasingSoonGames.length > 0;
-
-const totalGamesCount = allGames.length;
-  const trackedLiveSignalCount = scoredGames.filter(
-    (game) => (game.twitchViewers ?? 0) > 0
-  ).length;
-  const upcomingThirtyDayCount = upcomingWindowGames.length;
+  const {
+    hasHypeGames,
+    totalGamesCount,
+    trackedLiveSignalCount
+  } = buildHomepageSummaryStats(allGames, roughTwitchMap, finalHypeGames);
 
   const intentCards = [
     {

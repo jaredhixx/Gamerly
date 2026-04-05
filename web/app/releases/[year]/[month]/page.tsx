@@ -5,6 +5,19 @@ import { fetchGames } from "../../../../lib/igdb";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../../lib/site";
 
+export async function generateStaticParams() {
+  const years = ["2025", "2026"];
+
+  return years.flatMap((year) =>
+    months.map((month) => ({
+      year,
+      month,
+    }))
+  );
+}
+
+export const revalidate = 21600;
+
 const months = [
   "january", "february", "march", "april", "may", "june",
   "july", "august", "september", "october", "november", "december"

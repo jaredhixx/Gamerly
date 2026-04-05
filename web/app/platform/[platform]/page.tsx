@@ -6,6 +6,14 @@ import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../lib/site";
 import Link from "next/link";
 
+export async function generateStaticParams() {
+  return Object.values(platforms).map((platform) => ({
+    platform: platform.slug,
+  }));
+}
+
+export const revalidate = 21600;
+
 const platformGenreLinks = [
   { slug: "rpg", label: "RPG" },
   { slug: "shooter", label: "Shooter" },

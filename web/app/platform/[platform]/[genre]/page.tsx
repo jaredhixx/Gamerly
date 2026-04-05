@@ -7,6 +7,17 @@ import { fetchGames } from "../../../../lib/igdb";
 import { platforms } from "../../../../lib/platforms";
 import { buildCanonicalUrl } from "../../../../lib/site";
 
+export async function generateStaticParams() {
+  return Object.values(platforms).flatMap((platform) =>
+    Object.keys(genres).map((genre) => ({
+      platform: platform.slug,
+      genre,
+    }))
+  );
+}
+
+export const revalidate = 21600;
+
 export async function generateMetadata(props: any): Promise<Metadata> {
   const params = await props.params;
   const platform = params?.platform;

@@ -6,6 +6,14 @@ import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../lib/site";
 import { genres } from "../../../lib/genres";
 
+export async function generateStaticParams() {
+  return Object.keys(genres).map((genre) => ({
+    genre,
+  }));
+}
+
+export const revalidate = 21600;
+
 export async function generateMetadata(props: any): Promise<Metadata> {
   const params = await props.params;
   const genre = params?.genre;

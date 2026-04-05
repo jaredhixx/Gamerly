@@ -851,6 +851,55 @@ p + p {
 }
 
 /* -----------------------------
+   EXPLORE TILE (AAA)
+----------------------------- */
+
+.exploreTile {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.exploreTile::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    120deg,
+    rgba(110,168,255,0) 0%,
+    rgba(110,168,255,0.08) 40%,
+    rgba(110,168,255,0.18) 50%,
+    rgba(110,168,255,0.08) 60%,
+    rgba(110,168,255,0) 100%
+  );
+
+  opacity: 0;
+
+  transform: translateX(-120%);
+transition: transform 900ms cubic-bezier(.2,.8,.2,1), opacity 260ms ease;
+
+  z-index: 0;
+}
+
+.exploreTile:hover::before {
+  opacity: 1;
+  transform: translateX(120%);
+}
+
+.exploreTile:hover {
+  transform: translateY(-4px) scale(1.02);
+
+  border-color: rgba(110,168,255,0.45);
+
+  box-shadow:
+    0 18px 50px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(110,168,255,0.18),
+    0 0 22px rgba(110,168,255,0.18);
+}
+
+/* -----------------------------
    GAME CARD
 ----------------------------- */
 

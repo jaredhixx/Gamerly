@@ -187,29 +187,89 @@ export default async function BestGenreGamesPage({
         <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
           <h2>{exploreHeading}</h2>
 
-          <ul
-            style={{
-              listStylePosition: "inside",
-              paddingLeft: 0,
-              margin: "16px 0 0"
-            }}
-          >
-            {platformExploreLinks.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href}>{link.label}</Link>
-              </li>
-            ))}
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "14px",
+    marginTop: "18px"
+  }}
+>
+  {[
+    ...platformExploreLinks.map((link) => ({
+      href: link.href,
+      label: link.label,
+      tag: "Platform best"
+    })),
+    {
+      href: `/genre/${genreSlug}`,
+      label: `Browse all ${genreDisplayName.toLowerCase()} games`,
+      tag: "Genre hub"
+    },
+    {
+      href: `/best-games-2026`,
+      label: `Browse best games of 2026`,
+      tag: "Year page"
+    }
+  ].map((item) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      className="exploreTile"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        minHeight: "118px",
+        padding: "16px 18px",
+        borderRadius: "16px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.025))",
+        border: "1px solid rgba(255,255,255,0.075)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+        lineHeight: 1.35,
+        textAlign: "left",
+        transition: "all 180ms ease"
+      }}
+    >
+      <div
+        style={{
+          fontSize: "11px",
+          fontWeight: 800,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: "#8bb9ff",
+          marginBottom: "10px"
+        }}
+      >
+        {item.tag}
+      </div>
 
-            <li>
-              <Link href={`/genre/${genreSlug}`}>
-                Browse all {genreDisplayName.toLowerCase()} games
-              </Link>
-            </li>
+      <div
+        style={{
+          color: "#f5f7fb",
+          fontSize: "16px",
+          fontWeight: 700
+        }}
+      >
+        {item.label}
+      </div>
 
-            <li>
-              <Link href="/best-games-2026">Browse best games of 2026</Link>
-            </li>
-          </ul>
+      <div
+        style={{
+          marginTop: "14px",
+          color: "#9ec5ff",
+          fontWeight: 700,
+          fontSize: "14px"
+        }}
+      >
+        Explore →
+      </div>
+    </Link>
+  ))}
+</div>
         </div>
       </section>
 

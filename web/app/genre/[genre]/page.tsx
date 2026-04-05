@@ -106,244 +106,235 @@ export default async function GenrePage(props: any) {
     Explore {name.toLowerCase()} games by release timing and rating to quickly find what is worth playing right now.
   </p>
 
-  <div
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "12px",
+    marginBottom: "16px"
+  }}
+>
+  <Link
+    href={`/best-${genre}-games-pc-2025`}
     style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-      gap: "12px"
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
     }}
   >
-    <Link
-      href={`/genre/${genre}`}
-      style={{
-        display: "block",
-        padding: "14px 16px",
-        borderRadius: "12px",
-        textDecoration: "none",
-        color: "#f5f7fb",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        fontWeight: 600
-      }}
-    >
-      All {name} Games
-    </Link>
+    Best {name} Games on PC (2025)
+  </Link>
 
-    <Link
-  href={`/best-${genre}-games`}
+  <Link
+    href={`/best-${genre}-games-playstation-2025`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    Best {name} Games on PlayStation (2025)
+  </Link>
+
+  <Link
+    href={`/best-${genre}-games-xbox-2025`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    Best {name} Games on Xbox (2025)
+  </Link>
+
+  <Link
+    href={`/best-${genre}-games-switch-2025`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    Best {name} Games on Switch (2025)
+  </Link>
+</div>
+
+<h3
   style={{
-    display: "block",
-    padding: "14px 16px",
-    borderRadius: "12px",
-    textDecoration: "none",
-    color: "#f5f7fb",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    fontWeight: 600
+    fontSize: "18px",
+    fontWeight: 700,
+    marginTop: 0,
+    marginBottom: "12px"
   }}
 >
-  Best {name} Games
-</Link>
-  </div>
-</section>
+  Best {name} Games by Platform (2026)
+</h3>
 
-      {filtered.length === 0 && <p>No {name.toLowerCase()} games found.</p>}
-
-      {topRated.length > 0 && (
-        <section style={{ marginBottom: "50px" }}>
-          <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-            Top Rated {name} Games
-          </h2>
-          <GameGrid games={topRated} />
-        </section>
-      )}
-
-      {upcoming.length > 0 && (
-        <section style={{ marginBottom: "50px" }}>
-          <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-            Upcoming {name} Games
-          </h2>
-          <GameGrid games={upcoming} />
-        </section>
-      )}
-
-      {newReleases.length > 0 && (
-        <section style={{ marginBottom: "50px" }}>
-          <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-            New {name} Games
-          </h2>
-          <GameGrid games={newReleases} />
-        </section>
-      )}
-
-      <section>
-        <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "20px" }}>
-          All {name} Games
-        </h2>
-
-        <GameGrid games={filtered.slice(0, 24)} />
-
-        {filtered.length > 24 && (
-          <div style={{ marginTop: "24px" }}>
-            <Link
-              href={`/genre/${genre}/page/2`}
-              style={{
-                color: "#6aa6ff",
-                fontSize: "14px",
-                textDecoration: "none",
-                fontWeight: 600
-              }}
-            >
-              Browse more {name} games →
-            </Link>
-          </div>
-        )}
-      </section>
-
-      <section style={{ marginTop: "60px" }}>
-        <h2
-          style={{
-            fontSize: "22px",
-            fontWeight: 700,
-            marginBottom: "16px"
-          }}
-        >
-          Browse {name} Games by Platform
-        </h2>
-
-        <p
-          style={{
-            fontSize: "14px",
-            lineHeight: 1.7,
-            color: "#8f99ad",
-            marginBottom: "18px",
-            maxWidth: "900px"
-          }}
-        >
-          Explore {name.toLowerCase()} games on each major platform to find the
-          strongest releases for PC, PlayStation, Xbox, and Nintendo Switch.
-        </p>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "12px",
-            marginBottom: "28px"
-          }}
-        >
-<Link
-  href={`/best-${genre}-games-pc-2025`}
+<div
   style={{
-    display: "block",
-    padding: "14px 16px",
-    borderRadius: "12px",
-    textDecoration: "none",
-    color: "#f5f7fb",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    fontWeight: 600
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "12px",
+    marginBottom: "28px"
   }}
 >
-  Best {name} Games on PC (2025)
-</Link>
+  <Link
+    href={`/best-${genre}-games-pc-2026`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    Best {name} Games on PC (2026)
+  </Link>
 
-<Link
-  href={`/best-${genre}-games-playstation-2025`}
+  <Link
+    href={`/best-${genre}-games-playstation-2026`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    Best {name} Games on PlayStation (2026)
+  </Link>
+
+  <Link
+    href={`/best-${genre}-games-xbox-2026`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    Best {name} Games on Xbox (2026)
+  </Link>
+
+  <Link
+    href={`/best-${genre}-games-switch-2026`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    Best {name} Games on Switch (2026)
+  </Link>
+</div>
+
+<div
   style={{
-    display: "block",
-    padding: "14px 16px",
-    borderRadius: "12px",
-    textDecoration: "none",
-    color: "#f5f7fb",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    fontWeight: 600
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "12px",
+    marginBottom: "28px"
   }}
 >
-  Best {name} Games on PlayStation (2025)
-</Link>
+  <Link
+    href={`/platform/pc/${genre}`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    PC {name} Games
+  </Link>
 
-<Link
-  href={`/best-${genre}-games-xbox-2025`}
-  style={{
-    display: "block",
-    padding: "14px 16px",
-    borderRadius: "12px",
-    textDecoration: "none",
-    color: "#f5f7fb",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    fontWeight: 600
-  }}
->
-  Best {name} Games on Xbox (2025)
-</Link>
+  <Link
+    href={`/platform/playstation/${genre}`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    PlayStation {name} Games
+  </Link>
 
-<Link
-  href={`/best-${genre}-games-switch-2025`}
-  style={{
-    display: "block",
-    padding: "14px 16px",
-    borderRadius: "12px",
-    textDecoration: "none",
-    color: "#f5f7fb",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    fontWeight: 600
-  }}
->
-  Best {name} Games on Switch (2025)
-</Link>
+  <Link
+    href={`/platform/xbox/${genre}`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    Xbox {name} Games
+  </Link>
 
-          <Link
-            href={`/platform/playstation/${genre}`}
-            style={{
-              display: "block",
-              padding: "14px 16px",
-              borderRadius: "12px",
-              textDecoration: "none",
-              color: "#f5f7fb",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              fontWeight: 600
-            }}
-          >
-            PlayStation {name} Games
-          </Link>
-
-          <Link
-            href={`/platform/xbox/${genre}`}
-            style={{
-              display: "block",
-              padding: "14px 16px",
-              borderRadius: "12px",
-              textDecoration: "none",
-              color: "#f5f7fb",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              fontWeight: 600
-            }}
-          >
-            Xbox {name} Games
-          </Link>
-
-          <Link
-            href={`/platform/switch/${genre}`}
-            style={{
-              display: "block",
-              padding: "14px 16px",
-              borderRadius: "12px",
-              textDecoration: "none",
-              color: "#f5f7fb",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              fontWeight: 600
-            }}
-          >
-            Nintendo Switch {name} Games
-          </Link>
-        </div>
+  <Link
+    href={`/platform/switch/${genre}`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      fontWeight: 600
+    }}
+  >
+    Nintendo Switch {name} Games
+  </Link>
+</div>
 
         <p
           style={{

@@ -206,38 +206,139 @@ export default async function BestGenrePlatformGamesByYearPage({
         <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
           <h2>{exploreHeading}</h2>
 
-          <ul
-            style={{
-              listStylePosition: "inside",
-              paddingLeft: 0,
-              margin: "16px 0 0"
-            }}
-          >
-            <li>
-              <Link href={`/platform/${platformSlug}/${genreSlug}`}>
-                Browse all {genreSlug.toUpperCase()} games on {platformSlug}
-              </Link>
-            </li>
-            <li>
-              <Link href={`/genre/${genreSlug}`}>
-                Browse all {genreSlug.toUpperCase()} games
-              </Link>
-            </li>
-            <li>
-              <Link href={`/platform/${platformSlug}`}>
-                Browse all {platformSlug} games
-              </Link>
-            </li>
-            <li>
-              <Link href={`/best-games-${year}`}>Browse best games of {year}</Link>
-            </li>
-            <li>
-              <Link href="/new-games">Browse newly released games</Link>
-            </li>
-            <li>
-              <Link href="/upcoming-games">Browse upcoming games</Link>
-            </li>
-          </ul>
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "14px",
+    marginTop: "18px"
+  }}
+>
+  {[
+    {
+      href: `/platform/${platformSlug}/${genreSlug}`,
+      label: `Browse all ${genreSlug.toUpperCase()} games on ${platformSlug}`,
+      tag: "Category page"
+    },
+    {
+      href: `/genre/${genreSlug}`,
+      label: `Browse all ${genreSlug.toUpperCase()} games`,
+      tag: "Genre hub"
+    },
+    {
+      href: `/platform/${platformSlug}`,
+      label: `Browse all ${platformSlug} games`,
+      tag: "Platform hub"
+    },
+    {
+      href: `/best-games-${year}`,
+      label: `Browse best games of ${year}`,
+      tag: "Year page"
+    },
+    {
+      href: `/best-${platformSlug}-games-${year}`,
+      label: `Best ${platformSlug} games of ${year}`,
+      tag: "Platform best"
+    },
+    {
+      href: `/best-rpg-games-${platformSlug}-${year}`,
+      label: `Best RPG games on ${platformSlug} in ${year}`,
+      tag: "RPG"
+    },
+    {
+      href: `/best-shooter-games-${platformSlug}-${year}`,
+      label: `Best shooter games on ${platformSlug} in ${year}`,
+      tag: "Shooter"
+    },
+    {
+      href: `/best-strategy-games-${platformSlug}-${year}`,
+      label: `Best strategy games on ${platformSlug} in ${year}`,
+      tag: "Strategy"
+    },
+    {
+      href: `/best-adventure-games-${platformSlug}-${year}`,
+      label: `Best adventure games on ${platformSlug} in ${year}`,
+      tag: "Adventure"
+    },
+    {
+      href: `/best-simulation-games-${platformSlug}-${year}`,
+      label: `Best simulation games on ${platformSlug} in ${year}`,
+      tag: "Simulation"
+    },
+    {
+      href: `/best-indie-games-${platformSlug}-${year}`,
+      label: `Best indie games on ${platformSlug} in ${year}`,
+      tag: "Indie"
+    },
+    {
+      href: `/new-games`,
+      label: `Browse newly released games`,
+      tag: "Discovery"
+    },
+    {
+      href: `/upcoming-games`,
+      label: `Browse upcoming games`,
+      tag: "Discovery"
+    }
+  ].map((item) => (
+<Link
+  key={item.href}
+  href={item.href}
+  className="exploreTile"
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    minHeight: "118px",
+    padding: "16px 18px",
+    borderRadius: "16px",
+    textDecoration: "none",
+    color: "#f5f7fb",
+    background:
+      "linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.025))",
+    border: "1px solid rgba(255,255,255,0.075)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+    lineHeight: 1.35,
+    textAlign: "left",
+    transition: "all 180ms ease"
+  }}
+>
+      <div
+        style={{
+          fontSize: "11px",
+          fontWeight: 800,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: "#8bb9ff",
+          marginBottom: "10px"
+        }}
+      >
+        {item.tag}
+      </div>
+
+      <div
+        style={{
+          color: "#f5f7fb",
+          fontSize: "16px",
+          fontWeight: 700
+        }}
+      >
+        {item.label}
+      </div>
+
+      <div
+        style={{
+          marginTop: "14px",
+          color: "#9ec5ff",
+          fontWeight: 700,
+          fontSize: "14px"
+        }}
+      >
+        Explore →
+      </div>
+    </Link>
+  ))}
+</div>
         </div>
       </section>
 

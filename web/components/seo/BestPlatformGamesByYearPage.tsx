@@ -184,53 +184,114 @@ if (year !== new Date().getUTCFullYear() && releaseDate > new Date()) {
         <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
           <h2>{exploreHeading}</h2>
 
-          <ul style={{ listStylePosition: "inside", paddingLeft: 0, margin: "16px 0 0" }}>
-    <li>
-      <Link href={`/platform/${platformSlug}`}>
-        Browse all {platformDisplayName} games
-      </Link>
-    </li>
-    <li>
-      <Link href={`/best-games-${year}`}>
-        Best games of {year}
-      </Link>
-    </li>
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "14px",
+    marginTop: "18px"
+  }}
+>
+  {[
+    {
+      href: `/platform/${platformSlug}`,
+      label: `Browse all ${platformDisplayName} games`,
+      tag: "Platform hub"
+    },
+    {
+      href: `/best-games-${year}`,
+      label: `Best games of ${year}`,
+      tag: "Year page"
+    },
+    {
+      href: `/best-rpg-games-${platformSlug}-${year}`,
+      label: `Best RPG games on ${platformDisplayName} in ${year}`,
+      tag: "RPG"
+    },
+    {
+      href: `/best-shooter-games-${platformSlug}-${year}`,
+      label: `Best shooter games on ${platformDisplayName} in ${year}`,
+      tag: "Shooter"
+    },
+    {
+      href: `/best-adventure-games-${platformSlug}-${year}`,
+      label: `Best adventure games on ${platformDisplayName} in ${year}`,
+      tag: "Adventure"
+    },
+    {
+      href: `/best-strategy-games-${platformSlug}-${year}`,
+      label: `Best strategy games on ${platformDisplayName} in ${year}`,
+      tag: "Strategy"
+    },
+    {
+      href: `/best-simulation-games-${platformSlug}-${year}`,
+      label: `Best simulation games on ${platformDisplayName} in ${year}`,
+      tag: "Simulation"
+    },
+    {
+      href: `/best-indie-games-${platformSlug}-${year}`,
+      label: `Best indie games on ${platformDisplayName} in ${year}`,
+      tag: "Indie"
+    }
+  ].map((item) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      className="exploreTile"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        minHeight: "118px",
+        padding: "16px 18px",
+        borderRadius: "16px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.025))",
+        border: "1px solid rgba(255,255,255,0.075)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+        lineHeight: 1.35,
+        textAlign: "left",
+        transition: "all 180ms ease"
+      }}
+    >
+      <div
+        style={{
+          fontSize: "11px",
+          fontWeight: 800,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: "#8bb9ff",
+          marginBottom: "10px"
+        }}
+      >
+        {item.tag}
+      </div>
 
-    {year === 2025 && (
-      <>
-        <li>
-          <Link href={`/best-rpg-games-${platformSlug}-${year}`}>
-            Best RPG games on {platformDisplayName} in {year}
-          </Link>
-        </li>
-        <li>
-          <Link href={`/best-shooter-games-${platformSlug}-${year}`}>
-            Best shooter games on {platformDisplayName} in {year}
-          </Link>
-        </li>
-        <li>
-          <Link href={`/best-adventure-games-${platformSlug}-${year}`}>
-            Best adventure games on {platformDisplayName} in {year}
-          </Link>
-        </li>
-        <li>
-          <Link href={`/best-strategy-games-${platformSlug}-${year}`}>
-            Best strategy games on {platformDisplayName} in {year}
-          </Link>
-        </li>
-        <li>
-          <Link href={`/best-simulation-games-${platformSlug}-${year}`}>
-            Best simulation games on {platformDisplayName} in {year}
-          </Link>
-        </li>
-        <li>
-          <Link href={`/best-indie-games-${platformSlug}-${year}`}>
-            Best indie games on {platformDisplayName} in {year}
-          </Link>
-        </li>
-      </>
-    )}
-  </ul>
+      <div
+        style={{
+          color: "#f5f7fb",
+          fontSize: "16px",
+          fontWeight: 700
+        }}
+      >
+        {item.label}
+      </div>
+
+      <div
+        style={{
+          marginTop: "14px",
+          color: "#9ec5ff",
+          fontWeight: 700,
+          fontSize: "14px"
+        }}
+      >
+        Explore →
+      </div>
+    </Link>
+  ))}
+</div>
         </div>
       </section>
 

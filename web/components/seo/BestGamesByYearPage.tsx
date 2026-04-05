@@ -162,68 +162,133 @@ export default async function BestGamesByYearPage({
         <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
           <h2>{exploreHeading}</h2>
 
-<ul style={{ listStylePosition: "inside", paddingLeft: 0, margin: "16px 0 0" }}>
-  {year === 2026 && (
-    <>
-      <li>
-        <Link href="/best-pc-games-2026">
-          Best PC games of 2026
-        </Link>
-      </li>
-    <li>
-      <Link href="/best-rpg-games-pc-2026">
-        Best RPG games on PC in 2026
-      </Link>
-    </li>
-      <li>
-        <Link href="/best-playstation-games-2026">
-          Best PlayStation games of 2026
-        </Link>
-      </li>
-      <li>
-        <Link href="/best-xbox-games-2026">
-          Best Xbox games of 2026
-        </Link>
-      </li>
-      <li>
-        <Link href="/best-switch-games-2026">
-          Best Switch games of 2026
-        </Link>
-      </li>
-    </>
-  )}
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "14px",
+    marginTop: "18px"
+  }}
+>
+  {[
+    ...(year === 2026
+      ? [
+          {
+            href: "/best-pc-games-2026",
+            label: "Best PC games of 2026",
+            tag: "Platform best"
+          },
+          {
+            href: "/best-rpg-games-pc-2026",
+            label: "Best RPG games on PC in 2026",
+            tag: "RPG"
+          },
+          {
+            href: "/best-playstation-games-2026",
+            label: "Best PlayStation games of 2026",
+            tag: "Platform best"
+          },
+          {
+            href: "/best-xbox-games-2026",
+            label: "Best Xbox games of 2026",
+            tag: "Platform best"
+          },
+          {
+            href: "/best-switch-games-2026",
+            label: "Best Switch games of 2026",
+            tag: "Platform best"
+          }
+        ]
+      : []),
+    {
+      href: "/top-rated",
+      label: "Browse top-rated games across all years",
+      tag: "Discovery"
+    },
+    {
+      href: "/new-games",
+      label: "Browse newly released games",
+      tag: "Discovery"
+    },
+    {
+      href: "/upcoming-games",
+      label: "Browse upcoming games",
+      tag: "Discovery"
+    },
+    {
+      href: "/games-releasing-this-month",
+      label: "See games releasing this month",
+      tag: "Release calendar"
+    },
+    {
+      href: "/genres",
+      label: "Browse games by genre",
+      tag: "Genre hub"
+    },
+    {
+      href: "/platforms",
+      label: "Browse games by platform",
+      tag: "Platform hub"
+    }
+  ].map((item) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      className="exploreTile"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        minHeight: "118px",
+        padding: "16px 18px",
+        borderRadius: "16px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.025))",
+        border: "1px solid rgba(255,255,255,0.075)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+        lineHeight: 1.35,
+        textAlign: "left",
+        transition: "all 180ms ease"
+      }}
+    >
+      <div
+        style={{
+          fontSize: "11px",
+          fontWeight: 800,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: "#8bb9ff",
+          marginBottom: "10px"
+        }}
+      >
+        {item.tag}
+      </div>
 
-  <li>
-    <Link href="/top-rated">
-      Browse top-rated games across all years
+      <div
+        style={{
+          color: "#f5f7fb",
+          fontSize: "16px",
+          fontWeight: 700
+        }}
+      >
+        {item.label}
+      </div>
+
+      <div
+        style={{
+          marginTop: "14px",
+          color: "#9ec5ff",
+          fontWeight: 700,
+          fontSize: "14px"
+        }}
+      >
+        Explore →
+      </div>
     </Link>
-  </li>
-  <li>
-    <Link href="/new-games">
-      Browse newly released games
-    </Link>
-  </li>
-  <li>
-    <Link href="/upcoming-games">
-      Browse upcoming games
-    </Link>
-  </li>
-  <li>
-    <Link href="/games-releasing-this-month">
-      See games releasing this month
-    </Link>
-  </li>
-  <li>
-    <Link href="/genres">
-      Browse games by genre
-    </Link>
-  </li>
-  <li>
-    <Link href="/platforms">
-      Browse games by platform
-    </Link>
-  </li>
-</ul>
+  ))}
+</div>
 </div>
       </section>
 

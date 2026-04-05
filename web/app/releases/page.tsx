@@ -93,8 +93,91 @@ export default async function ReleasesHubPage() {
 
       <p style={{ marginBottom: "18px", color: "#666", lineHeight: 1.7 }}>
         Start with the featured months below if you want the most relevant game
-        release schedules right now, browse <Link href="/new-games-this-month">new games this month</Link> for the highest-current-intent view, or scroll down for the full monthly archive.
+        release schedules right now, browse{" "}
+        <Link
+          href="/new-games-this-month"
+          style={{ color: "#8bb9ff", textDecoration: "underline", fontWeight: 600 }}
+        >
+          new games this month
+        </Link>{" "}
+        for the highest-current-intent view, check{" "}
+        <Link
+          href="/games-releasing-next-month"
+          style={{ color: "#8bb9ff", textDecoration: "underline", fontWeight: 600 }}
+        >
+          games releasing next month
+        </Link>{" "}
+        if you want the next release window, or scroll down for the full monthly archive.
       </p>
+
+            <section
+        style={{
+          marginBottom: "36px",
+          padding: "20px",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          borderRadius: "16px",
+          background: "rgba(255, 255, 255, 0.02)"
+        }}
+      >
+        <h2 style={{ fontSize: "20px", fontWeight: 800, marginBottom: "14px" }}>
+          Start With These Release Views
+        </h2>
+
+        <div
+          style={{
+            display: "grid",
+            gap: "12px"
+          }}
+        >
+          <Link
+            href="/new-games-this-month"
+            style={{
+              display: "block",
+              padding: "12px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.03)",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              fontWeight: 700
+            }}
+          >
+            New Games This Month → see what is releasing right now
+          </Link>
+
+          <Link
+            href="/games-releasing-next-month"
+            style={{
+              display: "block",
+              padding: "12px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.03)",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              fontWeight: 700
+            }}
+          >
+            Games Releasing Next Month → plan what to play next
+          </Link>
+
+          <Link
+            href="/upcoming-games"
+            style={{
+              display: "block",
+              padding: "12px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.03)",
+              textDecoration: "none",
+              color: "#f5f7fb",
+              fontWeight: 700
+            }}
+          >
+            Upcoming Games → see everything coming soon
+          </Link>
+        </div>
+      </section>
 
       {featuredMonthKeys.length > 0 && (
         <section

@@ -41,6 +41,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/games-releasing-today",
     "/games-releasing-this-week",
     "/games-releasing-this-month",
+    "/games-releasing-next-month",
+    "/new-games-this-month",
     "/releases",
     "/all-games",
     "/top-rated",
@@ -53,6 +55,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${SITE_URL}${path}`,
     lastModified: now
   }));
+
+  const releaseArchivePages = [2025, 2026].flatMap((year) =>
+    [
+      "january",
+      "february",
+      "march",
+      "april",
+      "may",
+      "june",
+      "july",
+      "august",
+      "september",
+      "october",
+      "november",
+      "december"
+    ].map((month) => ({
+      url: `${SITE_URL}/releases/${year}/${month}`,
+      lastModified: now
+    }))
+  );
 
   const bestGenrePages = bestPagesRegistry
     .filter((page) => page.type === "genre")
@@ -97,6 +119,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now
     },
     ...discoveryPages,
+    ...releaseArchivePages,
     ...platformPages,
     ...genrePages,
     ...bestGenrePages,

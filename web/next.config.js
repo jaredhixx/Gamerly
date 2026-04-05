@@ -66,6 +66,11 @@ const nextConfig = {
         source: "/steam-games/genre/:genre",
         destination: "/genre/:genre",
         permanent: true
+      },
+      {
+        source: "/games-releasing-this-month",
+        destination: "/new-games-this-month",
+        permanent: true
       }
     ];
   }

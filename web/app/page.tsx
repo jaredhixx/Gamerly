@@ -3,7 +3,7 @@ export const revalidate = 300;
 import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchGames } from "../lib/igdb";
-import { fetchTwitchStreams } from "../lib/twitch";
+import { fetchTwitchStreams, fetchExactTwitchTotalsForGameNames } from "../lib/twitch";
 import {
   calculateHypeRankingScore,
   selectHomepageFeaturedGame,
@@ -100,7 +100,54 @@ function buildUpcomingWindowGames(
 
 export default async function Home() {
 const allGames = await fetchGames();
-const games = allGames.slice(0, 5000);
+const games = allGames
+  .filter((game) => {
+    if (!game.releaseDate) {
+      return false;
+    }
+
+    const diffDays =
+      (new Date(game.releaseDate).getTime() - Date.now()) /
+      (1000 * 60 * 60 * 24);
+
+    return (
+      (diffDays >= -180 && diffDays <= 180) ||
+      (game.aggregated_rating ?? 0) >= 75 ||
+      (game.aggregated_rating_count ?? 0) >= 10
+    );
+  })
+  .sort((a, b) => {
+    const aDiffDays =
+      (new Date(a.releaseDate || "").getTime() - Date.now()) /
+      (1000 * 60 * 60 * 24);
+    const bDiffDays =
+      (new Date(b.releaseDate || "").getTime() - Date.now()) /
+      (1000 * 60 * 60 * 24);
+
+    const aInWindow = aDiffDays >= -180 && aDiffDays <= 180 ? 1 : 0;
+    const bInWindow = bDiffDays >= -180 && bDiffDays <= 180 ? 1 : 0;
+
+    if (bInWindow !== aInWindow) {
+      return bInWindow - aInWindow;
+    }
+
+    const aRatingCount = a.aggregated_rating_count ?? 0;
+    const bRatingCount = b.aggregated_rating_count ?? 0;
+
+    if (bRatingCount !== aRatingCount) {
+      return bRatingCount - aRatingCount;
+    }
+
+    const aRating = a.aggregated_rating ?? 0;
+    const bRating = b.aggregated_rating ?? 0;
+
+    if (bRating !== aRating) {
+      return bRating - aRating;
+    }
+
+    return Math.abs(aDiffDays) - Math.abs(bDiffDays);
+  })
+  .slice(0, 1200);
 const streams = await fetchTwitchStreams().catch(() => []);
 
   const roughTwitchMap = buildRoughTwitchMap(streams);
@@ -131,15 +178,46 @@ const streams = await fetchTwitchStreams().catch(() => []);
 
   const roughHypeGames = selectHomepageHypeGames(roughScoredGames).slice(0, 12);
 
-  const scoredGames = roughScoredGames;
+const scoredGames = roughScoredGames;
 
-  const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
-  const featuredViewerCount = featuredGame?.twitchViewers ?? 0;
+const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
+const hypeGames = selectHomepageHypeGames(scoredGames).slice(0, 24);
+const upcomingHero =
+  selectHomepageUpcomingHero(scoredGames) || scoredGames[1] || scoredGames[0];
 
-  const hypeGames = selectHomepageHypeGames(scoredGames).slice(0, 24);
+// Fetch exact Twitch totals ONLY for the featured game
+const exactTwitchMap = await fetchExactTwitchTotalsForGameNames(
+  featuredGame?.name ? [featuredGame.name] : []
+);
 
-  const upcomingHero =
-    selectHomepageUpcomingHero(scoredGames) || scoredGames[1] || scoredGames[0];
+// Override Twitch data with exact values
+const enhancedScoredGames = scoredGames.map((game) => {
+  const exact = exactTwitchMap[game.name];
+
+  if (!exact) {
+    return game;
+  }
+
+  return {
+    ...game,
+    twitchViewers: exact.viewers,
+    twitchStreams: exact.streams
+  };
+});
+
+// Recompute selections with accurate data
+const finalFeaturedGame =
+  selectHomepageFeaturedGame(enhancedScoredGames) || enhancedScoredGames[0];
+
+const finalHypeGames =
+  selectHomepageHypeGames(enhancedScoredGames).slice(0, 24);
+
+const finalUpcomingHero =
+  selectHomepageUpcomingHero(enhancedScoredGames) ||
+  enhancedScoredGames[1] ||
+  enhancedScoredGames[0];
+
+const featuredViewerCount = finalFeaturedGame?.twitchViewers ?? 0;
 
   const now = new Date().getTime();
   const upcomingWindowGames = buildUpcomingWindowGames(games, now, 30);
@@ -200,6 +278,13 @@ const totalGamesCount = allGames.length;
       href: "/new-games-this-month",
       linkLabel: "Browse this month’s releases"
     },
+    {
+  title: "Next Month Releases",
+  description:
+    "Plan ahead by seeing what games are scheduled to release next month across all major platforms.",
+  href: "/games-releasing-next-month",
+  linkLabel: "Browse next month’s releases"
+},
     {
       title: "Release Calendar",
       description:
@@ -550,8 +635,8 @@ const bestPageClusters = [
         </section>
 
         <FeaturedHero
-          featured={featuredGame}
-          upcoming={upcomingHero}
+          featured={finalFeaturedGame}
+          upcoming={finalUpcomingHero}
           viewerCount={featuredViewerCount}
         />
 
@@ -675,7 +760,7 @@ const bestPageClusters = [
       </div>
     </div>
 
-    <GameCarousel games={hypeGames} />
+    <GameCarousel games={finalHypeGames} />
 
     <div className="sectionMoreLink">
       <Link href="/hype">Browse all hype rankings →</Link>

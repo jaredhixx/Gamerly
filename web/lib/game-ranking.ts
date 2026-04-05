@@ -733,11 +733,19 @@ export function selectHomepageUpcomingHero<T extends RankedGame>(
 ): T | undefined {
   return [...games]
     .filter((game) => isUpcomingRelease(game) && hasHomepageConfidence(game))
-    .sort(
-      (a, b) =>
+    .sort((a, b) => {
+      const scoreA = calculateUpcomingAnticipationScore(a);
+      const scoreB = calculateUpcomingAnticipationScore(b);
+
+      if (scoreB !== scoreA) {
+        return scoreB - scoreA;
+      }
+
+      return (
         new Date(a.releaseDate || "").getTime() -
         new Date(b.releaseDate || "").getTime()
-    )[0];
+      );
+    })[0];
 }
 
 export function selectHomepageTrendingHero<T extends RankedGame>(

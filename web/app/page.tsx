@@ -691,6 +691,220 @@ const bestPageClusters = [
           </div>
         </SectionBlock>
 
+        <SectionBlock>
+          <SectionHeading
+            title="Start With the Strongest Best Pages"
+            subtitle="These pages are some of the fastest ways to explore Gamerly when you want curated, high-intent game discovery instead of broad browsing."
+          />
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: "14px",
+              marginBottom: "18px"
+            }}
+          >
+            <Link
+              href="/best-games-2026"
+              style={{
+                display: "block",
+                padding: "16px",
+                borderRadius: "16px",
+                textDecoration: "none",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(110,168,255,0.08), rgba(255,255,255,0.025))",
+                color: "#f5f7fb"
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 800,
+                  lineHeight: 1.35
+                }}
+              >
+                Best Games of 2026
+              </div>
+
+              <div
+                style={{
+                  marginTop: "8px",
+                  color: "#a7b1c6",
+                  lineHeight: 1.6
+                }}
+              >
+                See the strongest games released in 2026 across all major platforms.
+              </div>
+            </Link>
+
+            <Link
+              href="/best-games-2025"
+              style={{
+                display: "block",
+                padding: "16px",
+                borderRadius: "16px",
+                textDecoration: "none",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(110,168,255,0.08), rgba(255,255,255,0.025))",
+                color: "#f5f7fb"
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 800,
+                  lineHeight: 1.35
+                }}
+              >
+                Best Games of 2025
+              </div>
+
+              <div
+                style={{
+                  marginTop: "8px",
+                  color: "#a7b1c6",
+                  lineHeight: 1.6
+                }}
+              >
+                Open one of the highest-intent discovery views on the site for current releases.
+              </div>
+            </Link>
+
+            <Link
+              href="/best-pc-games-2025"
+              style={{
+                display: "block",
+                padding: "16px",
+                borderRadius: "16px",
+                textDecoration: "none",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(110,168,255,0.08), rgba(255,255,255,0.025))",
+                color: "#f5f7fb"
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 800,
+                  lineHeight: 1.35
+                }}
+              >
+                Best PC Games of 2025
+              </div>
+
+              <div
+                style={{
+                  marginTop: "8px",
+                  color: "#a7b1c6",
+                  lineHeight: 1.6
+                }}
+              >
+                Start with the strongest PC discovery page if you want the highest-value platform path.
+              </div>
+            </Link>
+
+            <Link
+              href="/best-playstation-games-2025"
+              style={{
+                display: "block",
+                padding: "16px",
+                borderRadius: "16px",
+                textDecoration: "none",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(110,168,255,0.08), rgba(255,255,255,0.025))",
+                color: "#f5f7fb"
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 800,
+                  lineHeight: 1.35
+                }}
+              >
+                Best PlayStation Games of 2025
+              </div>
+
+              <div
+                style={{
+                  marginTop: "8px",
+                  color: "#a7b1c6",
+                  lineHeight: 1.6
+                }}
+              >
+                Jump into the main curated PlayStation path instead of browsing the full catalog.
+              </div>
+            </Link>
+
+            <Link
+              href="/best-xbox-games-2025"
+              style={{
+                display: "block",
+                padding: "16px",
+                borderRadius: "16px",
+                textDecoration: "none",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(110,168,255,0.08), rgba(255,255,255,0.025))",
+                color: "#f5f7fb"
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 800,
+                  lineHeight: 1.35
+                }}
+              >
+                Best Xbox Games of 2025
+              </div>
+
+              <div
+                style={{
+                  marginTop: "8px",
+                  color: "#a7b1c6",
+                  lineHeight: 1.6
+                }}
+              >
+                Open the strongest Xbox year page when you want curated picks over broad browsing.
+              </div>
+            </Link>
+
+            <Link
+              href="/best-switch-games-2025"
+              style={{
+                display: "block",
+                padding: "16px",
+                borderRadius: "16px",
+                textDecoration: "none",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(110,168,255,0.08), rgba(255,255,255,0.025))",
+                color: "#f5f7fb"
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 800,
+                  lineHeight: 1.35
+                }}
+              >
+                Best Switch Games of 2025
+              </div>
+
+              <div
+                style={{
+                  marginTop: "8px",
+                  color: "#a7b1c6",
+                  lineHeight: 1.6
+                }}
+              >
+                Explore the strongest Nintendo Switch picks in one focused discovery page.
+              </div>
+            </Link>
+          </div>
+        </SectionBlock>
+
         <div
           hidden
           aria-hidden="true"
@@ -699,8 +913,8 @@ const bestPageClusters = [
 
 <SectionBlock>
   <SectionHeading
-    title="Browse by Platform"
-    subtitle="Start from the system you actually play on so the site becomes useful immediately."
+    title="Start With the Best Platform Pages for 2026"
+    subtitle="Jump straight into the strongest curated platform pages for 2026 instead of starting with broader catalog hubs."
   />
 
   <div
@@ -712,7 +926,7 @@ const bestPageClusters = [
     }}
   >
     <Link
-      href="/platform/pc"
+      href="/best-pc-games-2026"
       style={{
         display: "block",
         padding: "16px",
@@ -724,11 +938,11 @@ const bestPageClusters = [
         fontWeight: 700
       }}
     >
-      PC Games
+      Best PC Games of 2026
     </Link>
 
     <Link
-      href="/platform/playstation"
+      href="/best-playstation-games-2026"
       style={{
         display: "block",
         padding: "16px",
@@ -740,11 +954,11 @@ const bestPageClusters = [
         fontWeight: 700
       }}
     >
-      PlayStation Games
+      Best PlayStation Games of 2026
     </Link>
 
     <Link
-      href="/platform/xbox"
+      href="/best-xbox-games-2026"
       style={{
         display: "block",
         padding: "16px",
@@ -756,11 +970,11 @@ const bestPageClusters = [
         fontWeight: 700
       }}
     >
-      Xbox Games
+      Best Xbox Games of 2026
     </Link>
 
     <Link
-      href="/platform/switch"
+      href="/best-switch-games-2026"
       style={{
         display: "block",
         padding: "16px",
@@ -772,7 +986,7 @@ const bestPageClusters = [
         fontWeight: 700
       }}
     >
-      Nintendo Switch Games
+      Best Switch Games of 2026
     </Link>
   </div>
 

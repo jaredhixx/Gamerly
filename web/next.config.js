@@ -59,7 +59,17 @@ const nextConfig = {
       },
       {
         source: "/steam-games-upcoming",
-        destination: "/upcoming-pc-games",
+        destination: "/platform/pc/upcoming",
+        permanent: true
+      },
+      {
+        source: "/upcoming-pc-games",
+        destination: "/platform/pc/upcoming",
+        permanent: true
+      },
+      {
+        source: "/upcoming-xbox-games",
+        destination: "/platform/xbox/upcoming",
         permanent: true
       },
       {

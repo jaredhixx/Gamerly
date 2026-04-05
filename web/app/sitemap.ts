@@ -40,7 +40,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/upcoming-games",
     "/games-releasing-today",
     "/games-releasing-this-week",
-    "/games-releasing-this-month",
     "/games-releasing-next-month",
     "/new-games-this-month",
     "/releases",
@@ -48,9 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/top-rated",
     "/hype",
     "/platforms",
-    "/genres",
-    "/upcoming-pc-games",
-    "/upcoming-xbox-games"
+    "/genres"
   ].map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: now

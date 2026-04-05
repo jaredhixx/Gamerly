@@ -1148,3 +1148,12 @@ export async function getGameByIdFromIGDB(id: number): Promise<GamerlyGame | nul
   const game = games.find((g) => g.id === id);
   return game ?? null;
 }
+
+export function getCacheLastUpdated(): string | null {
+  try {
+    const loaded = loadCache();
+    return loaded.lastUpdated ?? null;
+  } catch {
+    return null;
+  }
+}

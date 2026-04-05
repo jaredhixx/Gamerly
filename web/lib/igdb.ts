@@ -1,4 +1,8 @@
-import { getAllGames, getGameByIdFromIGDB } from "./igdb-data";
+import {
+  getAllGames,
+  getCacheLastUpdated,
+  getGameByIdFromIGDB
+} from "./igdb-data";
 import type { PlatformSlug } from "./platforms";
 import type { GenreSlug } from "./genres";
 import type { ReleaseDatePrecision } from "./release-date";
@@ -25,6 +29,10 @@ export type GamerlyGame = {
 
 export async function fetchGames(): Promise<GamerlyGame[]> {
   return getAllGames();
+}
+
+export function getIGDBCacheLastUpdated(): string | null {
+  return getCacheLastUpdated();
 }
 
 export async function getGameById(id: number) {

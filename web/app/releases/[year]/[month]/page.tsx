@@ -59,7 +59,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const monthName = months[idx].charAt(0).toUpperCase() + months[idx].slice(1);
 
   return {
-    title: `Games Releasing ${monthName} ${year} | Gamerly`,
+    title: `Games Releasing ${monthName} ${year}`,
     description: `Browse video games releasing in ${monthName} ${year} across PC, PlayStation, Xbox, Switch, iOS, and Android, including major upcoming and newly released games this month.`,
     alternates: {
       canonical: buildCanonicalUrl(`/releases/${year}/${month}`)

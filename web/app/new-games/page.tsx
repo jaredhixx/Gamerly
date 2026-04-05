@@ -326,16 +326,16 @@ export default async function NewGamesPage() {
             Upcoming Games
           </Link>
 
-          <Link
-            href="/games-releasing-this-month"
-            style={{
-              color: "#8bb9ff",
-              fontWeight: 700,
-              textDecoration: "none"
-            }}
-          >
-            Games Releasing This Month
-          </Link>
+<Link
+  href="/new-games-this-month"
+  style={{
+    color: "#8bb9ff",
+    fontWeight: 700,
+    textDecoration: "none"
+  }}
+>
+  Games Releasing This Month
+</Link>
 
           <Link
             href="/releases"

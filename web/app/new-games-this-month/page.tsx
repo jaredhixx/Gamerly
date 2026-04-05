@@ -5,7 +5,7 @@ import Link from "next/link";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
-  title: "New Games This Month | Gamerly",
+  title: "New Games This Month",
   description:
     "Browse all video games releasing this month across PC, PlayStation, Xbox, Nintendo Switch, iOS, and Android.",
   alternates: {

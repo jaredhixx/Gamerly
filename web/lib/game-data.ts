@@ -1,4 +1,4 @@
-import { fetchGames, type GamerlyGame } from "./igdb";
+import { fetchGames, getIGDBCacheLastUpdated, type GamerlyGame } from "./igdb";
 
 function isFuture(date?: string | null) {
   if (!date) {
@@ -91,7 +91,7 @@ function getTopRatedGames(games: GamerlyGame[]) {
     });
 }
 
-export async function getDerivedGameData(): Promise<{
+type DerivedGameData = {
   games: GamerlyGame[];
   newGames: GamerlyGame[];
   upcomingGames: GamerlyGame[];
@@ -99,7 +99,33 @@ export async function getDerivedGameData(): Promise<{
   releasingToday: GamerlyGame[];
   releasingThisWeek: GamerlyGame[];
   releasingThisMonth: GamerlyGame[];
-}> {
+};
+
+let inMemoryDerivedGameData:
+  | {
+      cacheLastUpdated: string | null;
+      data: DerivedGameData;
+    }
+  | null = null;
+
+export async function getDerivedGameData(): Promise<DerivedGameData> {
+    const cacheLastUpdated = getIGDBCacheLastUpdated();
+
+  if (
+    inMemoryDerivedGameData &&
+    inMemoryDerivedGameData.cacheLastUpdated === cacheLastUpdated
+  ) {
+    return {
+      games: [...inMemoryDerivedGameData.data.games],
+      newGames: [...inMemoryDerivedGameData.data.newGames],
+      upcomingGames: [...inMemoryDerivedGameData.data.upcomingGames],
+      topRated: [...inMemoryDerivedGameData.data.topRated],
+      releasingToday: [...inMemoryDerivedGameData.data.releasingToday],
+      releasingThisWeek: [...inMemoryDerivedGameData.data.releasingThisWeek],
+      releasingThisMonth: [...inMemoryDerivedGameData.data.releasingThisMonth]
+    };
+  }
+
   const games = await fetchGames();
 
   const sortedByNewestRelease = [...games].sort(
@@ -114,7 +140,9 @@ export async function getDerivedGameData(): Promise<{
       new Date(b.releaseDate || "").getTime()
   );
 
-  const newGames = sortedByNewestRelease.filter((game) => isPast(game.releaseDate));
+  const newGames = sortedByNewestRelease.filter((game) =>
+    isPast(game.releaseDate)
+  );
 
   const upcomingGames = sortedByUpcomingRelease.filter((game) =>
     isFuture(game.releaseDate)
@@ -134,7 +162,7 @@ export async function getDerivedGameData(): Promise<{
     withinMonth(game.releaseDate)
   );
 
-  return {
+  const data: DerivedGameData = {
     games,
     newGames,
     upcomingGames,
@@ -142,5 +170,20 @@ export async function getDerivedGameData(): Promise<{
     releasingToday,
     releasingThisWeek,
     releasingThisMonth
+  };
+
+  inMemoryDerivedGameData = {
+    cacheLastUpdated,
+    data
+  };
+
+  return {
+    games: [...data.games],
+    newGames: [...data.newGames],
+    upcomingGames: [...data.upcomingGames],
+    topRated: [...data.topRated],
+    releasingToday: [...data.releasingToday],
+    releasingThisWeek: [...data.releasingThisWeek],
+    releasingThisMonth: [...data.releasingThisMonth]
   };
 }

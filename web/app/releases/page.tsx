@@ -4,7 +4,7 @@ import { getDerivedGameData } from "../../lib/game-data";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
-  title: "Video Game Release Calendar | Gamerly",
+  title: "Video Game Release Calendar",
   description:
     "Browse upcoming video game releases by month, including this month, next month, and the latest game release schedule across PC, PlayStation, Xbox, Switch, iOS, and Android.",
   alternates: {

@@ -5,12 +5,6 @@ import Link from "next/link";
 import { fetchGames } from "../lib/igdb";
 import { fetchTwitchStreams, fetchExactTwitchTotalsForGameNames } from "../lib/twitch";
 import {
-  calculateHypeRankingScore,
-  selectHomepageFeaturedGame,
-  selectHomepageHypeGames,
-  selectHomepageUpcomingHero
-} from "../lib/game-ranking";
-import {
   applyExactHomepageTwitchTotals,
   buildHomepageCandidateGames,
   buildHomepageReleaseSections,
@@ -19,6 +13,7 @@ import {
   buildHomepageSelections,
   buildHomepageSummaryStats
 } from "../lib/homepage-twitch";
+import { selectHomepageFeaturedGame } from "../lib/game-ranking";
 import GameCarousel from "../components/game/GameCarousel";
 import PageContainer from "../components/layout/PageContainer";
 import SectionHeading from "../components/ui/SectionHeading";
@@ -50,7 +45,6 @@ const streams = await fetchTwitchStreams().catch(() => []);
 const roughTwitchMap = buildHomepageRoughTwitchMap(streams);
 
 const scoredGames = buildHomepageScoredGames(games, roughTwitchMap);
-
 const featuredGame = selectHomepageFeaturedGame(scoredGames) || scoredGames[0];
 
 const exactTwitchMap = await fetchExactTwitchTotalsForGameNames(

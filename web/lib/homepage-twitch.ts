@@ -140,8 +140,9 @@ export function buildHomepageCandidateGames(
     return homepageCandidateGamesCache.value;
   }
 
-  const homepageCandidateGames = games
-    .filter((game) => {
+const homepageCandidateGames = games
+  .slice(0, 5000)
+  .filter((game) => {
       if (!game.releaseDate) {
         return false;
       }

@@ -1036,23 +1036,65 @@ View all {game.platforms[0]} games and top picks →
   <h2>
     Discover More Games
     <span className="sectionSub">
-      {" "}– Browse by Platform, Genre, and Release
+      {" "}– Find Better Games to Play Next
     </span>
   </h2>
 
+<p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
+  Use these pages to compare {game.name} with the best games by year, platform,
+  and genre so you can decide what to play next.
+</p>
+
 <ul>
-  <li><Link href="/new-games">New Games</Link></li>
-  <li><Link href="/best-games-2026">Best Games of 2026</Link></li>
-<li><Link href="/best-pc-games-2025">Best PC Games of 2025</Link></li>
-  <li><Link href="/upcoming-games">Upcoming Games</Link></li>
-  <li><Link href="/games-releasing-this-month">Games Releasing This Month</Link></li>
-  <li><Link href="/platform/pc">PC Games</Link></li>
-  <li><Link href="/platform/playstation">PlayStation Games</Link></li>
-  <li><Link href="/platform/xbox">Xbox Games</Link></li>
-  <li><Link href="/genre/rpg">RPG Games</Link></li>
-  <li><Link href="/genre/shooter">Shooter Games</Link></li>
+  <li><Link href="/new-games">Browse newly released games</Link></li>
+  <li><Link href="/upcoming-games">Browse upcoming game releases</Link></li>
+  <li><Link href="/games-releasing-this-month">See games releasing this month</Link></li>
+
+  {game.releaseDate && (
+    <li>
+      <Link href={`/best-games-${new Date(game.releaseDate).getUTCFullYear()}`}>
+        See the best video games of {new Date(game.releaseDate).getUTCFullYear()}
+      </Link>
+    </li>
+  )}
+
+  {game.platformSlugs?.[0] && game.releaseDate && (
+    <li>
+      <Link
+        href={`/best-${game.platformSlugs[0]}-games-${new Date(game.releaseDate).getUTCFullYear()}`}
+      >
+        See the best {game.platforms?.[0]} games of {new Date(game.releaseDate).getUTCFullYear()}
+      </Link>
+    </li>
+  )}
+
+  {game.platformSlugs?.[0] && (
+    <li>
+      <Link href={`/platform/${game.platformSlugs[0]}`}>
+        Browse all {game.platforms?.[0]} games
+      </Link>
+    </li>
+  )}
+
+  {game.genreSlugs?.[0] && (
+    <li>
+      <Link href={`/genre/${game.genreSlugs[0]}`}>
+        Browse the best {game.genres?.[0]} games
+      </Link>
+    </li>
+  )}
+
+  {game.genreSlugs?.[0] && game.platformSlugs?.[0] && game.releaseDate && (
+    <li>
+      <Link
+        href={`/best-${game.genreSlugs[0]}-games-${game.platformSlugs[0]}-${new Date(game.releaseDate).getUTCFullYear()}`}
+      >
+        Compare the best {game.genres?.[0]} games on {game.platforms?.[0]} in {new Date(game.releaseDate).getUTCFullYear()}
+      </Link>
+    </li>
+  )}
 </ul>
-        </section>
+</section>
       </main>
     </>
   );

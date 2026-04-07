@@ -2878,3 +2878,43 @@ transition: transform 900ms cubic-bezier(.2,.8,.2,1), opacity 260ms ease;
   color: var(--accent-hover);
   text-decoration-color: var(--accent-hover);
 }
+
+.heroQuickLinks {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.heroQuickLinkPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 14px;
+
+  border-radius: 999px;
+
+  text-decoration: none;
+  font-weight: 600;
+
+  color: #d9e8ff;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(139, 185, 255, 0.22);
+
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.heroQuickLinkPill:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(139, 185, 255, 0.42);
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(110, 168, 255, 0.14);
+}

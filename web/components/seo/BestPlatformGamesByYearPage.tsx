@@ -143,13 +143,48 @@ if (year !== new Date().getUTCFullYear() && releaseDate > new Date()) {
 
   return (
     <PageContainer>
-      <div style={READABLE_SECTION_STYLE}>
-        <SectionHeading
-          title={pageTitle}
-          subtitle={pageSubtitle}
-          centered
-        />
-      </div>
+<div style={READABLE_SECTION_STYLE}>
+  <SectionHeading
+    title={pageTitle}
+    subtitle={pageSubtitle}
+    centered
+  />
+
+<div style={{ marginTop: "18px", textAlign: "center" }}>
+  <div
+    style={{
+      marginBottom: "10px",
+      fontSize: "0.95rem",
+      color: "var(--text-muted)"
+    }}
+  >
+    Quick paths:
+  </div>
+
+<div className="heroQuickLinks">
+  <Link
+    href={`/platform/${platformSlug}`}
+    className="heroQuickLinkPill"
+  >
+    Browse all {platformDisplayName} games
+  </Link>
+
+  <Link
+    href={`/best-games-${year}`}
+    className="heroQuickLinkPill"
+  >
+    See the best games of {year}
+  </Link>
+
+  <Link
+    href={`/platform/${platformSlug}/new`}
+    className="heroQuickLinkPill"
+  >
+    See new {platformDisplayName} games
+  </Link>
+</div>
+</div>
+</div>
 
 <div style={INTRO_SECTION_STYLE}>
   <p style={{ maxWidth: "none" }}>{introParagraphOne}</p>
@@ -165,12 +200,12 @@ if (year !== new Date().getUTCFullYear() && releaseDate > new Date()) {
 
 <p style={{ maxWidth: "none" }}>
   This page tracks the best{" "}
-  <Link href={`/best-games-${year}`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
+  <Link href={`/best-games-${year}`} className="inlineTextLink">
     games of {year}
   </Link>{" "}
   on{" "}
-  <Link href={`/platform/${platformSlug}`} style={{ color: "#8bb9ff", fontWeight: 600 }}>
-        {platformDisplayName}
+  <Link href={`/platform/${platformSlug}`} className="inlineTextLink">
+    {platformDisplayName}
   </Link>{" "}
   using released titles that have already started to separate themselves through review scores, audience response, and overall visibility.
 </p>

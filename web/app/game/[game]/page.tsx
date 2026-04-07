@@ -481,29 +481,25 @@ const releaseYear = game.releaseDate
   : null;
 
 const seoTitleParts = [
-  `${game.name}${releaseYear ? ` (${releaseYear})` : ""}`,
-  primaryPlatform ? `${primaryPlatform}` : null,
-  typeof game.aggregated_rating === "number"
-    ? `${Math.round(game.aggregated_rating)}/100 Rating`
-    : null,
   isReleasedGame(game)
-    ? "Is It Worth Playing?"
-    : "Should You Play It?"
+    ? `Is ${game.name} Worth Playing${releaseYear ? ` (${releaseYear})` : ""}?`
+    : `Should You Play ${game.name}${releaseYear ? ` (${releaseYear})` : ""}?`,
+  typeof game.aggregated_rating === "number"
+    ? `${Math.round(game.aggregated_rating)}/100`
+    : null,
+  primaryPlatform ? `${primaryPlatform} Game` : null
 ].filter(Boolean);
 
 const seoTitle = seoTitleParts.join(" – ");
 
 const seoDescriptionParts = [
-  `See whether ${game.name}${releaseYear ? ` (${releaseYear})` : ""} is worth playing with release date, platform, trailer, screenshots, and gameplay details.`,
-  primaryPlatform ? `Works best for players searching for ${primaryPlatform} game info.` : null,
-  primaryGenre ? `${game.name} is a ${primaryGenre.toLowerCase()} game.` : null,
+  `Trying to decide if ${game.name}${releaseYear ? ` (${releaseYear})` : ""} is worth playing? Get the release date, platforms, trailer, screenshots, and key details before you play.`,
   typeof game.aggregated_rating === "number"
-    ? `Current rating: ${Math.round(game.aggregated_rating)}/100`
+    ? `Current rating: ${Math.round(game.aggregated_rating)}/100.`
     : null,
-  typeof game.aggregated_rating_count === "number"
-    ? `from ${game.aggregated_rating_count} reviews.`
-    : null,
-  "Compare similar games before you play."
+  primaryPlatform ? `Best for ${primaryPlatform} players.` : null,
+  primaryGenre ? `${primaryGenre} game.` : null,
+  "Compare similar games and make the right choice."
 ].filter(Boolean);
 
 const seoDescription = seoDescriptionParts.join(" ");
@@ -890,6 +886,28 @@ export default async function GamePage(props: any) {
 </div>
   </div>
 
+{game.platformSlugs?.[0] && game.releaseDate && (
+  <div style={{ textAlign: "center", marginBottom: "20px" }}>
+    <Link
+      href={`/best-${game.platformSlugs[0]}-games-${new Date(game.releaseDate).getUTCFullYear()}`}
+      style={{ fontWeight: 600 }}
+    >
+      See the best {game.platforms?.[0]} games of {new Date(game.releaseDate).getUTCFullYear()} →
+    </Link>
+  </div>
+)}
+
+{game.genreSlugs?.[0] && (
+  <div style={{ textAlign: "center", marginBottom: "20px" }}>
+    <Link
+      href={`/genre/${game.genreSlugs[0]}`}
+      style={{ fontWeight: 500 }}
+    >
+      Browse the best {game.genres?.[0]} games →
+    </Link>
+  </div>
+)}
+
 {game.summary && (
   <section className="gameHeroSummaryBlock">
     <h2 className="gameHeroSummaryHeading">
@@ -903,30 +921,53 @@ export default async function GamePage(props: any) {
   <h2>About {game.name}</h2>
 
 <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-  {game.name}
+  Trying to decide if {game.name} is worth playing?
   {game.releaseDate
-    ? ` ${new Date(game.releaseDate).getTime() <= Date.now() ? "released" : "is set to release"} on ${formatReleaseDateForDisplay(game)}`
-    : " does not yet have a confirmed release date"}.
-  {game.platforms && game.platforms.length > 0
-    ? ` It is available on ${game.platforms.join(", ")}.`
-    : ""}
-  {game.genres && game.genres.length > 0
-    ? ` It fits into the ${game.genres.join(", ")} genre${game.genres.length > 1 ? "s" : ""}.`
-    : ""}
-  {typeof game.aggregated_rating === "number"
-    ? ` Right now it has a ${Math.round(game.aggregated_rating)}/100 rating${typeof game.aggregated_rating_count === "number" ? ` from ${game.aggregated_rating_count} reviews` : ""}, which can help you judge whether it is worth playing.`
-    : " This page helps you quickly judge whether it looks worth playing based on release timing, platforms, trailer, screenshots, and similar games."}
+    ? ` It ${new Date(game.releaseDate).getTime() <= Date.now() ? "released" : "is set to release"} on ${formatReleaseDateForDisplay(game)}`
+    : " It does not yet have a confirmed release date"}.
+{game.platforms && game.platforms.length > 0 && game.platformSlugs?.[0]
+  ? ` You can play it on `
+  : ""}
+{game.platforms && game.platforms.length > 0 && game.platformSlugs?.[0] && (
+<Link
+  href={`/platform/${game.platformSlugs[0]}`}
+  className="inlineTextLink"
+>
+  {game.platforms[0]}
+</Link>
+)}
+{game.platforms && game.platforms.length > 1
+  ? ` and ${game.platforms.slice(1).join(", ")}.`
+  : game.platforms && game.platforms.length > 0
+  ? `.`
+  : ""}
+{game.genres && game.genres.length > 0 && game.genreSlugs?.[0]
+  ? ` It falls into the `
+  : ""}
+{game.genres && game.genres.length > 0 && game.genreSlugs?.[0] && (
+<Link
+  href={`/genre/${game.genreSlugs[0]}`}
+  className="inlineTextLink"
+>
+  {game.genres[0]}
+</Link>
+)}
+{game.genres && game.genres.length > 1
+  ? ` and ${game.genres.slice(1).join(", ")} genres.`
+  : game.genres && game.genres.length > 0
+  ? ` genre.`
+  : ""}
+{typeof game.aggregated_rating === "number"
+  ? ` It currently has a ${Math.round(game.aggregated_rating)}/100 rating, which can help give an early sense of whether it may be worth your time.`
+  : " Use this page to quickly evaluate whether it looks worth playing based on release timing, platforms, trailer, screenshots, and similar games."}
 </p>
 
-  {typeof game.aggregated_rating === "number" && (
-    <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-      {game.name} currently has an average rating of{" "}
-      {Math.round(game.aggregated_rating)} out of 100
-      {typeof game.aggregated_rating_count === "number"
-        ? ` based on ${game.aggregated_rating_count} reviews`
-        : ""}.
-    </p>
-  )}
+{typeof game.aggregated_rating === "number" && (
+  <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
+    {game.name} currently has an average rating of{" "}
+    {Math.round(game.aggregated_rating)} out of 100.
+  </p>
+)}
 
   <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
     On this page, you can view the latest information about {game.name},
@@ -1045,6 +1086,10 @@ View all {game.platforms[0]} games and top picks →
   and genre so you can decide what to play next.
 </p>
 
+<div style={{ marginBottom: "16px", fontWeight: 500 }}>
+  Not sure what to play next after {game.name}? Start here:
+</div>
+
 <ul>
   <li><Link href="/new-games">Browse newly released games</Link></li>
   <li><Link href="/upcoming-games">Browse upcoming game releases</Link></li>
@@ -1070,7 +1115,9 @@ View all {game.platforms[0]} games and top picks →
 
   {game.platformSlugs?.[0] && (
     <li>
-      <Link href={`/platform/${game.platformSlugs[0]}`}>
+<Link
+  href={`/platform/${game.platformSlugs[0]}`}
+>
         Browse all {game.platforms?.[0]} games
       </Link>
     </li>
@@ -1078,7 +1125,9 @@ View all {game.platforms[0]} games and top picks →
 
   {game.genreSlugs?.[0] && (
     <li>
-      <Link href={`/genre/${game.genreSlugs[0]}`}>
+<Link
+  href={`/genre/${game.genreSlugs[0]}`}
+>
         Browse the best {game.genres?.[0]} games
       </Link>
     </li>

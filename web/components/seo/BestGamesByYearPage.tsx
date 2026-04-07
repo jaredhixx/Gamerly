@@ -301,9 +301,21 @@ export default async function BestGamesByYearPage({
           </p>
         </div>
 
-        {topPicks.length > 0 ? (
-          <GameGrid games={topPicks} />
-        ) : (
+{topPicks.length > 0 ? (
+  <>
+    <p
+      style={{
+        maxWidth: "700px",
+        margin: "0 auto 18px auto",
+        textAlign: "center"
+      }}
+    >
+      These are the highest-rated and most talked-about games of {year}. Click any game to see whether it is worth playing, including rating, release details, platforms, trailer, and similar games.
+    </p>
+
+    <GameGrid games={topPicks} />
+  </>
+) : (
           <div style={LEFT_ALIGNED_READABLE_SECTION_HEADER_STYLE}>
             <p>No strong ranked games are available for this year yet.</p>
           </div>

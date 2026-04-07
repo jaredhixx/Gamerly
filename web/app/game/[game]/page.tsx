@@ -480,23 +480,30 @@ const releaseYear = game.releaseDate
   ? new Date(game.releaseDate).getUTCFullYear()
   : null;
 
-const titleParts = [
-  game.name,
+const seoTitleParts = [
+  `${game.name}${releaseYear ? ` (${releaseYear})` : ""}`,
   primaryPlatform ? `${primaryPlatform}` : null,
-  releaseYear ? `${releaseYear}` : null,
-  "Release Date, Gameplay, Platforms"
+  typeof game.aggregated_rating === "number"
+    ? `${Math.round(game.aggregated_rating)}/100 Rating`
+    : null,
+  isReleasedGame(game)
+    ? "Is It Worth Playing?"
+    : "Should You Play It?"
 ].filter(Boolean);
 
-const seoTitle = titleParts.join(" | ");
+const seoTitle = seoTitleParts.join(" – ");
 
 const seoDescriptionParts = [
-  `${game.name} release date${releaseYear ? ` (${releaseYear})` : ""}, platforms, trailer, and gameplay details.`,
-  primaryPlatform ? `Available on ${primaryPlatform}.` : null,
-  primaryGenre ? `${primaryGenre} game.` : null,
+  `See whether ${game.name}${releaseYear ? ` (${releaseYear})` : ""} is worth playing with release date, platform, trailer, screenshots, and gameplay details.`,
+  primaryPlatform ? `Works best for players searching for ${primaryPlatform} game info.` : null,
+  primaryGenre ? `${game.name} is a ${primaryGenre.toLowerCase()} game.` : null,
   typeof game.aggregated_rating === "number"
-    ? `Rated ${Math.round(game.aggregated_rating)}/100.`
+    ? `Current rating: ${Math.round(game.aggregated_rating)}/100`
     : null,
-  "View screenshots and discover similar games."
+  typeof game.aggregated_rating_count === "number"
+    ? `from ${game.aggregated_rating_count} reviews.`
+    : null,
+  "Compare similar games before you play."
 ].filter(Boolean);
 
 const seoDescription = seoDescriptionParts.join(" ");
@@ -651,7 +658,11 @@ export default async function GamePage(props: any) {
 <h1 className="gameTitle">
   {game.name}
   <span className="gameTitleSub">
-    {" "}– Release Date, Platforms, Trailer & Gameplay
+    {" "}
+    –{" "}
+    {isReleasedGame(game)
+      ? "Is It Worth Playing? Rating, Release Date, Platforms, Trailer & Screenshots"
+      : "Should You Play It? Release Date, Platforms, Trailer & Screenshots"}
   </span>
 </h1>
 
@@ -891,22 +902,21 @@ export default async function GamePage(props: any) {
 <section className="gameSection" style={{ textAlign: "center" }}>
   <h2>About {game.name}</h2>
 
-  <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-    {game.name}
-    {game.releaseDate
-      ? ` was released ${
-          new Date(game.releaseDate).getTime() <= Date.now()
-            ? "on"
-            : "on"
-        } ${formatReleaseDateForDisplay(game)}`
-      : " does not yet have a confirmed release date"}.
-    {game.platforms && game.platforms.length > 0
-      ? ` It is available on ${game.platforms.join(", ")}.`
-      : ""}
-    {game.genres && game.genres.length > 0
-      ? ` This game falls under the ${game.genres.join(", ")} genre${game.genres.length > 1 ? "s" : ""}.`
-      : ""}
-  </p>
+<p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
+  {game.name}
+  {game.releaseDate
+    ? ` ${new Date(game.releaseDate).getTime() <= Date.now() ? "released" : "is set to release"} on ${formatReleaseDateForDisplay(game)}`
+    : " does not yet have a confirmed release date"}.
+  {game.platforms && game.platforms.length > 0
+    ? ` It is available on ${game.platforms.join(", ")}.`
+    : ""}
+  {game.genres && game.genres.length > 0
+    ? ` It fits into the ${game.genres.join(", ")} genre${game.genres.length > 1 ? "s" : ""}.`
+    : ""}
+  {typeof game.aggregated_rating === "number"
+    ? ` Right now it has a ${Math.round(game.aggregated_rating)}/100 rating${typeof game.aggregated_rating_count === "number" ? ` from ${game.aggregated_rating_count} reviews` : ""}, which can help you judge whether it is worth playing.`
+    : " This page helps you quickly judge whether it looks worth playing based on release timing, platforms, trailer, screenshots, and similar games."}
+</p>
 
   {typeof game.aggregated_rating === "number" && (
     <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>

@@ -282,9 +282,21 @@ export default async function BestGenreGamesPage({
           </p>
         </div>
 
-        {topPicks.length > 0 ? (
-          <GameGrid games={topPicks} />
-        ) : (
+{topPicks.length > 0 ? (
+  <>
+    <p
+      style={{
+        maxWidth: "700px",
+        margin: "0 auto 18px auto",
+        textAlign: "center"
+      }}
+    >
+      These are the strongest {genreDisplayName.toLowerCase()} games available right now based on rating and player interest. Click any game to see whether it is worth playing, including rating, release details, platforms, trailer, and similar games.
+    </p>
+
+    <GameGrid games={topPicks} />
+  </>
+) : (
           <div style={READABLE_SECTION_HEADER_STYLE}>
             <p>No strong ranked genre games are available yet.</p>
           </div>

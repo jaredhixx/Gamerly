@@ -139,7 +139,15 @@ export default function GameCard({
   });
 
   return (
-    <Link href={gameUrl} style={{ textDecoration: "none", color: "inherit" }}>
+<Link
+  href={gameUrl}
+  title={`${game.name}${
+    game.releaseDate && !Number.isNaN(new Date(game.releaseDate).getTime())
+      ? ` (${new Date(game.releaseDate).getUTCFullYear()})`
+      : ""
+  } – Release Date, Platforms, Gameplay, Rating`}
+  style={{ textDecoration: "none", color: "inherit" }}
+>
 <article
   className="gameCard"
   style={{
@@ -206,13 +214,41 @@ export default function GameCard({
                 })}
               </div>
 
-              {game.genres?.[0] && (
-                <div className="gameCardGenreRow">
-                  <span className="gameCardPill gameCardGenre">
-                    {normalizeGenre(game.genres[0])}
-                  </span>
-                </div>
-              )}
+{game.genres?.[0] && (
+  <div className="gameCardGenreRow">
+    <button
+      className="gameCardPill gameCardGenre"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const primaryGenre = game.genres?.[0];
+
+        if (!primaryGenre) {
+          return;
+        }
+
+        const normalizedGenre = normalizeGenre(primaryGenre);
+
+        const genreHref =
+          normalizedGenre === "RPG"
+            ? "/genre/rpg"
+            : normalizedGenre === "RTS" || normalizedGenre === "Strategy"
+            ? "/genre/strategy"
+            : normalizedGenre === "Action"
+            ? "/genre/adventure"
+            : `/genre/${normalizedGenre.toLowerCase()}`;
+
+        router.push(genreHref);
+      }}
+      style={{
+        cursor: "pointer"
+      }}
+    >
+      {normalizeGenre(game.genres[0])}
+    </button>
+  </div>
+)}
             </div>
 
             {game.aggregated_rating && (() => {
@@ -252,7 +288,12 @@ export default function GameCard({
     color: "#f5f7fb"
   }}
 >
-  {game.name}
+{game.name}
+{game.releaseDate && !Number.isNaN(new Date(game.releaseDate).getTime()) && (
+  <span style={{ opacity: 0.6, fontWeight: 700 }}>
+    {" "}({new Date(game.releaseDate).getUTCFullYear()})
+  </span>
+)}
 </h3>
 
 {formatReleaseDateForDisplay(game) && (

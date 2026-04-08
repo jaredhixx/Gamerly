@@ -1724,6 +1724,15 @@ transition: transform 900ms cubic-bezier(.2,.8,.2,1), opacity 260ms ease;
   text-align: center;
 }
 
+.gameSnippetIntro {
+  max-width: 760px;
+  margin: 0 auto 28px;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
 .gameTitleSub {
   font-weight: 500;
   font-size: 0.6em;
@@ -2885,6 +2894,7 @@ transition: transform 900ms cubic-bezier(.2,.8,.2,1), opacity 260ms ease;
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 18px;
+  margin-bottom: 24px;
 }
 
 .heroQuickLinkPill {

@@ -95,22 +95,29 @@ export default async function PlatformPage(props: any) {
 
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
-      <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "16px" }}>
-        {platformLabel} Games
-      </h1>
+<h1
+  style={{
+    fontSize: "32px",
+    fontWeight: 800,
+    marginBottom: "16px",
+    textAlign: "center"
+  }}
+>
+  {platformLabel} Games
+</h1>
 
-      <p
-        style={{
-          fontSize: "16px",
-          lineHeight: 1.7,
-          color: "#b8c0d4",
-          maxWidth: "800px",
-          marginBottom: "12px"
-        }}
-      >
-        Discover {platformLabel.toLowerCase()} games in one place. Browse new releases,
-        upcoming games, top rated titles, and genre pages to find what to play next.
-      </p>
+<p
+  style={{
+    fontSize: "16px",
+    lineHeight: 1.7,
+    color: "#b8c0d4",
+    maxWidth: "800px",
+    margin: "0 auto 16px auto",
+    textAlign: "center"
+  }}
+>
+  Looking for the best {platformLabel.toLowerCase()} games to play right now? This page highlights the top rated titles, new releases, and upcoming games on {platformLabel}, so you can quickly find what is actually worth playing without wasting time on low-quality picks.
+</p>
 
 <p
   style={{

@@ -665,6 +665,42 @@ export default async function GamePage(props: any) {
   </span>
 </h1>
 
+<p className="gameSnippetIntro">
+  {(() => {
+    const releaseYear = game.releaseDate
+      ? new Date(game.releaseDate).getUTCFullYear()
+      : null;
+
+    const platform = game.platforms?.[0];
+    const genre = game.genres?.[0];
+
+    const rating =
+      typeof game.aggregated_rating === "number"
+        ? Math.round(game.aggregated_rating)
+        : null;
+
+    if (isReleasedGame(game)) {
+      return `${game.name}${
+        releaseYear ? ` (${releaseYear})` : ""
+      } is a ${genre ? genre.toLowerCase() : "game"}${
+        platform ? ` available on ${platform}` : ""
+      }.${
+        rating ? ` It currently holds a ${rating}/100 rating.` : ""
+      } Find out if it is actually worth playing, who it is best for, and whether it deserves your time.`;
+    }
+
+    return `${game.name}${
+      releaseYear ? ` (${releaseYear})` : ""
+    } is an upcoming ${genre ? genre.toLowerCase() : "game"}${
+      platform ? ` planned for ${platform}` : ""
+    }.${
+      game.releaseDate
+        ? ` It is expected to release on ${formatReleaseDateForDisplay(game)}.`
+        : ""
+    } See if it is worth keeping on your radar, what type of players it will appeal to, and what to expect at launch.`;
+  })()}
+</p>
+
 <div className="gameHeroShell">
   <div
     className="gameHero"
@@ -877,11 +913,11 @@ export default async function GamePage(props: any) {
   </div>
 
 {(game.platformSlugs?.[0] && game.releaseDate) || game.genreSlugs?.[0] ? (
-  <div className="gameHeroQuickLinks">
+  <div className="heroQuickLinks">
     {game.platformSlugs?.[0] && game.releaseDate && (
       <Link
         href={`/best-${game.platformSlugs[0]}-games-${new Date(game.releaseDate).getUTCFullYear()}`}
-        className="gameHeroQuickLink"
+        className="heroQuickLinkPill"
       >
         Best {game.platforms?.[0]} games of {new Date(game.releaseDate).getUTCFullYear()}
       </Link>
@@ -890,7 +926,7 @@ export default async function GamePage(props: any) {
     {game.genreSlugs?.[0] && (
       <Link
         href={`/genre/${game.genreSlugs[0]}`}
-        className="gameHeroQuickLink"
+        className="heroQuickLinkPill"
       >
         Best {game.genres?.[0]} games
       </Link>

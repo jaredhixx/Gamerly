@@ -187,6 +187,18 @@ return (
 </div>
 
 <div style={INTRO_SECTION_STYLE}>
+  <p
+  style={{
+    maxWidth: "720px",
+    margin: "0 auto 18px auto",
+    textAlign: "center",
+    fontSize: "16px",
+    lineHeight: 1.7,
+    color: "#cfd6e6"
+  }}
+>
+  Looking for the best {platformDisplayName} games in {year}? This page ranks the top games that are actually worth playing based on review scores, player interest, and overall impact, so you can quickly find the strongest picks without wasting time on low-quality titles.
+</p>
   <p style={{ maxWidth: "none" }}>{introParagraphOne}</p>
   <p style={{ maxWidth: "none" }}>{introParagraphTwo}</p>
 
@@ -197,6 +209,7 @@ return (
   higher on the list, while lower-signal or newly released titles may appear lower
   until more data becomes available.
 </p>
+
 
 <p style={{ maxWidth: "none" }}>
   This page tracks the best{" "}

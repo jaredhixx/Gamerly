@@ -466,6 +466,36 @@ const bestPageClusters = [
           viewerCount={featuredViewerCount}
         />
 
+<SectionBlock>
+  <SectionHeading
+    title="Start With the Best Games of 2026"
+    subtitle="Jump straight into the most relevant, high-intent pages on Gamerly right now."
+  />
+
+<div className="home2026Grid">
+    <Link
+      href="/best-games-2026"
+className="home2026Card"
+    >
+      Best Games of 2026
+    </Link>
+
+    <Link
+      href="/best-pc-games-2026"
+className="home2026Card"
+    >
+      Best PC Games of 2026
+    </Link>
+
+    <Link
+      href="/best-rpg-games-pc-2026"
+className="home2026Card"
+    >
+      Best RPG Games (PC, 2026)
+    </Link>
+  </div>
+</SectionBlock>
+
         <div hidden aria-hidden="true" data-ad-slot="home-top-leaderboard" />
 
 {hasHypeGames ? (

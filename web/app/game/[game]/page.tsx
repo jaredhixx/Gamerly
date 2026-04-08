@@ -480,29 +480,28 @@ const releaseYear = game.releaseDate
   ? new Date(game.releaseDate).getUTCFullYear()
   : null;
 
-const seoTitleParts = [
+const seoTitle = isReleasedGame(game)
+  ? `${game.name}${releaseYear ? ` (${releaseYear})` : ""} Review: Is It Worth Playing?`
+  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""}: Should You Play It?`;
+
+const seoDescription = [
   isReleasedGame(game)
-    ? `Is ${game.name} Worth Playing${releaseYear ? ` (${releaseYear})` : ""}?`
-    : `Should You Play ${game.name}${releaseYear ? ` (${releaseYear})` : ""}?`,
-  typeof game.aggregated_rating === "number"
-    ? `${Math.round(game.aggregated_rating)}/100`
-    : null,
-  primaryPlatform ? `${primaryPlatform} Game` : null
-].filter(Boolean);
-
-const seoTitle = seoTitleParts.join(" – ");
-
-const seoDescriptionParts = [
-  `Trying to decide if ${game.name}${releaseYear ? ` (${releaseYear})` : ""} is worth playing? Get the release date, platforms, trailer, screenshots, and key details before you play.`,
+    ? `Trying to decide if ${game.name}${releaseYear ? ` (${releaseYear})` : ""} is worth playing?`
+    : `Thinking about ${game.name}${releaseYear ? ` (${releaseYear})` : ""} before release?`,
+  game.releaseDate
+    ? `See the release date, platforms, trailer, screenshots, and key details in one place.`
+    : `See the available platforms, trailer, screenshots, and key details in one place.`,
   typeof game.aggregated_rating === "number"
     ? `Current rating: ${Math.round(game.aggregated_rating)}/100.`
     : null,
-  primaryPlatform ? `Best for ${primaryPlatform} players.` : null,
-  primaryGenre ? `${primaryGenre} game.` : null,
-  "Compare similar games and make the right choice."
-].filter(Boolean);
-
-const seoDescription = seoDescriptionParts.join(" ");
+  primaryPlatform ? `Best for ${primaryPlatform} players` : null,
+  primaryGenre ? `interested in ${primaryGenre.toLowerCase()} games.` : null,
+  !primaryPlatform && !primaryGenre
+    ? `See whether it looks worth your time before you play.`
+    : null
+]
+  .filter(Boolean)
+  .join(" ");
 
 return {
   title: seoTitle,
@@ -657,8 +656,8 @@ export default async function GamePage(props: any) {
     {" "}
     –{" "}
     {isReleasedGame(game)
-      ? "Is It Worth Playing? Rating, Release Date, Platforms, Trailer & Screenshots"
-      : "Should You Play It? Release Date, Platforms, Trailer & Screenshots"}
+      ? "Is It Worth Playing?"
+      : "Should You Play It?"}
   </span>
 </h1>
 
@@ -844,19 +843,6 @@ export default async function GamePage(props: any) {
     </div>
 
 <div className="gameHeroDecisionRow">
-  <span className="gameHeroDecisionLabel">Review coverage</span>
-  <span className="gameHeroDecisionValue">
-    {typeof game.aggregated_rating_count === "number"
-      ? game.aggregated_rating_count >= 50
-        ? "Well reviewed"
-        : game.aggregated_rating_count >= 20
-        ? "Some review depth"
-        : "Early review data"
-      : "Review data unclear"}
-  </span>
-</div>
-
-<div className="gameHeroDecisionRow">
   <span className="gameHeroDecisionLabel">Player signal</span>
   <span
     className={`gameHeroDecisionValue ${
@@ -886,33 +872,33 @@ export default async function GamePage(props: any) {
 </div>
   </div>
 
-{game.platformSlugs?.[0] && game.releaseDate && (
-  <div style={{ textAlign: "center", marginBottom: "20px" }}>
-    <Link
-      href={`/best-${game.platformSlugs[0]}-games-${new Date(game.releaseDate).getUTCFullYear()}`}
-      style={{ fontWeight: 600 }}
-    >
-      See the best {game.platforms?.[0]} games of {new Date(game.releaseDate).getUTCFullYear()} →
-    </Link>
-  </div>
-)}
+{(game.platformSlugs?.[0] && game.releaseDate) || game.genreSlugs?.[0] ? (
+  <div className="gameHeroQuickLinks">
+    {game.platformSlugs?.[0] && game.releaseDate && (
+      <Link
+        href={`/best-${game.platformSlugs[0]}-games-${new Date(game.releaseDate).getUTCFullYear()}`}
+        className="gameHeroQuickLink"
+      >
+        Best {game.platforms?.[0]} games of {new Date(game.releaseDate).getUTCFullYear()}
+      </Link>
+    )}
 
-{game.genreSlugs?.[0] && (
-  <div style={{ textAlign: "center", marginBottom: "20px" }}>
-    <Link
-      href={`/genre/${game.genreSlugs[0]}`}
-      style={{ fontWeight: 500 }}
-    >
-      Browse the best {game.genres?.[0]} games →
-    </Link>
+    {game.genreSlugs?.[0] && (
+      <Link
+        href={`/genre/${game.genreSlugs[0]}`}
+        className="gameHeroQuickLink"
+      >
+        Best {game.genres?.[0]} games
+      </Link>
+    )}
   </div>
-)}
+) : null}
 
 {game.summary && (
   <section className="gameHeroSummaryBlock">
     <h2 className="gameHeroSummaryHeading">
-  What to Know About {game.name}
-</h2>
+      Should You Play {game.name}?
+    </h2>
     <ExpandableSummary summary={game.summary} />
   </section>
 )}
@@ -920,59 +906,50 @@ export default async function GamePage(props: any) {
 <section className="gameSection" style={{ textAlign: "center" }}>
   <h2>About {game.name}</h2>
 
-<p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-  Trying to decide if {game.name} is worth playing?
-  {game.releaseDate
-    ? ` It ${new Date(game.releaseDate).getTime() <= Date.now() ? "released" : "is set to release"} on ${formatReleaseDateForDisplay(game)}`
-    : " It does not yet have a confirmed release date"}.
-{game.platforms && game.platforms.length > 0 && game.platformSlugs?.[0]
-  ? ` You can play it on `
-  : ""}
-{game.platforms && game.platforms.length > 0 && game.platformSlugs?.[0] && (
-<Link
-  href={`/platform/${game.platformSlugs[0]}`}
-  className="inlineTextLink"
->
-  {game.platforms[0]}
-</Link>
-)}
-{game.platforms && game.platforms.length > 1
-  ? ` and ${game.platforms.slice(1).join(", ")}.`
-  : game.platforms && game.platforms.length > 0
-  ? `.`
-  : ""}
-{game.genres && game.genres.length > 0 && game.genreSlugs?.[0]
-  ? ` It falls into the `
-  : ""}
-{game.genres && game.genres.length > 0 && game.genreSlugs?.[0] && (
-<Link
-  href={`/genre/${game.genreSlugs[0]}`}
-  className="inlineTextLink"
->
-  {game.genres[0]}
-</Link>
-)}
-{game.genres && game.genres.length > 1
-  ? ` and ${game.genres.slice(1).join(", ")} genres.`
-  : game.genres && game.genres.length > 0
-  ? ` genre.`
-  : ""}
-{typeof game.aggregated_rating === "number"
-  ? ` It currently has a ${Math.round(game.aggregated_rating)}/100 rating, which can help give an early sense of whether it may be worth your time.`
-  : " Use this page to quickly evaluate whether it looks worth playing based on release timing, platforms, trailer, screenshots, and similar games."}
-</p>
-
-{typeof game.aggregated_rating === "number" && (
   <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-    {game.name} currently has an average rating of{" "}
-    {Math.round(game.aggregated_rating)} out of 100.
-  </p>
-)}
-
-  <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-    On this page, you can view the latest information about {game.name},
-    including its release date, platforms, trailer, screenshots, and
-    similar games to help you decide if it is worth playing.
+    Trying to decide if {game.name} is worth playing?{" "}
+    {game.releaseDate
+      ? `It ${new Date(game.releaseDate).getTime() <= Date.now() ? "released" : "is scheduled to release"} on ${formatReleaseDateForDisplay(game)}.`
+      : "It does not yet have a confirmed release date."}{" "}
+    {game.platforms && game.platforms.length > 0 ? (
+      <>
+        You can play it on{" "}
+        {game.platformSlugs?.[0] ? (
+          <Link
+            href={`/platform/${game.platformSlugs[0]}`}
+            className="inlineTextLink"
+          >
+            {game.platforms[0]}
+          </Link>
+        ) : (
+          game.platforms[0]
+        )}
+        {game.platforms.length > 1
+          ? ` and ${game.platforms.slice(1).join(", ")}.`
+          : "."}{" "}
+      </>
+    ) : null}
+    {game.genres && game.genres.length > 0 ? (
+      <>
+        It is a{" "}
+        {game.genreSlugs?.[0] ? (
+          <Link
+            href={`/genre/${game.genreSlugs[0]}`}
+            className="inlineTextLink"
+          >
+            {game.genres[0]}
+          </Link>
+        ) : (
+          game.genres[0]
+        )}
+        {game.genres.length > 1
+          ? ` game with ${game.genres.slice(1).join(", ")} elements.`
+          : " game."}{" "}
+      </>
+    ) : null}
+    {typeof game.aggregated_rating === "number"
+? `It holds a ${Math.round(game.aggregated_rating)}/100 rating, giving a quick sense of how strongly it is landing with players and reviewers.`
+      : `Use this page to quickly judge whether it looks worth your time based on its release timing, platforms, trailer, screenshots, and similar games.`}
   </p>
 </section>
 
@@ -1006,12 +983,7 @@ export default async function GamePage(props: any) {
 
 {moreLikeThisGames.length > 0 && (
   <section className="gameSection">
-<h2>
-  Games Like {game.name}
-  <span className="sectionSub">
-    {" "}– Similar Games to Try
-  </span>
-</h2>
+    <h2>Games Like {game.name}</h2>
 
     <GameCarousel games={moreLikeThisGames} />
   </section>
@@ -1019,26 +991,21 @@ export default async function GamePage(props: any) {
 
 {game.genres && game.genres.length > 0 && (
   <section className="gameSection">
-<h2>
-  Similar {game.genres[0]} Games
-  <span className="sectionSub">
-    {" "}– Best {game.genres[0]} Games to Play
-  </span>
-</h2>
+    <h2>Similar {game.genres[0]} Games</h2>
 
-            <GameGrid games={relatedGenreGames} />
+    <GameGrid games={relatedGenreGames} />
 
 <div style={{ marginTop: "14px" }}>
-<Link
-  href={
-    game.genreSlugs?.[0]
-      ? `/genre/${game.genreSlugs[0]}`
-      : `/genre/${game.genres[0].toLowerCase()}`
-  }
-  className="browseAllLink"
->
-View all {game.genres[0]} games and top picks →
-</Link>
+  <Link
+    href={
+      game.genreSlugs?.[0]
+        ? `/genre/${game.genreSlugs[0]}`
+        : `/genre/${game.genres[0].toLowerCase()}`
+    }
+    className="browseAllLink"
+  >
+    Explore more {game.genres[0]} games →
+  </Link>
 </div>
 
           </section>
@@ -1046,28 +1013,25 @@ View all {game.genres[0]} games and top picks →
 
 {game.platforms && game.platforms.length > 0 && (
   <section className="gameSection">
-<h2>
-  {game.genres?.[0] && game.platforms?.[0]
-    ? `More ${game.genres[0]} Games Like ${game.name} on ${game.platforms[0]}`
-    : `More Games Like ${game.name}`}
-  <span className="sectionSub">
-    {" "}– Similar Games to Try
-  </span>
-</h2>
+    <h2>
+      {game.genres?.[0] && game.platforms?.[0]
+        ? `More ${game.genres[0]} Games on ${game.platforms[0]}`
+        : `More Games Like ${game.name}`}
+    </h2>
 
             <GameGrid games={relatedPlatformGames} />
 
 <div style={{ marginTop: "14px" }}>
-<Link
-  href={
-    game.platformSlugs?.[0]
-      ? `/platform/${game.platformSlugs[0]}`
-      : `/platform/${game.platforms[0].toLowerCase()}`
-  }
-  className="browseAllLink"
->
-View all {game.platforms[0]} games and top picks →
-</Link>
+  <Link
+    href={
+      game.platformSlugs?.[0]
+        ? `/platform/${game.platformSlugs[0]}`
+        : `/platform/${game.platforms[0].toLowerCase()}`
+    }
+    className="browseAllLink"
+  >
+    Explore more {game.platforms[0]} games →
+  </Link>
 </div>
 
           </section>
@@ -1075,19 +1039,19 @@ View all {game.platforms[0]} games and top picks →
 
 <section className="gameSection discoverSection">
   <h2>
-    Discover More Games
+    What Should You Play Next?
     <span className="sectionSub">
-      {" "}– Find Better Games to Play Next
+      {" "}– Better Games to Try After {game.name}
     </span>
   </h2>
 
 <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-  Use these pages to compare {game.name} with the best games by year, platform,
-  and genre so you can decide what to play next.
+  If {game.name} is not quite what you are looking for, use these pages to find
+  better games based on platform, genre, and release year.
 </p>
 
 <div style={{ marginBottom: "16px", fontWeight: 500 }}>
-  Not sure what to play next after {game.name}? Start here:
+  Compare better options:
 </div>
 
 <ul>

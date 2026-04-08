@@ -2918,3 +2918,127 @@ transition: transform 900ms cubic-bezier(.2,.8,.2,1), opacity 260ms ease;
   transform: translateY(-1px);
   box-shadow: 0 0 18px rgba(110, 168, 255, 0.14);
 }
+
+/* -----------------------------
+   HOMEPAGE 2026 GRID (AAA)
+----------------------------- */
+
+.home2026Grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.home2026Card {
+  display: block;
+
+  padding: 18px;
+
+  border-radius: var(--radius-lg);
+
+  text-decoration: none;
+
+  border: 1px solid rgba(110,168,255,0.25);
+
+  will-change: transform;
+
+  background: linear-gradient(
+    180deg,
+    rgba(110,168,255,0.12),
+    rgba(255,255,255,0.02)
+  );
+
+  color: var(--text-primary);
+
+  font-weight: 700;
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(110,168,255,0.05);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 180ms ease,
+    border-color 160ms ease;
+}
+
+.home2026Card:hover {
+  transform: translateY(-6px) scale(1.015);
+
+  border-color: var(--accent);
+
+  box-shadow:
+    0 24px 60px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(110,168,255,0.22),
+    0 0 26px rgba(110,168,255,0.22);
+}
+
+/* -----------------------------
+   BEST PAGE EXPLORE TILE (AAA)
+----------------------------- */
+
+.bestExploreTile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  min-height: 120px;
+
+  padding: 16px 18px;
+
+  border-radius: var(--radius-lg);
+
+  text-decoration: none;
+
+  color: var(--text-primary);
+
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.06),
+    rgba(255,255,255,0.02)
+  );
+
+  border: 1px solid rgba(255,255,255,0.10);
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 180ms ease,
+    border-color 160ms ease;
+}
+
+.bestExploreTile:hover {
+  transform: translateY(-5px) scale(1.015);
+
+  border-color: var(--accent);
+
+  box-shadow:
+    0 24px 60px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(110,168,255,0.18),
+    0 0 22px rgba(110,168,255,0.18);
+}
+
+.bestExploreTileTag {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8bb9ff;
+  margin-bottom: 10px;
+}
+
+.bestExploreTileTitle {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.bestExploreTileCTA {
+  margin-top: 14px;
+  color: #9ec5ff;
+  font-weight: 700;
+  font-size: 14px;
+}

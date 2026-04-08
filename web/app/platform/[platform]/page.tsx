@@ -40,8 +40,8 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   }
 
   return {
-    title: `Best ${platformConfig.name.replace(" Games", "")} Games (2026) – Top Rated, New & Upcoming`,
-    description: `Discover the best ${platformConfig.name.toLowerCase()} in 2026. Browse top rated games, new releases, upcoming titles, and genre-specific lists to find what to play next.`,
+title: `Best ${platformConfig.name.replace(" Games", "")} Games 2026 (Ranked & Worth Playing)`,
+description: `Looking for the best ${platformConfig.name.toLowerCase()} in 2026? See which games are actually worth playing, ranked by rating, popularity, and real player interest.`,
     alternates: {
       canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}`)
     }
@@ -251,12 +251,13 @@ export default async function PlatformPage(props: any) {
           </li>
                 </ul>
 
-        <h3
+<h3
   style={{
-    fontSize: "18px",
-    fontWeight: 700,
-    marginTop: "20px",
-    marginBottom: "12px"
+    fontSize: "16px",
+    fontWeight: 600,
+    marginTop: "24px",
+    marginBottom: "12px",
+    opacity: 0.8
   }}
 >
   Best {platformLabel} Games in 2025
@@ -392,9 +393,9 @@ export default async function PlatformPage(props: any) {
 
 <h3
   style={{
-    fontSize: "18px",
-    fontWeight: 700,
-    marginTop: "20px",
+    fontSize: "20px",
+    fontWeight: 800,
+    marginTop: "0px",
     marginBottom: "12px"
   }}
 >

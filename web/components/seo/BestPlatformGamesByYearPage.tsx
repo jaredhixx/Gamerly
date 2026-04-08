@@ -269,62 +269,23 @@ if (year !== new Date().getUTCFullYear() && releaseDate > new Date()) {
       tag: "Indie"
     }
   ].map((item) => (
-    <Link
-      key={item.href}
-      href={item.href}
-      className="exploreTile"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        minHeight: "118px",
-        padding: "16px 18px",
-        borderRadius: "16px",
-        textDecoration: "none",
-        color: "#f5f7fb",
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.025))",
-        border: "1px solid rgba(255,255,255,0.075)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
-        lineHeight: 1.35,
-        textAlign: "left",
-        transition: "all 180ms ease"
-      }}
-    >
-      <div
-        style={{
-          fontSize: "11px",
-          fontWeight: 800,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "#8bb9ff",
-          marginBottom: "10px"
-        }}
-      >
-        {item.tag}
-      </div>
+<Link
+  key={item.href}
+  href={item.href}
+  className="bestExploreTile"
+>
+  <div className="bestExploreTileTag">
+    {item.tag}
+  </div>
 
-      <div
-        style={{
-          color: "#f5f7fb",
-          fontSize: "16px",
-          fontWeight: 700
-        }}
-      >
-        {item.label}
-      </div>
+  <div className="bestExploreTileTitle">
+    {item.label}
+  </div>
 
-      <div
-        style={{
-          marginTop: "14px",
-          color: "#9ec5ff",
-          fontWeight: 700,
-          fontSize: "14px"
-        }}
-      >
-        Explore →
-      </div>
-    </Link>
+  <div className="bestExploreTileCTA">
+    Explore →
+  </div>
+</Link>
   ))}
 </div>
         </div>

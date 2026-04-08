@@ -134,16 +134,25 @@ export default async function BestGenrePlatformGamesByYearPage({
   };
 
   const sortedStrongGames = sortGames(strongMatchingGames);
-  const sortedAllGames = sortGames(allMatchingGames);
-
-  const strongGameIds = new Set(sortedStrongGames.map((game) => game.id));
-
-  const additionalGames = sortedAllGames.filter(
-    (game) => !strongGameIds.has(game.id)
-  );
 
   const topPicks = sortedStrongGames.slice(0, 12);
-  const fullList = additionalGames.slice(0, 60);
+  const fullList = sortedStrongGames.slice(12, 72);
+
+  const platformDisplayName =
+    platformSlug === "pc"
+      ? "PC"
+      : platformSlug === "playstation"
+        ? "PlayStation"
+        : platformSlug === "xbox"
+          ? "Xbox"
+          : platformSlug === "switch"
+            ? "Switch"
+            : platformSlug;
+
+const genreDisplayName =
+  genreSlug === "rpg"
+    ? "RPG"
+    : genreSlug.charAt(0).toUpperCase() + genreSlug.slice(1);
 
   return (
     <PageContainer>
@@ -202,7 +211,48 @@ export default async function BestGenrePlatformGamesByYearPage({
         </p>
       </div>
 
-      <section style={EXPLORE_SECTION_STYLE}>
+      <section style={GRID_SECTION_STYLE}>
+        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+          <h2>{topSectionHeading}</h2>
+
+          <p style={{ maxWidth: "none" }}>
+            {topSectionIntro}
+          </p>
+        </div>
+
+        {topPicks.length > 0 ? (
+          <GameGrid
+            games={topPicks}
+            prioritizedPlatformSlug={platformSlug}
+          />
+        ) : (
+          <div style={READABLE_SECTION_HEADER_STYLE}>
+            <p>
+              There are no strong ranked games for this combination yet, but you
+              can still browse other released games below.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <section style={GRID_SECTION_STYLE}>
+        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+          <h2>{fullListHeading}</h2>
+        </div>
+
+        {fullList.length > 0 ? (
+          <GameGrid
+            games={fullList}
+            prioritizedPlatformSlug={platformSlug}
+          />
+        ) : (
+          <div style={READABLE_SECTION_HEADER_STYLE}>
+            <p>No additional released games are available for this combination yet.</p>
+          </div>
+        )}
+      </section>
+
+            <section style={EXPLORE_SECTION_STYLE}>
         <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
           <h2>{exploreHeading}</h2>
 
@@ -301,47 +351,6 @@ export default async function BestGenrePlatformGamesByYearPage({
   ))}
 </div>
         </div>
-      </section>
-
-      <section style={GRID_SECTION_STYLE}>
-        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
-          <h2>{topSectionHeading}</h2>
-
-          <p style={{ maxWidth: "none" }}>
-            {topSectionIntro}
-          </p>
-        </div>
-
-        {topPicks.length > 0 ? (
-          <GameGrid
-            games={topPicks}
-            prioritizedPlatformSlug={platformSlug}
-          />
-        ) : (
-          <div style={READABLE_SECTION_HEADER_STYLE}>
-            <p>
-              There are no strong ranked games for this combination yet, but you
-              can still browse other released games below.
-            </p>
-          </div>
-        )}
-      </section>
-
-      <section style={GRID_SECTION_STYLE}>
-        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
-          <h2>{fullListHeading}</h2>
-        </div>
-
-        {fullList.length > 0 ? (
-          <GameGrid
-            games={fullList}
-            prioritizedPlatformSlug={platformSlug}
-          />
-        ) : (
-          <div style={READABLE_SECTION_HEADER_STYLE}>
-            <p>No additional released games are available for this combination yet.</p>
-          </div>
-        )}
       </section>
     </PageContainer>
   );

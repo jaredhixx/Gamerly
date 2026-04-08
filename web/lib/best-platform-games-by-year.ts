@@ -18,11 +18,11 @@ export const bestPlatformGamesByYearContent = {
     },
 
     2026: {
-      pageTitle: "Best PC Games 2026 (Ranked & Worth Playing)",
+      pageTitle: "Best PC Games of 2026 (Ranked & Worth Playing)",
       pageSubtitle:
         "Top PC games released in 2026, ranked by rating, popularity, and real player interest.",
-      description:
-        "Looking for the best PC games of 2026? See which releases are worth playing based on ratings, popularity, and player interest.",
+description:
+  "Looking for the best PC games of 2026? Discover the top-rated releases worth playing right now, including the most popular, highest-scoring, and most talked-about PC games this year.",
       introParagraphOne:
         "The best PC games of 2026 include the strongest releases available on PC across major genres, from blockbuster launches to critically praised surprise hits. This page focuses only on games released in 2026 that are available on PC and ranks them using quality and popularity signals.",
       introParagraphTwo:
@@ -37,7 +37,7 @@ export const bestPlatformGamesByYearContent = {
 
   playstation: {
     2025: {
-      pageTitle: "Best PlayStation Games 2025 (Ranked & Actually Worth Playing)",
+      pageTitle: "Best PlayStation Games of 2025 (Ranked & Actually Worth Playing)",
       pageSubtitle:
         "Top PlayStation games released in 2025, ranked by rating, popularity, and real player interest.",
       description:
@@ -54,11 +54,11 @@ export const bestPlatformGamesByYearContent = {
     },
 
     2026: {
-      pageTitle: "Best PlayStation Games 2026 (Ranked & Worth Playing)",
+      pageTitle: "Best PlayStation Games of 2026 (Ranked & Worth Playing)",
       pageSubtitle:
         "Top PlayStation games released in 2026, ranked by rating, popularity, and real player interest.",
-      description:
-        "Looking for the best PlayStation games of 2026? See which PS5 and PS4 releases are worth playing based on ratings and player interest.",
+description:
+  "Looking for the best PlayStation games of 2026? Discover the top PS5 and PS4 releases worth playing right now, including the highest-rated and most talked-about games this year.",
       introParagraphOne:
         "The best PlayStation games of 2026 include the strongest releases available on PlayStation platforms across major genres, from exclusives to major third-party launches. This page focuses only on games released in 2026 that are available on PlayStation.",
       introParagraphTwo:
@@ -73,7 +73,7 @@ export const bestPlatformGamesByYearContent = {
 
   xbox: {
     2025: {
-      pageTitle: "Best Xbox Games 2025 (Ranked & Actually Worth Playing)",
+      pageTitle: "Best Xbox Games of 2025 (Ranked & Actually Worth Playing)",
       pageSubtitle:
         "Top Xbox games released in 2025, ranked by rating, popularity, and real player interest.",
       description:
@@ -90,11 +90,11 @@ export const bestPlatformGamesByYearContent = {
     },
 
     2026: {
-      pageTitle: "Best Xbox Games 2026 (Ranked & Worth Playing)",
+      pageTitle: "Best Xbox Games of 2026 (Ranked & Worth Playing)",
       pageSubtitle:
         "Top Xbox games released in 2026, ranked by rating, popularity, and real player interest.",
-      description:
-        "Looking for the best Xbox games of 2026? See which Xbox releases are worth playing based on ratings and player interest.",
+description:
+  "Looking for the best Xbox games of 2026? Discover the top Xbox releases worth playing right now, including the highest-rated and most talked-about games this year.",
       introParagraphOne:
         "The best Xbox games of 2026 include the strongest releases available across Xbox platforms, from major exclusives to high-performing third-party titles. This page focuses only on games released in 2026 that are playable on Xbox.",
       introParagraphTwo:
@@ -109,7 +109,7 @@ export const bestPlatformGamesByYearContent = {
 
   switch: {
     2025: {
-      pageTitle: "Best Switch Games 2025 (Ranked & Actually Worth Playing)",
+      pageTitle: "Best Switch Games of 2025 (Ranked & Actually Worth Playing)",
       pageSubtitle:
         "Top Switch games released in 2025, ranked by rating, popularity, and real player interest.",
       description:
@@ -126,11 +126,11 @@ export const bestPlatformGamesByYearContent = {
     },
 
     2026: {
-      pageTitle: "Best Switch Games 2026 (Ranked & Worth Playing)",
+      pageTitle: "Best Switch Games of 2026 (Ranked & Worth Playing)",
       pageSubtitle:
         "Top Switch games released in 2026, ranked by rating, popularity, and real player interest.",
-      description:
-        "Looking for the best Switch games of 2026? See which Nintendo Switch releases are worth playing based on ratings and player interest.",
+description:
+  "Looking for the best Switch games of 2026? Discover the top Nintendo Switch releases worth playing right now, including the highest-rated and most talked-about games this year.",
       introParagraphOne:
         "The best Nintendo Switch games of 2026 include the strongest releases available on Switch across major genres, from first-party launches to standout third-party titles. This page focuses only on games released in 2026 that are playable on Switch.",
       introParagraphTwo:

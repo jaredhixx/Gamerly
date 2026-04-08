@@ -86,12 +86,12 @@ if (year !== new Date().getUTCFullYear() && releaseDate > new Date()) {
     const ratingCount = game.aggregated_rating_count ?? 0;
     const hasPlatform = game.platformSlugs?.includes(platformSlug);
 
-    return (
-      releaseYear === year &&
-      hasPlatform &&
-      rating >= 70 &&
-      ratingCount >= 1
-    );
+return (
+  releaseYear === year &&
+  hasPlatform &&
+  rating >= 70 &&
+  ratingCount >= 2
+);
   });
 
   const sortedGames = [...matchingGames].sort((a, b) => {
@@ -215,7 +215,57 @@ if (year !== new Date().getUTCFullYear() && releaseDate > new Date()) {
   </p>
 </div>
 
-      <section style={EXPLORE_SECTION_STYLE}>
+
+
+<section style={GRID_SECTION_STYLE}>
+  <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+    <h2>{topSectionHeading}</h2>
+
+    <p style={{ maxWidth: "none" }}>
+      {topSectionIntro}
+    </p>
+  </div>
+
+{topPicks.length > 0 ? (
+  <>
+    <p
+      style={{
+        maxWidth: "700px",
+        margin: "0 auto 18px auto",
+        textAlign: "center"
+      }}
+    >
+      These are the strongest {platformDisplayName} games of {year} based on rating and player interest. Click any game to see whether it is worth playing, including rating, release details, platforms, trailer, and similar games.
+    </p>
+
+    <GameGrid
+      games={topPicks}
+      prioritizedPlatformSlug={platformSlug}
+    />
+  </>
+) : (
+          <div style={READABLE_SECTION_HEADER_STYLE}>
+            <p>No strong ranked platform games are available for this year yet.</p>
+          </div>
+        )}
+      </section>
+
+<section style={GRID_SECTION_STYLE}>
+        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+          <h2>{fullListHeading}</h2>
+        </div>
+
+        {fullList.length > 0 ? (
+          <GameGrid
+            games={fullList}
+            prioritizedPlatformSlug={platformSlug}
+          />
+        ) : (
+          <p>No strong ranked platform games are available for this year yet.</p>
+        )}
+      </section>
+
+            <section style={EXPLORE_SECTION_STYLE}>
         <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
           <h2>{exploreHeading}</h2>
 
@@ -291,53 +341,6 @@ if (year !== new Date().getUTCFullYear() && releaseDate > new Date()) {
         </div>
       </section>
 
-<section style={GRID_SECTION_STYLE}>
-  <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
-    <h2>{topSectionHeading}</h2>
-
-    <p style={{ maxWidth: "none" }}>
-      {topSectionIntro}
-    </p>
-  </div>
-
-{topPicks.length > 0 ? (
-  <>
-    <p
-      style={{
-        maxWidth: "700px",
-        margin: "0 auto 18px auto",
-        textAlign: "center"
-      }}
-    >
-      These are the strongest {platformDisplayName} games of {year} based on rating and player interest. Click any game to see whether it is worth playing, including rating, release details, platforms, trailer, and similar games.
-    </p>
-
-    <GameGrid
-      games={topPicks}
-      prioritizedPlatformSlug={platformSlug}
-    />
-  </>
-) : (
-          <div style={READABLE_SECTION_HEADER_STYLE}>
-            <p>No strong ranked platform games are available for this year yet.</p>
-          </div>
-        )}
-      </section>
-
-<section style={GRID_SECTION_STYLE}>
-        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
-          <h2>{fullListHeading}</h2>
-        </div>
-
-        {fullList.length > 0 ? (
-          <GameGrid
-            games={fullList}
-            prioritizedPlatformSlug={platformSlug}
-          />
-        ) : (
-          <p>No strong ranked platform games are available for this year yet.</p>
-        )}
-      </section>
     </PageContainer>
   );
 }

@@ -86,7 +86,7 @@ export default async function BestGamesByYearPage({
     const rating = game.aggregated_rating ?? 0;
     const ratingCount = game.aggregated_rating_count ?? 0;
 
-    return releaseYear === year && rating >= 70 && ratingCount >= 1;
+    return releaseYear === year && rating >= 72 && ratingCount >= 2;
   });
 
   const sortedGames = [...matchingGames].sort((a, b) => {
@@ -123,7 +123,7 @@ export default async function BestGamesByYearPage({
   });
 
   const topPicks = sortedGames.slice(0, 12);
-  const fullList = sortedGames.slice(0, 60);
+  const fullList = sortedGames.slice(12, 72);
 
   return (
     <PageContainer>
@@ -158,7 +158,129 @@ export default async function BestGamesByYearPage({
         </p>
       </div>
 
-      <section style={EXPLORE_SECTION_STYLE}>
+
+
+      <section style={GRID_SECTION_STYLE}>
+        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+          <h2>{topSectionHeading}</h2>
+
+          <p style={{ maxWidth: "none" }}>
+            {topSectionIntro}
+          </p>
+        </div>
+
+{topPicks.length > 0 ? (
+  <>
+    <p
+      style={{
+        maxWidth: "700px",
+        margin: "0 auto 18px auto",
+        textAlign: "center"
+      }}
+    >
+      These are the highest-rated and most talked-about games of {year}. Click any game to see whether it is worth playing, including rating, release details, platforms, trailer, and similar games.
+    </p>
+
+    <GameGrid games={topPicks} />
+  </>
+) : (
+          <div style={LEFT_ALIGNED_READABLE_SECTION_HEADER_STYLE}>
+            <p>No strong ranked games are available for this year yet.</p>
+          </div>
+        )}
+      </section>
+
+      {year === 2026 && (
+  <section style={GRID_SECTION_STYLE}>
+    <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+      <h2>Best Games by Platform in 2026</h2>
+
+      <p style={{ maxWidth: "none" }}>
+        Looking for the best games of {year} on your platform? These pages break
+        down the strongest releases by system so you can find what to play faster.
+      </p>
+    </div>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+        gap: "16px"
+      }}
+    >
+      {[
+        {
+          title: "Best PC Games of 2026",
+          href: "/best-pc-games-2026"
+        },
+        {
+          title: "Best PlayStation Games of 2026",
+          href: "/best-playstation-games-2026"
+        },
+        {
+          title: "Best Xbox Games of 2026",
+          href: "/best-xbox-games-2026"
+        },
+        {
+          title: "Best Switch Games of 2026",
+          href: "/best-switch-games-2026"
+        }
+      ].map((platform) => (
+        <Link
+          key={platform.href}
+          href={platform.href}
+          style={{
+            display: "block",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "18px",
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.025))",
+            padding: "18px",
+            textDecoration: "none",
+            transition: "border-color 160ms ease, transform 160ms ease"
+          }}
+        >
+          <div
+            style={{
+              color: "#f5f7fb",
+              fontSize: "1rem",
+              fontWeight: 800,
+              lineHeight: 1.35
+            }}
+          >
+            {platform.title}
+          </div>
+
+          <div
+            style={{
+              marginTop: "8px",
+              color: "#8bb9ff",
+              fontWeight: 700
+            }}
+          >
+            Explore → 
+          </div>
+        </Link>
+      ))}
+    </div>
+  </section>
+)}
+
+      <section style={GRID_SECTION_STYLE}>
+<div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
+  <h2>{fullListHeading}</h2>
+</div>
+
+        {fullList.length > 0 ? (
+          <GameGrid games={fullList} />
+        ) : (
+          <div style={LEFT_ALIGNED_READABLE_SECTION_HEADER_STYLE}>
+            <p>No additional released games are available for this year yet.</p>
+          </div>
+        )}
+      </section>
+
+            <section style={EXPLORE_SECTION_STYLE}>
         <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
           <h2>{exploreHeading}</h2>
 
@@ -290,126 +412,6 @@ export default async function BestGamesByYearPage({
   ))}
 </div>
 </div>
-      </section>
-
-      <section style={GRID_SECTION_STYLE}>
-        <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
-          <h2>{topSectionHeading}</h2>
-
-          <p style={{ maxWidth: "none" }}>
-            {topSectionIntro}
-          </p>
-        </div>
-
-{topPicks.length > 0 ? (
-  <>
-    <p
-      style={{
-        maxWidth: "700px",
-        margin: "0 auto 18px auto",
-        textAlign: "center"
-      }}
-    >
-      These are the highest-rated and most talked-about games of {year}. Click any game to see whether it is worth playing, including rating, release details, platforms, trailer, and similar games.
-    </p>
-
-    <GameGrid games={topPicks} />
-  </>
-) : (
-          <div style={LEFT_ALIGNED_READABLE_SECTION_HEADER_STYLE}>
-            <p>No strong ranked games are available for this year yet.</p>
-          </div>
-        )}
-      </section>
-
-      {year === 2026 && (
-  <section style={GRID_SECTION_STYLE}>
-    <div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
-      <h2>Best Games by Platform in 2026</h2>
-
-      <p style={{ maxWidth: "none" }}>
-        Looking for the best games of {year} on your platform? These pages break
-        down the strongest releases by system so you can find what to play faster.
-      </p>
-    </div>
-
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-        gap: "16px"
-      }}
-    >
-      {[
-        {
-          title: "Best PC Games of 2026",
-          href: "/best-pc-games-2026"
-        },
-        {
-          title: "Best PlayStation Games of 2026",
-          href: "/best-playstation-games-2026"
-        },
-        {
-          title: "Best Xbox Games of 2026",
-          href: "/best-xbox-games-2026"
-        },
-        {
-          title: "Best Switch Games of 2026",
-          href: "/best-switch-games-2026"
-        }
-      ].map((platform) => (
-        <Link
-          key={platform.href}
-          href={platform.href}
-          style={{
-            display: "block",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "18px",
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.025))",
-            padding: "18px",
-            textDecoration: "none",
-            transition: "border-color 160ms ease, transform 160ms ease"
-          }}
-        >
-          <div
-            style={{
-              color: "#f5f7fb",
-              fontSize: "1rem",
-              fontWeight: 800,
-              lineHeight: 1.35
-            }}
-          >
-            {platform.title}
-          </div>
-
-          <div
-            style={{
-              marginTop: "8px",
-              color: "#8bb9ff",
-              fontWeight: 700
-            }}
-          >
-            Explore → 
-          </div>
-        </Link>
-      ))}
-    </div>
-  </section>
-)}
-
-      <section style={GRID_SECTION_STYLE}>
-<div style={CENTERED_READABLE_SECTION_HEADER_STYLE}>
-  <h2>{fullListHeading}</h2>
-</div>
-
-        {fullList.length > 0 ? (
-          <GameGrid games={fullList} />
-        ) : (
-          <div style={LEFT_ALIGNED_READABLE_SECTION_HEADER_STYLE}>
-            <p>No additional released games are available for this year yet.</p>
-          </div>
-        )}
       </section>
     </PageContainer>
   );

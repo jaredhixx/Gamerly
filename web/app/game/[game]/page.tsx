@@ -481,27 +481,31 @@ const releaseYear = game.releaseDate
   : null;
 
 const seoTitle = isReleasedGame(game)
-  ? `${game.name}${releaseYear ? ` (${releaseYear})` : ""} Review: Is It Worth Playing?`
-  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""}: Should You Play It?`;
+  ? `${game.name}${releaseYear ? ` (${releaseYear})` : ""} – Is It Worth Playing? (Review, Rating & Gameplay)`
+  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""} – Should You Play It? (Release Info, Gameplay & Details)`;
 
-const seoDescription = [
-  isReleasedGame(game)
-    ? `Trying to decide if ${game.name}${releaseYear ? ` (${releaseYear})` : ""} is worth playing?`
-    : `Thinking about ${game.name}${releaseYear ? ` (${releaseYear})` : ""} before release?`,
-  game.releaseDate
-    ? `See the release date, platforms, trailer, screenshots, and key details in one place.`
-    : `See the available platforms, trailer, screenshots, and key details in one place.`,
-  typeof game.aggregated_rating === "number"
-    ? `Current rating: ${Math.round(game.aggregated_rating)}/100.`
-    : null,
-  primaryPlatform ? `Best for ${primaryPlatform} players` : null,
-  primaryGenre ? `interested in ${primaryGenre.toLowerCase()} games.` : null,
-  !primaryPlatform && !primaryGenre
-    ? `See whether it looks worth your time before you play.`
-    : null
-]
-  .filter(Boolean)
-  .join(" ");
+const seoDescription = isReleasedGame(game)
+  ? [
+      `Is ${game.name}${releaseYear ? ` (${releaseYear})` : ""} actually worth playing?`,
+      game.releaseDate
+        ? `See the release date, rating, platforms, trailer, screenshots, and quick take in one place.`
+        : `See the rating, platforms, trailer, screenshots, and quick take in one place.`,
+      typeof game.aggregated_rating === "number"
+        ? `Current rating: ${Math.round(game.aggregated_rating)}/100.`
+        : null,
+      primaryPlatform ? `Best for ${primaryPlatform} players.` : null
+    ]
+      .filter(Boolean)
+      .join(" ")
+  : [
+      `Thinking about ${game.name}${releaseYear ? ` (${releaseYear})` : ""} before release?`,
+      game.releaseDate
+        ? `See the release date, platforms, trailer, screenshots, and key details in one place.`
+        : `See the available platforms, trailer, screenshots, and key details in one place.`,
+      primaryGenre ? `Good fit for players interested in ${primaryGenre.toLowerCase()} games.` : null
+    ]
+      .filter(Boolean)
+      .join(" ");
 
 return {
   title: seoTitle,
@@ -656,8 +660,8 @@ export default async function GamePage(props: any) {
     {" "}
     –{" "}
     {isReleasedGame(game)
-      ? "Is It Worth Playing?"
-      : "Should You Play It?"}
+      ? "Review, Rating & Gameplay"
+      : "Release Info, Gameplay & Details"}
   </span>
 </h1>
 

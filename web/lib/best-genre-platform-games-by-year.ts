@@ -17,7 +17,11 @@ type SupportedGenre =
   | "strategy"
   | "adventure"
   | "simulation"
-  | "indie";
+  | "indie"
+  | "sport"
+  | "puzzle"
+  | "racing"
+  | "fighting";
 
 const platformLabels: Record<
   SupportedPlatform,
@@ -168,6 +172,82 @@ function createIndieEntry(
   };
 }
 
+function createSportsEntry(
+  platform: SupportedPlatform,
+  year: 2025 | 2026
+): BestGenrePlatformYearContentEntry {
+  const labels = platformLabels[platform];
+
+  return {
+    pageTitle: `Best Sports Games on ${labels.pageLabel} in ${year}`,
+    pageSubtitle: `Top-rated sports games released in ${year} on ${labels.releaseLabel}, ranked by quality and popularity.`,
+    description: `Discover the best sports games on ${labels.pageLabel} in ${year}, including the top sports titles released this year.`,
+    introParagraphOne: `The best sports games on ${labels.pageLabel} in ${year} are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on sports games released in ${year} that are playable on ${labels.releaseLabel}, highlighting the titles that stand out most across competitive and simulation-style sports experiences.`,
+    introParagraphTwo: `If you are searching for the best sports games on ${labels.pageLabel} in ${year} to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player engagement, and lasting relevance within the sports genre. For a broader view across all genres, explore the best ${labels.broadPageLabel} games of ${year} to see the top releases across the entire platform.`,
+    exploreHeading: `Explore More ${labels.exploreLabel} Sports Pages`,
+    topSectionHeading: `Top Sports Games Released on ${labels.releaseLabel} in ${year}`,
+    topSectionIntro: `These are the best sports games released on ${labels.releaseLabel} in ${year}, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest ${labels.exploreLabel} sports releases of the year and is designed to quickly surface the top sports games worth playing.`,
+    fullListHeading: `Full List of Best Sports Games on ${labels.pageLabel} in ${year}`
+  };
+}
+
+function createPuzzleEntry(
+  platform: SupportedPlatform,
+  year: 2025 | 2026
+): BestGenrePlatformYearContentEntry {
+  const labels = platformLabels[platform];
+
+  return {
+    pageTitle: `Best Puzzle Games on ${labels.pageLabel} in ${year}`,
+    pageSubtitle: `Top-rated puzzle games released in ${year} on ${labels.releaseLabel}, ranked by quality and popularity.`,
+    description: `Discover the best puzzle games on ${labels.pageLabel} in ${year}, including the top puzzle titles released this year.`,
+    introParagraphOne: `The best puzzle games on ${labels.pageLabel} in ${year} are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on puzzle games released in ${year} that are playable on ${labels.releaseLabel}, highlighting the titles that stand out most across logic, problem-solving, and design-driven gameplay.`,
+    introParagraphTwo: `If you are searching for the best puzzle games on ${labels.pageLabel} in ${year} to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player engagement, and lasting relevance within the puzzle genre. For a broader view across all genres, explore the best ${labels.broadPageLabel} games of ${year} to see the top releases across the entire platform.`,
+    exploreHeading: `Explore More ${labels.exploreLabel} Puzzle Pages`,
+    topSectionHeading: `Top Puzzle Games Released on ${labels.releaseLabel} in ${year}`,
+    topSectionIntro: `These are the best puzzle games released on ${labels.releaseLabel} in ${year}, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest ${labels.exploreLabel} puzzle releases of the year and is designed to quickly surface the top puzzle games worth playing.`,
+    fullListHeading: `Full List of Best Puzzle Games on ${labels.pageLabel} in ${year}`
+  };
+}
+
+function createRacingEntry(
+  platform: SupportedPlatform,
+  year: 2025 | 2026
+): BestGenrePlatformYearContentEntry {
+  const labels = platformLabels[platform];
+
+  return {
+    pageTitle: `Best Racing Games on ${labels.pageLabel} in ${year}`,
+    pageSubtitle: `Top-rated racing games released in ${year} on ${labels.releaseLabel}, ranked by quality and popularity.`,
+    description: `Discover the best racing games on ${labels.pageLabel} in ${year}, including the top racing titles released this year.`,
+    introParagraphOne: `The best racing games on ${labels.pageLabel} in ${year} are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on racing games released in ${year} that are playable on ${labels.releaseLabel}, highlighting the titles that stand out most across simulation racers, arcade racers, and competitive driving experiences.`,
+    introParagraphTwo: `If you are searching for the best racing games on ${labels.pageLabel} in ${year} to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player engagement, and lasting relevance within the racing genre. For a broader view across all genres, explore the best ${labels.broadPageLabel} games of ${year} to see the top releases across the entire platform.`,
+    exploreHeading: `Explore More ${labels.exploreLabel} Racing Pages`,
+    topSectionHeading: `Top Racing Games Released on ${labels.releaseLabel} in ${year}`,
+    topSectionIntro: `These are the best racing games released on ${labels.releaseLabel} in ${year}, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest ${labels.exploreLabel} racing releases of the year and is designed to quickly surface the top racing games worth playing.`,
+    fullListHeading: `Full List of Best Racing Games on ${labels.pageLabel} in ${year}`
+  };
+}
+
+function createFightingEntry(
+  platform: SupportedPlatform,
+  year: 2025 | 2026
+): BestGenrePlatformYearContentEntry {
+  const labels = platformLabels[platform];
+
+  return {
+    pageTitle: `Best Fighting Games on ${labels.pageLabel} in ${year}`,
+    pageSubtitle: `Top-rated fighting games released in ${year} on ${labels.releaseLabel}, ranked by quality and popularity.`,
+    description: `Discover the best fighting games on ${labels.pageLabel} in ${year}, including the top fighting titles released this year.`,
+    introParagraphOne: `The best fighting games on ${labels.pageLabel} in ${year} are ranked here based on critic scores, player interest, and overall release impact. This page focuses specifically on fighting games released in ${year} that are playable on ${labels.releaseLabel}, highlighting the titles that stand out most across competitive and casual fighting experiences.`,
+    introParagraphTwo: `If you are searching for the best fighting games on ${labels.pageLabel} in ${year} to play right now, this page is designed to surface the strongest options first. Rankings prioritize games with high review scores, strong player engagement, and lasting relevance within the fighting genre. For a broader view across all genres, explore the best ${labels.broadPageLabel} games of ${year} to see the top releases across the entire platform.`,
+    exploreHeading: `Explore More ${labels.exploreLabel} Fighting Pages`,
+    topSectionHeading: `Top Fighting Games Released on ${labels.releaseLabel} in ${year}`,
+    topSectionIntro: `These are the best fighting games released on ${labels.releaseLabel} in ${year}, ranked based on critic scores, player interest, and overall release impact. This section highlights the strongest ${labels.exploreLabel} fighting releases of the year and is designed to quickly surface the top fighting games worth playing.`,
+    fullListHeading: `Full List of Best Fighting Games on ${labels.pageLabel} in ${year}`
+  };
+}
+
 function createPlatformGenreYearSet(platform: SupportedPlatform) {
   return {
     rpg: {
@@ -193,6 +273,22 @@ function createPlatformGenreYearSet(platform: SupportedPlatform) {
     indie: {
       2025: createIndieEntry(platform, 2025),
       2026: createIndieEntry(platform, 2026)
+    },
+    sport: {
+      2025: createSportsEntry(platform, 2025),
+      2026: createSportsEntry(platform, 2026)
+    },
+    puzzle: {
+      2025: createPuzzleEntry(platform, 2025),
+      2026: createPuzzleEntry(platform, 2026)
+    },
+    racing: {
+      2025: createRacingEntry(platform, 2025),
+      2026: createRacingEntry(platform, 2026)
+    },
+    fighting: {
+      2025: createFightingEntry(platform, 2025),
+      2026: createFightingEntry(platform, 2026)
     }
   };
 }

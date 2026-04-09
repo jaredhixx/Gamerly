@@ -1094,29 +1094,64 @@ className="home2026Card"
     }}
   >
     {[
-      {
-        title: "Best PC Games in 2026",
-        links: [
-          { href: "/best-pc-games-2026", label: "Best PC Games of 2026" },
-          { href: "/best-rpg-games-pc-2026", label: "Best PC RPG Games of 2026" }
-        ]
-      },
-      {
-        title: "Best PlayStation Games in 2026",
-        links: [
-          { href: "/best-playstation-games-2026", label: "Best PlayStation Games of 2026" }
-        ]
-      },
+{
+  title: "Best PC Games in 2026",
+  links: [
+    { href: "/best-pc-games-2026", label: "Best PC Games of 2026" },
+    { href: "/best-rpg-games-pc-2026", label: "Best PC RPG Games of 2026" },
+    { href: "/best-shooter-games-pc-2026", label: "Best PC Shooter Games of 2026" },
+    { href: "/best-strategy-games-pc-2026", label: "Best PC Strategy Games of 2026" },
+    { href: "/best-adventure-games-pc-2026", label: "Best PC Adventure Games of 2026" },
+    { href: "/best-simulation-games-pc-2026", label: "Best PC Simulation Games of 2026" },
+    { href: "/best-puzzle-games-pc-2026", label: "Best PC Puzzle Games of 2026" },
+    { href: "/best-racing-games-pc-2026", label: "Best PC Racing Games of 2026" },
+    { href: "/best-fighting-games-pc-2026", label: "Best PC Fighting Games of 2026" },
+    { href: "/best-sport-games-pc-2026", label: "Best PC Sports Games of 2026" }
+  ]
+},
+{
+  title: "Best PlayStation Games in 2026",
+  links: [
+    { href: "/best-playstation-games-2026", label: "Best PlayStation Games of 2026" },
+    { href: "/best-rpg-games-playstation-2026", label: "Best PlayStation RPG Games of 2026" },
+    { href: "/best-shooter-games-playstation-2026", label: "Best PlayStation Shooter Games of 2026" },
+    { href: "/best-strategy-games-playstation-2026", label: "Best PlayStation Strategy Games of 2026" },
+    { href: "/best-adventure-games-playstation-2026", label: "Best PlayStation Adventure Games of 2026" },
+    { href: "/best-simulation-games-playstation-2026", label: "Best PlayStation Simulation Games of 2026" },
+    { href: "/best-puzzle-games-playstation-2026", label: "Best PlayStation Puzzle Games of 2026" },
+    { href: "/best-racing-games-playstation-2026", label: "Best PlayStation Racing Games of 2026" },
+    { href: "/best-fighting-games-playstation-2026", label: "Best PlayStation Fighting Games of 2026" },
+    { href: "/best-sport-games-playstation-2026", label: "Best PlayStation Sports Games of 2026" }
+  ]
+},
       {
         title: "Best Xbox Games in 2026",
         links: [
-          { href: "/best-xbox-games-2026", label: "Best Xbox Games of 2026" }
+          { href: "/best-xbox-games-2026", label: "Best Xbox Games of 2026" },
+          { href: "/best-rpg-games-xbox-2026", label: "Best Xbox RPG Games of 2026" },
+          { href: "/best-shooter-games-xbox-2026", label: "Best Xbox Shooter Games of 2026" },
+          { href: "/best-strategy-games-xbox-2026", label: "Best Xbox Strategy Games of 2026" },
+          { href: "/best-adventure-games-xbox-2026", label: "Best Xbox Adventure Games of 2026" },
+          { href: "/best-simulation-games-xbox-2026", label: "Best Xbox Simulation Games of 2026" },
+          { href: "/best-puzzle-games-xbox-2026", label: "Best Xbox Puzzle Games of 2026" },
+          { href: "/best-racing-games-xbox-2026", label: "Best Xbox Racing Games of 2026" },
+          { href: "/best-fighting-games-xbox-2026", label: "Best Xbox Fighting Games of 2026" },
+          { href: "/best-sport-games-xbox-2026", label: "Best Xbox Sports Games of 2026" }
         ]
       },
       {
         title: "Best Switch Games in 2026",
         links: [
-          { href: "/best-switch-games-2026", label: "Best Switch Games of 2026" }
+          { href: "/best-switch-games-2026", label: "Best Switch Games of 2026" },
+          { href: "/best-rpg-games-switch-2026", label: "Best Switch RPG Games of 2026" },
+          { href: "/best-shooter-games-switch-2026", label: "Best Switch Shooter Games of 2026" },
+          { href: "/best-strategy-games-switch-2026", label: "Best Switch Strategy Games of 2026" },
+          { href: "/best-adventure-games-switch-2026", label: "Best Switch Adventure Games of 2026" },
+          { href: "/best-simulation-games-switch-2026", label: "Best Switch Simulation Games of 2026" },
+          { href: "/best-puzzle-games-switch-2026", label: "Best Switch Puzzle Games of 2026" },
+          { href: "/best-racing-games-switch-2026", label: "Best Switch Racing Games of 2026" },
+          { href: "/best-fighting-games-switch-2026", label: "Best Switch Fighting Games of 2026" },
+          { href: "/best-sport-games-switch-2026", label: "Best Switch Sports Games of 2026" }
         ]
       }
     ].map((cluster) => (

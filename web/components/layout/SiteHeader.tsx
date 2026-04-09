@@ -26,7 +26,10 @@ const genres = [
   { name: "Adventure", slug: "adventure" },
   { name: "Simulation", slug: "simulation" },
   { name: "Puzzle", slug: "puzzle" },
-  { name: "Indie", slug: "indie" }
+  { name: "Indie", slug: "indie" },
+  { name: "Sports", slug: "sport" },
+  { name: "Racing", slug: "racing" },
+  { name: "Fighting", slug: "fighting" }
 ];
 
 export default function SiteHeader() {

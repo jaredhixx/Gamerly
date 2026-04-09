@@ -51,7 +51,12 @@ export default function SiteFooter() {
             <Link href="/genre/shooter">Shooter</Link>
             <Link href="/genre/strategy">Strategy</Link>
             <Link href="/genre/adventure">Adventure</Link>
+            <Link href="/genre/simulation">Simulation</Link>
+            <Link href="/genre/puzzle">Puzzle</Link>
             <Link href="/genre/indie">Indie</Link>
+            <Link href="/genre/sport">Sports</Link>
+            <Link href="/genre/racing">Racing</Link>
+            <Link href="/genre/fighting">Fighting</Link>
           </div>
 
         </div>

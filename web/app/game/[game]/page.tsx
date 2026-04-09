@@ -493,7 +493,8 @@ const seoDescription = isReleasedGame(game)
       typeof game.aggregated_rating === "number"
         ? `Current rating: ${Math.round(game.aggregated_rating)}/100.`
         : null,
-      primaryPlatform ? `Best for ${primaryPlatform} players.` : null
+      primaryPlatform ? `Best for ${primaryPlatform} players.` : null,
+      `Compare it to better games before you decide.`
     ]
       .filter(Boolean)
       .join(" ")
@@ -925,7 +926,7 @@ export default async function GamePage(props: any) {
 
     {game.genreSlugs?.[0] && (
       <Link
-        href={`/genre/${game.genreSlugs[0]}`}
+        href={`/best-${game.genreSlugs[0]}-games`}
         className="heroQuickLinkPill"
       >
         Best {game.genres?.[0]} games

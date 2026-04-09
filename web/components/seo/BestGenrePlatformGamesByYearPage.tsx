@@ -333,6 +333,26 @@ const genreDisplayName =
     tag: "Indie"
   },
   {
+    href: `/best-sport-games-${platformSlug}-${year}`,
+    label: `Best sports games on ${platformSlug} in ${year}`,
+    tag: "Sports"
+  },
+  {
+    href: `/best-puzzle-games-${platformSlug}-${year}`,
+    label: `Best puzzle games on ${platformSlug} in ${year}`,
+    tag: "Puzzle"
+  },
+  {
+    href: `/best-racing-games-${platformSlug}-${year}`,
+    label: `Best racing games on ${platformSlug} in ${year}`,
+    tag: "Racing"
+  },
+  {
+    href: `/best-fighting-games-${platformSlug}-${year}`,
+    label: `Best fighting games on ${platformSlug} in ${year}`,
+    tag: "Fighting"
+  },
+  {
     href: `/new-games`,
     label: `Browse newly released games`,
     tag: "Discovery"

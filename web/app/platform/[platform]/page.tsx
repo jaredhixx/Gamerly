@@ -39,9 +39,9 @@ export async function generateMetadata(props: any): Promise<Metadata> {
     };
   }
 
-  return {
-title: `Best ${platformConfig.name.replace(" Games", "")} Games 2026 (Ranked & Worth Playing)`,
-description: `Looking for the best ${platformConfig.name.toLowerCase()} in 2026? See which games are actually worth playing, ranked by rating, popularity, and real player interest.`,
+return {
+  title: `${platformConfig.name} – New, Upcoming & Top Rated Games`,
+  description: `Browse ${platformConfig.name.toLowerCase()} including top rated games, new releases, and upcoming titles. Find what is actually worth playing right now.`,
     alternates: {
       canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}`)
     }

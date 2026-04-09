@@ -569,6 +569,7 @@ p + p {
 
 .heroSideCard {
   display: flex;
+  align-items: stretch;
   gap: 14px;
 
   background: var(--bg-surface);
@@ -581,7 +582,7 @@ p + p {
 
   box-shadow: 0 8px 20px rgba(0,0,0,0.28);
 
-    min-height: 136px;
+  min-height: 160px;
 
   transform: translateZ(0);
 
@@ -605,20 +606,18 @@ p + p {
   box-shadow: 0 14px 32px rgba(0,0,0,0.38);
 }
 
-.heroSideCard img {
-
-  width: 136px;
-  min-width: 136px;
-
-  aspect-ratio: 1 / 1;
-
-  object-fit: cover;
-  object-position: center;
-
-  display: block;
-
+.heroSideImageWrap {
+  position: relative;
+  width: 120px;
+  min-width: 120px;
+  align-self: stretch;
+  overflow: hidden;
   background: rgba(255,255,255,0.03);
+}
 
+.heroSideImage {
+  object-fit: cover;
+  object-position: center top;
 }
 
 .heroSideContent {

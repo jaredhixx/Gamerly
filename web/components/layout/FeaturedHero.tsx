@@ -99,14 +99,15 @@ export default function FeaturedHero({
         <Link href={upcomingUrl} className="heroLink">
           <div className="heroSideCard">
             {upcoming.coverUrl && (
-              <Image
-                src={upcoming.coverUrl}
-                alt={upcoming.name}
-                width={136}
-                height={136}
-                sizes="136px"
-                className="loaded"
-              />
+              <div className="heroSideImageWrap">
+                <Image
+                  src={upcoming.coverUrl}
+                  alt={upcoming.name}
+                  fill
+                  sizes="120px"
+                  className="heroSideImage loaded"
+                />
+              </div>
             )}
 
             <div className="heroSideContent">

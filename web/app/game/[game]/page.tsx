@@ -7,6 +7,7 @@ import GameGrid from "../../../components/game/GameGrid";
 import GameCarousel from "../../../components/game/GameCarousel";
 import ScreenshotLightbox from "../../../components/game/ScreenshotLightbox";
 import ExpandableSummary from "../../../components/game/ExpandableSummary";
+import { getBestPageBySlug } from "../../../lib/best-pages-registry";
 
 
 function formatReleaseDateForDisplay(game: {
@@ -445,6 +446,94 @@ function getGenreHref(genre: string) {
   return null;
 }
 
+function getPrimaryPlatform(game: {
+  platforms?: string[] | null;
+}) {
+  if (!game.platforms || game.platforms.length === 0) {
+    return null;
+  }
+
+  const priorityOrder = [
+    "pc",
+    "playstation",
+    "xbox",
+    "switch",
+    "ios",
+    "android"
+  ];
+
+  const normalizedPlatforms = game.platforms.map((platform) =>
+    platform.toLowerCase()
+  );
+
+  for (const priority of priorityOrder) {
+    const matchIndex = normalizedPlatforms.findIndex((platform) => {
+      if (priority === "pc") {
+        return platform.includes("pc") || platform.includes("windows");
+      }
+
+      if (priority === "switch") {
+        return platform.includes("switch") || platform.includes("nintendo");
+      }
+
+      return platform.includes(priority);
+    });
+
+    if (matchIndex !== -1) {
+      return game.platforms[matchIndex];
+    }
+  }
+
+  return game.platforms[0];
+}
+
+function getPrimaryPlatformSlug(game: {
+  platforms?: string[] | null;
+  platformSlugs?: string[] | null;
+}) {
+  if (
+    !game.platforms ||
+    !game.platformSlugs ||
+    game.platforms.length === 0 ||
+    game.platformSlugs.length === 0
+  ) {
+    return null;
+  }
+
+  const priorityOrder = [
+    "pc",
+    "playstation",
+    "xbox",
+    "switch",
+    "ios",
+    "android"
+  ];
+
+  const normalizedPlatforms = game.platforms.map((platform) =>
+    platform.toLowerCase()
+  );
+
+  for (const priority of priorityOrder) {
+    const matchIndex = normalizedPlatforms.findIndex((platform) => {
+      if (priority === "pc") {
+        return platform.includes("pc") || platform.includes("windows");
+      }
+
+      if (priority === "switch") {
+        return platform.includes("switch") || platform.includes("nintendo");
+      }
+
+      return platform.includes(priority);
+    });
+
+    if (matchIndex !== -1) {
+      return game.platformSlugs[matchIndex] || null;
+    }
+  }
+
+  return game.platformSlugs[0] || null;
+}
+
 export async function generateMetadata(props: any): Promise<Metadata> {
   const params = await props.params;
 
@@ -473,7 +562,7 @@ if (slugParam !== correctSlug) {
     return { title: "Game Not Found" };
   }
 
-const primaryPlatform = game.platforms?.[0];
+const primaryPlatform = getPrimaryPlatform(game);
 const primaryGenre = game.genres?.[0];
 
 const releaseYear = game.releaseDate
@@ -584,6 +673,36 @@ export default async function GamePage(props: any) {
     )
     .slice(0, 8);
 
+  const heroQuickLinkYear = game.releaseDate
+    ? new Date(game.releaseDate).getUTCFullYear()
+    : null;
+
+  const primaryPlatformSlug = getPrimaryPlatformSlug(game);
+
+  const heroQuickLinkSlug =
+    primaryPlatformSlug && heroQuickLinkYear
+      ? `best-${primaryPlatformSlug}-games-${heroQuickLinkYear}`
+      : null;
+
+  const heroQuickLinkPage =
+    heroQuickLinkSlug ? getBestPageBySlug(heroQuickLinkSlug) : null;
+
+const yearQuickLinkSlug =
+  heroQuickLinkYear ? `best-games-${heroQuickLinkYear}` : null;
+
+const yearQuickLinkPage =
+  yearQuickLinkSlug ? getBestPageBySlug(yearQuickLinkSlug) : null;
+
+  const genrePlatformQuickLinkSlug =
+    game.genreSlugs?.[0] && primaryPlatformSlug && heroQuickLinkYear
+      ? `best-${game.genreSlugs[0]}-games-${primaryPlatformSlug}-${heroQuickLinkYear}`
+      : null;
+
+  const genrePlatformQuickLinkPage =
+    genrePlatformQuickLinkSlug
+      ? getBestPageBySlug(genrePlatformQuickLinkSlug)
+      : null;
+
   return (
     <>
       <script
@@ -670,7 +789,7 @@ export default async function GamePage(props: any) {
       ? new Date(game.releaseDate).getUTCFullYear()
       : null;
 
-    const platform = game.platforms?.[0];
+    const platform = getPrimaryPlatform(game);
     const genre = game.genres?.[0];
 
     const rating =
@@ -845,7 +964,7 @@ export default async function GamePage(props: any) {
   {game.genres?.[0] && game.platforms?.[0]
     ? (() => {
         const genre = game.genres[0];
-        const platform = game.platforms[0];
+        const platform = getPrimaryPlatform(game);
 
         const rating = game.aggregated_rating;
         const ratingCount = game.aggregated_rating_count;
@@ -913,14 +1032,14 @@ export default async function GamePage(props: any) {
 
 {(game.platformSlugs?.[0] && game.releaseDate) || game.genreSlugs?.[0] ? (
   <div className="heroQuickLinks">
-    {game.platformSlugs?.[0] && game.releaseDate && (
-      <Link
-        href={`/best-${game.platformSlugs[0]}-games-${new Date(game.releaseDate).getUTCFullYear()}`}
-        className="heroQuickLinkPill"
-      >
-        Best {game.platforms?.[0]} games of {new Date(game.releaseDate).getUTCFullYear()}
-      </Link>
-    )}
+{heroQuickLinkPage && heroQuickLinkSlug && heroQuickLinkYear && (
+  <Link
+    href={`/${heroQuickLinkSlug}`}
+    className="heroQuickLinkPill"
+  >
+    Best {getPrimaryPlatform(game)} games of {heroQuickLinkYear}
+  </Link>
+)}
 
     {game.genreSlugs?.[0] && (
       <Link
@@ -950,24 +1069,24 @@ export default async function GamePage(props: any) {
     {game.releaseDate
       ? `It ${new Date(game.releaseDate).getTime() <= Date.now() ? "released" : "is scheduled to release"} on ${formatReleaseDateForDisplay(game)}.`
       : "It does not yet have a confirmed release date."}{" "}
-    {game.platforms && game.platforms.length > 0 ? (
-      <>
-        You can play it on{" "}
-        {game.platformSlugs?.[0] ? (
-          <Link
-            href={`/platform/${game.platformSlugs[0]}`}
-            className="inlineTextLink"
-          >
-            {game.platforms[0]}
-          </Link>
-        ) : (
-          game.platforms[0]
-        )}
-        {game.platforms.length > 1
-          ? ` and ${game.platforms.slice(1).join(", ")}.`
-          : "."}{" "}
-      </>
-    ) : null}
+{game.platforms && game.platforms.length > 0 ? (
+  <>
+    You can play it on{" "}
+    {game.platformSlugs?.[0] ? (
+      <Link
+        href={`/platform/${game.platformSlugs[0]}`}
+        className="inlineTextLink"
+      >
+        {getPrimaryPlatform(game)}
+      </Link>
+    ) : (
+      getPrimaryPlatform(game)
+    )}
+    {game.platforms.length > 1
+      ? ` and ${game.platforms.slice(1).join(", ")}.`
+      : "."}{" "}
+  </>
+) : null}
     {game.genres && game.genres.length > 0 ? (
       <>
         It is a{" "}
@@ -1054,7 +1173,7 @@ export default async function GamePage(props: any) {
   <section className="gameSection">
     <h2>
       {game.genres?.[0] && game.platforms?.[0]
-        ? `More ${game.genres[0]} Games on ${game.platforms[0]}`
+                ? `More ${game.genres[0]} Games on ${getPrimaryPlatform(game)}`
         : `More Games Like ${game.name}`}
     </h2>
 
@@ -1062,14 +1181,10 @@ export default async function GamePage(props: any) {
 
 <div style={{ marginTop: "14px" }}>
   <Link
-    href={
-      game.platformSlugs?.[0]
-        ? `/platform/${game.platformSlugs[0]}`
-        : `/platform/${game.platforms[0].toLowerCase()}`
-    }
+    href={primaryPlatformSlug ? `/platform/${primaryPlatformSlug}` : "/platforms"}
     className="browseAllLink"
   >
-    Explore more {game.platforms[0]} games →
+    Explore more {getPrimaryPlatform(game)} games →
   </Link>
 </div>
 
@@ -1097,30 +1212,26 @@ export default async function GamePage(props: any) {
   <li><Link href="/new-games">Browse newly released games</Link></li>
   <li><Link href="/upcoming-games">Browse upcoming game releases</Link></li>
 
-  {game.releaseDate && (
+{yearQuickLinkPage && yearQuickLinkSlug && heroQuickLinkYear && (
+  <li>
+    <Link href={`/${yearQuickLinkSlug}`}>
+      See the best video games of {heroQuickLinkYear}
+    </Link>
+  </li>
+)}
+
+  {heroQuickLinkPage && heroQuickLinkSlug && heroQuickLinkYear && (
     <li>
-      <Link href={`/best-games-${new Date(game.releaseDate).getUTCFullYear()}`}>
-        See the best video games of {new Date(game.releaseDate).getUTCFullYear()}
+      <Link href={`/${heroQuickLinkSlug}`}>
+        See the best {getPrimaryPlatform(game)} games of {heroQuickLinkYear}
       </Link>
     </li>
   )}
 
-  {game.platformSlugs?.[0] && game.releaseDate && (
+  {primaryPlatformSlug && (
     <li>
-      <Link
-        href={`/best-${game.platformSlugs[0]}-games-${new Date(game.releaseDate).getUTCFullYear()}`}
-      >
-        See the best {game.platforms?.[0]} games of {new Date(game.releaseDate).getUTCFullYear()}
-      </Link>
-    </li>
-  )}
-
-  {game.platformSlugs?.[0] && (
-    <li>
-<Link
-  href={`/platform/${game.platformSlugs[0]}`}
->
-        Browse all {game.platforms?.[0]} games
+      <Link href={`/platform/${primaryPlatformSlug}`}>
+        Browse all {getPrimaryPlatform(game)} games
       </Link>
     </li>
   )}
@@ -1135,15 +1246,16 @@ export default async function GamePage(props: any) {
     </li>
   )}
 
-  {game.genreSlugs?.[0] && game.platformSlugs?.[0] && game.releaseDate && (
-    <li>
-      <Link
-        href={`/best-${game.genreSlugs[0]}-games-${game.platformSlugs[0]}-${new Date(game.releaseDate).getUTCFullYear()}`}
-      >
-        Compare the best {game.genres?.[0]} games on {game.platforms?.[0]} in {new Date(game.releaseDate).getUTCFullYear()}
-      </Link>
-    </li>
-  )}
+  {genrePlatformQuickLinkPage &&
+    genrePlatformQuickLinkSlug &&
+    primaryPlatformSlug &&
+    heroQuickLinkYear && (
+      <li>
+        <Link href={`/${genrePlatformQuickLinkSlug}`}>
+          Compare the best {game.genres?.[0]} games on {getPrimaryPlatform(game)} in {heroQuickLinkYear}
+        </Link>
+      </li>
+    )}
 </ul>
 </section>
       </main>

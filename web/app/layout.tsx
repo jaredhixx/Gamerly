@@ -22,7 +22,7 @@ return (
   <html lang="en">
     <Script
       async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=pub-3907331496669900"
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3907331496669900"
       crossOrigin="anonymous"
       strategy="afterInteractive"
     />

@@ -480,21 +480,21 @@ const releaseYear = game.releaseDate
   ? new Date(game.releaseDate).getUTCFullYear()
   : null;
 
+const platformText = primaryPlatform ? ` on ${primaryPlatform}` : "";
+
 const seoTitle = isReleasedGame(game)
-  ? `${game.name}${releaseYear ? ` (${releaseYear})` : ""} – Is It Worth Playing? (Review, Rating & Gameplay)`
-  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""} – Should You Play It? (Release Info, Gameplay & Details)`;
+  ? `${game.name}${platformText}${releaseYear ? ` (${releaseYear})` : ""} – Is It Worth Playing?`
+  : `${game.name}${platformText}${releaseYear ? ` (${releaseYear})` : ""} – Should You Play It?`;
 
 const seoDescription = isReleasedGame(game)
   ? [
-      `Is ${game.name}${releaseYear ? ` (${releaseYear})` : ""} actually worth playing?`,
-      game.releaseDate
-        ? `See the release date, rating, platforms, trailer, screenshots, and quick take in one place.`
-        : `See the rating, platforms, trailer, screenshots, and quick take in one place.`,
+      `Thinking about ${game.name}${releaseYear ? ` (${releaseYear})` : ""}?`,
       typeof game.aggregated_rating === "number"
-        ? `Current rating: ${Math.round(game.aggregated_rating)}/100.`
+        ? `It currently holds a ${Math.round(game.aggregated_rating)}/100 rating.`
         : null,
       primaryPlatform ? `Best for ${primaryPlatform} players.` : null,
-      `Compare it to better games before you decide.`
+      `See if it is actually worth your time before you play.`,
+      `Compare gameplay, ratings, and better alternatives in seconds.`
     ]
       .filter(Boolean)
       .join(" ")
@@ -1086,9 +1086,8 @@ export default async function GamePage(props: any) {
     </span>
   </h2>
 
-<p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-  If {game.name} is not quite what you are looking for, use these pages to find
-  better games based on platform, genre, and release year.
+<p style={{ maxWidth: "700px", margin: "0 auto 16px auto", fontWeight: 500 }}>
+  Not sure {game.name} is worth your time? Use these pages to quickly find better games based on platform, genre, and release year.
 </p>
 
 <div style={{ marginBottom: "16px", fontWeight: 500 }}>
@@ -1096,9 +1095,9 @@ export default async function GamePage(props: any) {
 </div>
 
 <ul>
+  <li><Link href="/top-rated">See the highest-rated games right now</Link></li>
   <li><Link href="/new-games">Browse newly released games</Link></li>
   <li><Link href="/upcoming-games">Browse upcoming game releases</Link></li>
-  <li><Link href="/games-releasing-this-month">See games releasing this month</Link></li>
 
   {game.releaseDate && (
     <li>

@@ -136,6 +136,10 @@ export default async function BestGamesByYearPage({
       </div>
 
 <div style={READABLE_SECTION_STYLE}>
+  <p style={{ maxWidth: "none", fontWeight: 500 }}>
+    Trying to find the best games of {year} without wasting time? This page highlights the titles that are actually worth playing based on ratings, player response, and real momentum.
+  </p>
+
   <p style={{ maxWidth: "none" }}>{introParagraphOne}</p>
   <p style={{ maxWidth: "none" }}>{introParagraphTwo}</p>
 

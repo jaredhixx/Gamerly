@@ -10,7 +10,10 @@ export const metadata: Metadata = {
     default: "Gamerly",
     template: "%s | Gamerly"
   },
-  description: "Discover new and upcoming video games by platform, genre, and release date."
+  description: "Discover new and upcoming video games by platform, genre, and release date.",
+  other: {
+    "google-adsense-account": "ca-pub-3907331496669900"
+  }
 };
 
 export default function RootLayout({

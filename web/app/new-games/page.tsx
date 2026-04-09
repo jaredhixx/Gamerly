@@ -11,9 +11,9 @@ const NEW_GAMES_WINDOW_DAYS = 30;
 const PLATFORM_PREVIEW_SIZE = 8;
 
 export const metadata: Metadata = {
-  title: "New Games",
+  title: "New Games Worth Playing (Latest Releases)",
   description:
-    "Browse recently released video games across all major platforms, including PC, PlayStation, Xbox, and Nintendo Switch.",
+    "Discover the best new video games released recently across PC, PlayStation, Xbox, and Switch. Find what’s actually worth playing from the latest launches.",
   alternates: {
     canonical: buildCanonicalUrl("/new-games")
   }

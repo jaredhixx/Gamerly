@@ -5,9 +5,9 @@ import Link from "next/link";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
-  title: "New Games This Month",
+  title: "Best New Games This Month (What’s Worth Playing Now)",
   description:
-    "Browse all video games releasing this month across PC, PlayStation, Xbox, Nintendo Switch, iOS, and Android.",
+    "Discover the best new games releasing this month across PC, PlayStation, Xbox, Nintendo Switch, iOS, and Android. See what’s worth playing now and track the strongest current-month releases.",
   alternates: {
     canonical: buildCanonicalUrl("/new-games-this-month")
   }

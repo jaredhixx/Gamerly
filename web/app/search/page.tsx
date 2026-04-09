@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import { fetchGames } from "../../lib/igdb";
 import GameGrid from "../../components/game/GameGrid";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 export default async function SearchPage({ searchParams }: any) {
 

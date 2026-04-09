@@ -1102,7 +1102,7 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
     console.log(
       `[IGDB] Returning cached catalog. games=${cachedGames.length} forceRefresh=false`
     );
-    return [...cachedGames];
+    return cachedGames;
   }
 
   if (!forceRefresh && cachedGames.length > 0 && !cacheLooksUsable) {
@@ -1128,14 +1128,14 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
       `[IGDB] Returning live catalog. games=${liveGames.length}`
     );
 
-        return [...liveGames];
+        return liveGames;
   } catch (error) {
     if (cachedGames.length > 0) {
       console.warn(
         `[IGDB] Live IGDB fetch failed. Falling back to cache. games=${cachedGames.length} lastUpdated=${cache.lastUpdated ?? "unknown"}`,
         error
       );
-            return [...cachedGames];
+            return cachedGames;
     }
 
     console.error("IGDB failed and no local cache was available.", error);

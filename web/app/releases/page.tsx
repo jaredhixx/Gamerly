@@ -4,9 +4,9 @@ import { getDerivedGameData } from "../../lib/game-data";
 import { buildCanonicalUrl } from "../../lib/site";
 
 export const metadata: Metadata = {
-  title: "Video Game Release Calendar",
+  title: "Video Game Release Calendar (This Month, Next Month, Upcoming)",
   description:
-    "Browse upcoming video game releases by month, including this month, next month, and the latest game release schedule across PC, PlayStation, Xbox, Switch, iOS, and Android.",
+    "Track video game releases by month across PC, PlayStation, Xbox, Switch, iOS, and Android. See what’s coming this month, next month, and which upcoming games are worth watching.",
   alternates: {
     canonical: buildCanonicalUrl("/releases")
   }

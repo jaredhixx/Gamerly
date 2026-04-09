@@ -480,11 +480,9 @@ const releaseYear = game.releaseDate
   ? new Date(game.releaseDate).getUTCFullYear()
   : null;
 
-const platformText = primaryPlatform ? ` on ${primaryPlatform}` : "";
-
 const seoTitle = isReleasedGame(game)
-  ? `${game.name}${platformText}${releaseYear ? ` (${releaseYear})` : ""} – Is It Worth Playing?`
-  : `${game.name}${platformText}${releaseYear ? ` (${releaseYear})` : ""} – Should You Play It?`;
+  ? `${game.name}${releaseYear ? ` (${releaseYear})` : ""} Review${primaryPlatform ? ` – ${primaryPlatform}` : ""} | Worth Playing?`
+  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""} Release Date, Platforms & Details${primaryPlatform ? ` – ${primaryPlatform}` : ""}`;
 
 const seoDescription = isReleasedGame(game)
   ? [

@@ -11,9 +11,9 @@ const PAGE_SIZE = 60;
 const PLATFORM_PREVIEW_SIZE = 8;
 
 export const metadata: Metadata = {
-  title: "Top Rated Games",
+  title: "Best Games Worth Playing Right Now (Top Rated Picks)",
   description:
-    "Discover the highest rated video games across PC, PlayStation, Xbox, and Nintendo Switch.",
+    "Find the best video games worth playing right now across PC, PlayStation, Xbox, and Switch. Discover top rated titles, standout releases, and the highest quality games available.",
   alternates: {
     canonical: buildCanonicalUrl("/top-rated")
   }

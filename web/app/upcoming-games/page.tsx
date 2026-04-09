@@ -10,9 +10,9 @@ const PAGE_SIZE = 60;
 const PLATFORM_PREVIEW_SIZE = 8;
 
 export const metadata: Metadata = {
-  title: "Upcoming Games",
+  title: "Upcoming Games Worth Playing (2026 Release Radar)",
   description:
-    "Browse upcoming video game releases across all major platforms, including PC, PlayStation, Xbox, and Nintendo Switch.",
+    "Discover upcoming video games worth playing across PC, PlayStation, Xbox, and Switch. See the most anticipated releases, standout titles, and what’s actually worth your time.",
   alternates: {
     canonical: buildCanonicalUrl("/upcoming-games")
   }

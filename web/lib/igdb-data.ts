@@ -23,6 +23,8 @@ type LoadedCache = {
 };
 
 let inMemoryLoadedCache: LoadedCache | null = null;
+let inMemoryCatalogGames: GamerlyGame[] | null = null;
+let inFlightCatalogPromise: Promise<GamerlyGame[]> | null = null;
 
 const IGDB_GAME_FIELDS = `
   name,
@@ -1163,92 +1165,112 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
   const forceRefresh = process.env.IGDB_FORCE_REFRESH === "true";
   const allowAutomaticStaleRefresh =
     process.env.IGDB_ALLOW_AUTOMATIC_STALE_REFRESH === "true";
-  const cache = loadCache();
-  const cachedGames = cache.games;
-  const cacheAgeHours = getCacheAgeHours(cache.lastUpdated);
 
-  logCacheHealth(cachedGames, cache.lastUpdated, cache.isLegacyFormat);
-
-  const cacheLooksUsable =
-    cachedGames.length >= MIN_REASONABLE_CACHE_SIZE;
-
-  const cacheIsVeryStale =
-    cache.lastUpdated !== null &&
-    cacheAgeHours !== null &&
-    cacheAgeHours >= CACHE_STALE_ERROR_HOURS;
-
-  if (
-    !forceRefresh &&
-    cacheLooksUsable &&
-    (!cacheIsVeryStale || !allowAutomaticStaleRefresh)
-  ) {
+  if (!forceRefresh && inMemoryCatalogGames) {
     console.log(
-      `[IGDB] Returning cached catalog. games=${cachedGames.length} forceRefresh=false cacheIsVeryStale=${cacheIsVeryStale} allowAutomaticStaleRefresh=${allowAutomaticStaleRefresh}`
+      `[IGDB] Returning memoized in-memory catalog. games=${inMemoryCatalogGames.length}`
     );
-    return cachedGames;
+    return inMemoryCatalogGames;
   }
 
-  if (!forceRefresh && cachedGames.length > 0 && !cacheLooksUsable) {
-    console.warn(
-      `[IGDB] Cache exists but looks suspiciously small. games=${cachedGames.length}. Attempting live refresh instead of trusting cache immediately.`
-    );
+  if (inFlightCatalogPromise) {
+    console.log("[IGDB] Awaiting in-flight catalog request.");
+    return inFlightCatalogPromise;
   }
 
-  if (
-    !forceRefresh &&
-    cacheLooksUsable &&
-    cacheIsVeryStale &&
-    allowAutomaticStaleRefresh
-  ) {
-    console.warn(
-      `[IGDB] Cache is usable but very stale. ageHours=${cacheAgeHours?.toFixed(1)}. Attempting live refresh before falling back to cache.`
-    );
-  }
+  inFlightCatalogPromise = (async () => {
+    const cache = loadCache();
+    const cachedGames = cache.games;
+    const cacheAgeHours = getCacheAgeHours(cache.lastUpdated);
 
-  if (
-    !forceRefresh &&
-    cacheLooksUsable &&
-    cacheIsVeryStale &&
-    !allowAutomaticStaleRefresh
-  ) {
-    console.warn(
-      `[IGDB] Cache is usable but very stale. ageHours=${cacheAgeHours?.toFixed(1)}. Automatic stale refresh is disabled, so cached data will be served until a manual refresh is triggered.`
-    );
-  }
+    logCacheHealth(cachedGames, cache.lastUpdated, cache.isLegacyFormat);
 
-  if (forceRefresh) {
-    console.log("[IGDB] IGDB_FORCE_REFRESH=true. Attempting live catalog refresh.");
-  }
+    const cacheLooksUsable =
+      cachedGames.length >= MIN_REASONABLE_CACHE_SIZE;
 
-  if (forceRefresh) {
-    console.log("[IGDB] IGDB_FORCE_REFRESH=true. Attempting live catalog refresh.");
-  }
+    const cacheIsVeryStale =
+      cache.lastUpdated !== null &&
+      cacheAgeHours !== null &&
+      cacheAgeHours >= CACHE_STALE_ERROR_HOURS;
+
+    if (
+      !forceRefresh &&
+      cacheLooksUsable &&
+      (!cacheIsVeryStale || !allowAutomaticStaleRefresh)
+    ) {
+      console.log(
+        `[IGDB] Returning cached catalog. games=${cachedGames.length} forceRefresh=false cacheIsVeryStale=${cacheIsVeryStale} allowAutomaticStaleRefresh=${allowAutomaticStaleRefresh}`
+      );
+      inMemoryCatalogGames = cachedGames;
+      return cachedGames;
+    }
+
+    if (!forceRefresh && cachedGames.length > 0 && !cacheLooksUsable) {
+      console.warn(
+        `[IGDB] Cache exists but looks suspiciously small. games=${cachedGames.length}. Attempting live refresh instead of trusting cache immediately.`
+      );
+    }
+
+    if (
+      !forceRefresh &&
+      cacheLooksUsable &&
+      cacheIsVeryStale &&
+      allowAutomaticStaleRefresh
+    ) {
+      console.warn(
+        `[IGDB] Cache is usable but very stale. ageHours=${cacheAgeHours?.toFixed(1)}. Attempting live refresh before falling back to cache.`
+      );
+    }
+
+    if (
+      !forceRefresh &&
+      cacheLooksUsable &&
+      cacheIsVeryStale &&
+      !allowAutomaticStaleRefresh
+    ) {
+      console.warn(
+        `[IGDB] Cache is usable but very stale. ageHours=${cacheAgeHours?.toFixed(1)}. Automatic stale refresh is disabled, so cached data will be served until a manual refresh is triggered.`
+      );
+    }
+
+    if (forceRefresh) {
+      console.log("[IGDB] IGDB_FORCE_REFRESH=true. Attempting live catalog refresh.");
+    }
+
+    try {
+      const liveGames = await fetchSharedCatalogFromIGDB();
+
+      if (liveGames.length === 0) {
+        throw new Error("Live IGDB catalog returned zero games");
+      }
+
+      saveCache(liveGames);
+      inMemoryCatalogGames = liveGames;
+
+      console.log(
+        `[IGDB] Returning live catalog. games=${liveGames.length}`
+      );
+
+      return liveGames;
+    } catch (error) {
+      if (cachedGames.length > 0) {
+        console.warn(
+          `[IGDB] Live IGDB fetch failed. Falling back to cache. games=${cachedGames.length} lastUpdated=${cache.lastUpdated ?? "unknown"}`,
+          error
+        );
+        inMemoryCatalogGames = cachedGames;
+        return cachedGames;
+      }
+
+      console.error("IGDB failed and no local cache was available.", error);
+      throw error;
+    }
+  })();
 
   try {
-    const liveGames = await fetchSharedCatalogFromIGDB();
-
-    if (liveGames.length === 0) {
-      throw new Error("Live IGDB catalog returned zero games");
-    }
-
-    saveCache(liveGames);
-
-    console.log(
-      `[IGDB] Returning live catalog. games=${liveGames.length}`
-    );
-
-        return liveGames;
-  } catch (error) {
-    if (cachedGames.length > 0) {
-      console.warn(
-        `[IGDB] Live IGDB fetch failed. Falling back to cache. games=${cachedGames.length} lastUpdated=${cache.lastUpdated ?? "unknown"}`,
-        error
-      );
-            return cachedGames;
-    }
-
-    console.error("IGDB failed and no local cache was available.", error);
-    throw error;
+    return await inFlightCatalogPromise;
+  } finally {
+    inFlightCatalogPromise = null;
   }
 }
 

@@ -546,11 +546,12 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const slugParts = slugParam.split("-");
   const id = Number(slugParts[0]);
 
-  const game = await getGameById(id);
+  const allGames = await fetchGames();
+  const game = allGames.find((g) => g.id === id);
 
   if (!game) {
-  notFound();
-}
+    notFound();
+  }
 
 const correctSlug = `${game.id}-${game.slug}`;
 

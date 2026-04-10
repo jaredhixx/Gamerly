@@ -62,36 +62,54 @@ export default async function PlatformPage(props: any) {
 
   const platformLabel = platformConfig.name.replace(" Games", "");
 
-  const filtered = games.filter((g: any) =>
-    g.platformSlugs?.includes(platformConfig.slug)
-  );
+const now = Date.now();
 
-  const topRated = [...filtered]
-    .filter((g: any) => (g.aggregated_rating ?? 0) > 0)
-    .sort((a: any, b: any) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
-    .slice(0, 8);
+const filtered = [];
+const upcomingCandidates = [];
+const releasedCandidates = [];
 
-  const upcoming = [...filtered]
-    .filter((g: any) => {
-      if (!g.releaseDate) return false;
-      return new Date(g.releaseDate) > new Date();
-    })
-    .sort(
-      (a: any, b: any) =>
-        new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
-    )
-    .slice(0, 8);
+for (const g of games) {
+  if (!g.platformSlugs?.includes(platformConfig.slug)) {
+    continue;
+  }
 
-  const newReleases = [...filtered]
-    .filter((g: any) => {
-      if (!g.releaseDate) return false;
-      return new Date(g.releaseDate) <= new Date();
-    })
-    .sort(
-      (a: any, b: any) =>
-        new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
-    )
-    .slice(0, 8);
+  filtered.push(g);
+
+  if (!g.releaseDate) {
+    continue;
+  }
+
+  const time = new Date(g.releaseDate).getTime();
+
+  if (Number.isNaN(time)) {
+    continue;
+  }
+
+  if (time > now) {
+    upcomingCandidates.push(g);
+  } else {
+    releasedCandidates.push(g);
+  }
+}
+
+const topRated = releasedCandidates
+  .filter((g: any) => (g.aggregated_rating ?? 0) > 0)
+  .sort((a: any, b: any) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
+  .slice(0, 8);
+
+const upcoming = upcomingCandidates
+  .sort(
+    (a: any, b: any) =>
+      new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
+  )
+  .slice(0, 8);
+
+const newReleases = releasedCandidates
+  .sort(
+    (a: any, b: any) =>
+      new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+  )
+  .slice(0, 8);
 
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>

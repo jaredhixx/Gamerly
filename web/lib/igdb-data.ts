@@ -1090,6 +1090,8 @@ async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
 
 export async function getAllGames(): Promise<GamerlyGame[]> {
   const forceRefresh = process.env.IGDB_FORCE_REFRESH === "true";
+  const allowAutomaticStaleRefresh =
+    process.env.IGDB_ALLOW_AUTOMATIC_STALE_REFRESH === "true";
   const cache = loadCache();
   const cachedGames = cache.games;
   const cacheAgeHours = getCacheAgeHours(cache.lastUpdated);
@@ -1104,9 +1106,13 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
     cacheAgeHours !== null &&
     cacheAgeHours >= CACHE_STALE_ERROR_HOURS;
 
-  if (!forceRefresh && cacheLooksUsable && !cacheIsVeryStale) {
+  if (
+    !forceRefresh &&
+    cacheLooksUsable &&
+    (!cacheIsVeryStale || !allowAutomaticStaleRefresh)
+  ) {
     console.log(
-      `[IGDB] Returning cached catalog. games=${cachedGames.length} forceRefresh=false cacheIsVeryStale=false`
+      `[IGDB] Returning cached catalog. games=${cachedGames.length} forceRefresh=false cacheIsVeryStale=${cacheIsVeryStale} allowAutomaticStaleRefresh=${allowAutomaticStaleRefresh}`
     );
     return cachedGames;
   }
@@ -1117,9 +1123,25 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
     );
   }
 
-  if (!forceRefresh && cacheLooksUsable && cacheIsVeryStale) {
+  if (
+    !forceRefresh &&
+    cacheLooksUsable &&
+    cacheIsVeryStale &&
+    allowAutomaticStaleRefresh
+  ) {
     console.warn(
       `[IGDB] Cache is usable but very stale. ageHours=${cacheAgeHours?.toFixed(1)}. Attempting live refresh before falling back to cache.`
+    );
+  }
+
+  if (
+    !forceRefresh &&
+    cacheLooksUsable &&
+    cacheIsVeryStale &&
+    !allowAutomaticStaleRefresh
+  ) {
+    console.warn(
+      `[IGDB] Cache is usable but very stale. ageHours=${cacheAgeHours?.toFixed(1)}. Automatic stale refresh is disabled, so cached data will be served until a manual refresh is triggered.`
     );
   }
 

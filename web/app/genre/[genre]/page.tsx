@@ -78,9 +78,9 @@ export default async function GenrePage(props: any) {
 
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
-      <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "30px" }}>
-        {name} Games
-      </h1>
+<h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "30px" }}>
+  Best {name} Games Worth Playing Right Now
+</h1>
 
       <section
   style={{

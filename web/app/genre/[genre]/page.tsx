@@ -25,8 +25,8 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   }
 
   return {
-    title: `${name} Games`,
-    description: `Browse ${name.toLowerCase()} games including release dates, screenshots, ratings, and more.`,
+    title: `Best ${name} Games Worth Playing Right Now`,
+    description: `Looking for the best ${name.toLowerCase()} games worth playing right now? Browse top rated picks, new releases, and upcoming games to quickly find the strongest options.`,
     alternates: {
       canonical: buildCanonicalUrl(`/genre/${genre}`)
     }

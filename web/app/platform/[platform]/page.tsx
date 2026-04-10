@@ -40,12 +40,12 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   }
 
 return {
-  title: `${platformConfig.name} – New, Upcoming & Top Rated Games`,
-  description: `Browse ${platformConfig.name.toLowerCase()} including top rated games, new releases, and upcoming titles. Find what is actually worth playing right now.`,
-    alternates: {
-      canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}`)
-    }
-  };
+  title: `Best ${platformConfig.name} – Top Games Worth Playing Right Now`,
+  description: `Looking for the best ${platformConfig.name.toLowerCase()} games? Browse top rated games, new releases, and upcoming titles to quickly find what is actually worth playing right now.`,
+  alternates: {
+    canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}`)
+  }
+};
 }
 
 export default async function PlatformPage(props: any) {

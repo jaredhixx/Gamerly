@@ -570,27 +570,26 @@ const releaseYear = game.releaseDate
   : null;
 
 const seoTitle = isReleasedGame(game)
-  ? `${game.name}${releaseYear ? ` (${releaseYear})` : ""} Review${primaryPlatform ? ` – ${primaryPlatform}` : ""} | Worth Playing?`
-  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""} Release Date, Platforms & Details${primaryPlatform ? ` – ${primaryPlatform}` : ""}`;
+  ? `${game.name}${releaseYear ? ` (${releaseYear})` : ""} – Is It Worth Playing? ${primaryPlatform ? `${primaryPlatform} Review & Verdict` : "Review & Verdict"}`
+  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""} – Release Date, Platforms & What to Expect`;
 
 const seoDescription = isReleasedGame(game)
   ? [
-      `Thinking about ${game.name}${releaseYear ? ` (${releaseYear})` : ""}?`,
+      `Is ${game.name}${releaseYear ? ` (${releaseYear})` : ""} actually worth playing?`,
       typeof game.aggregated_rating === "number"
-        ? `It currently holds a ${Math.round(game.aggregated_rating)}/100 rating.`
+        ? `It currently has a ${Math.round(game.aggregated_rating)}/100 rating.`
         : null,
-      primaryPlatform ? `Best for ${primaryPlatform} players.` : null,
-      `See if it is actually worth your time before you play.`,
-      `Compare gameplay, ratings, and better alternatives in seconds.`
+      primaryPlatform ? `See how it plays on ${primaryPlatform}.` : null,
+      `Quickly decide if it fits your playstyle, or find better games instead.`
     ]
       .filter(Boolean)
       .join(" ")
   : [
-      `Thinking about ${game.name}${releaseYear ? ` (${releaseYear})` : ""} before release?`,
+      `Planning to play ${game.name}${releaseYear ? ` (${releaseYear})` : ""}?`,
       game.releaseDate
-        ? `See the release date, platforms, trailer, screenshots, and key details in one place.`
-        : `See the available platforms, trailer, screenshots, and key details in one place.`,
-      primaryGenre ? `Good fit for players interested in ${primaryGenre.toLowerCase()} games.` : null
+        ? `See the release date, platforms, trailer, and everything you need before launch.`
+        : `See platforms, trailer, screenshots, and early details.`,
+      `Find out if it is worth following before it releases.`
     ]
       .filter(Boolean)
       .join(" ");
@@ -778,8 +777,8 @@ const yearQuickLinkPage =
     {" "}
     –{" "}
     {isReleasedGame(game)
-      ? "Review, Rating & Gameplay"
-      : "Release Info, Gameplay & Details"}
+      ? "Is It Worth Playing? Review & Verdict"
+      : "Release Date, Platforms & What to Expect"}
   </span>
 </h1>
 
@@ -798,24 +797,24 @@ const yearQuickLinkPage =
         : null;
 
     if (isReleasedGame(game)) {
-      return `${game.name}${
-        releaseYear ? ` (${releaseYear})` : ""
-      } is a ${genre ? genre.toLowerCase() : "game"}${
-        platform ? ` available on ${platform}` : ""
-      }.${
-        rating ? ` It currently holds a ${rating}/100 rating.` : ""
-      } Find out if it is actually worth playing, who it is best for, and whether it deserves your time.`;
+return `Trying to decide if ${game.name}${
+  releaseYear ? ` (${releaseYear})` : ""
+} is worth playing? ${
+  rating ? `It currently has a ${rating}/100 rating.` : ""
+} ${
+  platform ? `See how it performs on ${platform},` : ""
+} who it is best for, and whether it is actually worth your time before you play.`;
     }
 
-    return `${game.name}${
-      releaseYear ? ` (${releaseYear})` : ""
-    } is an upcoming ${genre ? genre.toLowerCase() : "game"}${
-      platform ? ` planned for ${platform}` : ""
-    }.${
-      game.releaseDate
-        ? ` It is expected to release on ${formatReleaseDateForDisplay(game)}.`
-        : ""
-    } See if it is worth keeping on your radar, what type of players it will appeal to, and what to expect at launch.`;
+return `Trying to decide if ${game.name}${
+  releaseYear ? ` (${releaseYear})` : ""
+} is worth following before launch? ${
+  platform ? `It is currently expected on ${platform}.` : ""
+} ${
+  game.releaseDate
+    ? `The current release date is ${formatReleaseDateForDisplay(game)}.`
+    : "A release date has not been confirmed yet."
+} See what kind of players it may appeal to, what to expect at launch, and whether it deserves a spot on your radar.`;
   })()}
 </p>
 
@@ -961,47 +960,53 @@ const yearQuickLinkPage =
     <div className="gameHeroDecisionRow">
       <span className="gameHeroDecisionLabel">Best for</span>
 <span className="gameHeroDecisionValue">
-  {game.genres?.[0] && game.platforms?.[0]
-    ? (() => {
-        const genre = game.genres[0];
-        const platform = getPrimaryPlatform(game);
+{game.genres?.[0] && game.platforms?.[0]
+  ? (() => {
+      const genre = game.genres[0];
+      const platform = getPrimaryPlatform(game);
 
-        const rating = game.aggregated_rating;
-        const ratingCount = game.aggregated_rating_count;
+      const rating = game.aggregated_rating;
+      const ratingCount = game.aggregated_rating_count;
 
-        if (
-          typeof rating === "number" &&
-          typeof ratingCount === "number" &&
-          rating >= 80 &&
-          ratingCount >= 20
-        ) {
-          return `${genre} players looking for highly rated games on ${platform}`;
-        }
+      if (
+        typeof rating === "number" &&
+        typeof ratingCount === "number" &&
+        rating >= 80 &&
+        ratingCount >= 20
+      ) {
+        return `Players who want one of the stronger ${genre.toLowerCase()} options on ${platform}`;
+      }
 
-        if (
-          typeof rating === "number" &&
-          rating >= 70
-        ) {
-          return `${genre} players exploring solid games on ${platform}`;
-        }
+      if (
+        typeof rating === "number" &&
+        rating >= 70
+      ) {
+        return `Players interested in a promising ${genre.toLowerCase()} game on ${platform}`;
+      }
 
-        return `${genre} players exploring games on ${platform}`;
-      })()
-    : "Players exploring new games"}
+      return `Players curious about ${genre.toLowerCase()} games on ${platform}`;
+    })()
+  : "Players looking for something new"}
 </span>
     </div>
 
     <div className="gameHeroDecisionRow">
       <span className="gameHeroDecisionLabel">Rating</span>
-      <span className="gameHeroDecisionValue">
-        {typeof game.aggregated_rating === "number"
-          ? `${Math.round(game.aggregated_rating)} / 100`
-          : "No rating yet"}
-      </span>
+<span className="gameHeroDecisionValue">
+  {typeof game.aggregated_rating === "number"
+    ? game.aggregated_rating >= 85
+      ? `${Math.round(game.aggregated_rating)} / 100 (Excellent)`
+      : game.aggregated_rating >= 75
+      ? `${Math.round(game.aggregated_rating)} / 100 (Strong)`
+      : game.aggregated_rating >= 65
+      ? `${Math.round(game.aggregated_rating)} / 100 (Decent)`
+      : `${Math.round(game.aggregated_rating)} / 100 (Mixed)`
+    : "No rating yet"}
+</span>
     </div>
 
 <div className="gameHeroDecisionRow">
-  <span className="gameHeroDecisionLabel">Player signal</span>
+  <span className="gameHeroDecisionLabel">Early reception</span>
   <span
     className={`gameHeroDecisionValue ${
       typeof game.aggregated_rating === "number"
@@ -1015,15 +1020,19 @@ const yearQuickLinkPage =
         : "signal-unknown"
     }`}
   >
-    {typeof game.aggregated_rating === "number"
-      ? game.aggregated_rating >= 80 &&
-        typeof game.aggregated_rating_count === "number" &&
-        game.aggregated_rating_count >= 20
-        ? "Strong early signal"
-        : game.aggregated_rating >= 70
-        ? "Promising signal"
-        : "Mixed signal"
-      : "Signal still forming"}
+{typeof game.aggregated_rating === "number"
+  ? game.aggregated_rating >= 80 &&
+    typeof game.aggregated_rating_count === "number" &&
+    game.aggregated_rating_count >= 20
+    ? "Strong early reception"
+    : game.aggregated_rating >= 70 &&
+      typeof game.aggregated_rating_count === "number" &&
+      game.aggregated_rating_count >= 20
+    ? "Solid early reception"
+    : game.aggregated_rating >= 70
+    ? "Promising first impression"
+    : "Mixed early reception"
+  : "Too early to judge"}
   </span>
 </div>
   </div>
@@ -1054,9 +1063,9 @@ const yearQuickLinkPage =
 
 {game.summary && (
   <section className="gameHeroSummaryBlock">
-    <h2 className="gameHeroSummaryHeading">
-      Should You Play {game.name}?
-    </h2>
+<h2 className="gameHeroSummaryHeading">
+  Is {game.name} Worth Playing?
+</h2>
     <ExpandableSummary summary={game.summary} />
   </section>
 )}
@@ -1064,51 +1073,55 @@ const yearQuickLinkPage =
 <section className="gameSection" style={{ textAlign: "center" }}>
   <h2>About {game.name}</h2>
 
-  <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-    Trying to decide if {game.name} is worth playing?{" "}
-    {game.releaseDate
-      ? `It ${new Date(game.releaseDate).getTime() <= Date.now() ? "released" : "is scheduled to release"} on ${formatReleaseDateForDisplay(game)}.`
-      : "It does not yet have a confirmed release date."}{" "}
-{game.platforms && game.platforms.length > 0 ? (
-  <>
-    You can play it on{" "}
-    {game.platformSlugs?.[0] ? (
-      <Link
-        href={`/platform/${game.platformSlugs[0]}`}
-        className="inlineTextLink"
-      >
-        {getPrimaryPlatform(game)}
-      </Link>
-    ) : (
-      getPrimaryPlatform(game)
-    )}
-    {game.platforms.length > 1
-      ? ` and ${game.platforms.slice(1).join(", ")}.`
-      : "."}{" "}
-  </>
-) : null}
-    {game.genres && game.genres.length > 0 ? (
-      <>
-        It is a{" "}
-        {game.genreSlugs?.[0] ? (
+<p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
+  {isReleasedGame(game)
+    ? `This page helps you quickly decide whether ${game.name} is actually worth playing.`
+    : `This page helps you quickly decide whether ${game.name} is worth keeping on your radar before release.`}{" "}
+  {game.releaseDate
+    ? `It ${new Date(game.releaseDate).getTime() <= Date.now() ? "released" : "is scheduled to release"} on ${formatReleaseDateForDisplay(game)}.`
+    : "It does not yet have a confirmed release date."}{" "}
+  {game.platforms && game.platforms.length > 0 ? (
+    <>
+      {getPrimaryPlatformSlug(game) ? (
+        <>
+          The main platform here is{" "}
           <Link
-            href={`/genre/${game.genreSlugs[0]}`}
+            href={`/platform/${getPrimaryPlatformSlug(game)}`}
             className="inlineTextLink"
           >
-            {game.genres[0]}
+            {getPrimaryPlatform(game)}
           </Link>
-        ) : (
-          game.genres[0]
-        )}
-        {game.genres.length > 1
-          ? ` game with ${game.genres.slice(1).join(", ")} elements.`
-          : " game."}{" "}
-      </>
-    ) : null}
-    {typeof game.aggregated_rating === "number"
-? `It holds a ${Math.round(game.aggregated_rating)}/100 rating, giving a quick sense of how strongly it is landing with players and reviewers.`
-      : `Use this page to quickly judge whether it looks worth your time based on its release timing, platforms, trailer, screenshots, and similar games.`}
-  </p>
+          .
+        </>
+      ) : (
+        <>
+          The main platform here is {getPrimaryPlatform(game)}.
+        </>
+      )}{" "}
+    </>
+  ) : null}
+  {game.genres && game.genres.length > 0 ? (
+    <>
+      It is best matched with players interested in{" "}
+      {game.genreSlugs?.[0] ? (
+        <Link
+          href={`/genre/${game.genreSlugs[0]}`}
+          className="inlineTextLink"
+        >
+          {game.genres[0]}
+        </Link>
+      ) : (
+        game.genres[0]
+      )}
+      {game.genres.length > 1
+        ? `, with ${game.genres.slice(1).join(", ")} elements also in the mix.`
+        : " games."}{" "}
+    </>
+  ) : null}
+  {typeof game.aggregated_rating === "number"
+    ? `It currently holds a ${Math.round(game.aggregated_rating)}/100 rating, which gives you a fast read on how well it is landing so far.`
+    : `Use the trailer, screenshots, release timing, and related games below to judge whether it deserves your time.`}
+</p>
 </section>
 
 </div>
@@ -1192,19 +1205,18 @@ const yearQuickLinkPage =
         )}
 
 <section className="gameSection discoverSection">
-  <h2>
-    What Should You Play Next?
-    <span className="sectionSub">
-      {" "}– Better Games to Try After {game.name}
-    </span>
-  </h2>
-
+<h2>
+  Better Games to Play Instead of {game.name}
+  <span className="sectionSub">
+    {" "}– Faster ways to find a better fit by platform, genre, or year
+  </span>
+</h2>
 <p style={{ maxWidth: "700px", margin: "0 auto 16px auto", fontWeight: 500 }}>
-  Not sure {game.name} is worth your time? Use these pages to quickly find better games based on platform, genre, and release year.
+  Still not convinced {game.name} is worth your time? Use these pages to quickly find stronger options based on platform, genre, and release year.
 </p>
 
 <div style={{ marginBottom: "16px", fontWeight: 500 }}>
-  Compare better options:
+  Start with one of these:
 </div>
 
 <ul>

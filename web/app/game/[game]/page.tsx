@@ -622,6 +622,18 @@ export default async function GamePage(props: any) {
     notFound();
   }
 
+  const gameWithModes = game as typeof game & {
+    game_modes?: string[] | null;
+    multiplayer_modes?:
+      | Array<{
+          onlinecoop?: boolean | null;
+          onlinecoopmax?: number | null;
+          offlinecoop?: boolean | null;
+          offlinecoopmax?: number | null;
+        }>
+      | null;
+  };
+
   const relatedCandidates = allGames.filter(
     (g) =>
       g.id !== game.id &&
@@ -1069,6 +1081,72 @@ return `Trying to decide if ${game.name}${
     <ExpandableSummary summary={game.summary} />
   </section>
 )}
+
+<section className="gameSection" style={{ textAlign: "center" }}>
+  <h2>How {game.name} Plays</h2>
+
+  <div
+    style={{
+      maxWidth: "700px",
+      margin: "0 auto",
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "14px",
+      marginTop: "16px"
+    }}
+  >
+    <div className="gameInfoCard">
+      <div className="gameInfoLabel">Single Player</div>
+      <div className="gameInfoValue">
+        {gameWithModes.game_modes?.includes("Single player")
+          ? "Yes"
+          : "Unknown"}
+      </div>
+    </div>
+
+    <div className="gameInfoCard">
+      <div className="gameInfoLabel">Multiplayer</div>
+      <div className="gameInfoValue">
+        {gameWithModes.game_modes?.includes("Multiplayer")
+          ? "Yes"
+          : "Unknown"}
+      </div>
+    </div>
+
+    <div className="gameInfoCard">
+      <div className="gameInfoLabel">Co-op</div>
+      <div className="gameInfoValue">
+        {gameWithModes.game_modes?.some((mode) =>
+          mode.toLowerCase().includes("coop")
+        )
+          ? "Available"
+          : "Unknown"}
+      </div>
+    </div>
+
+    <div className="gameInfoCard">
+      <div className="gameInfoLabel">Online Play</div>
+      <div className="gameInfoValue">
+        {gameWithModes.multiplayer_modes?.some(
+          (mode) => mode.onlinecoop || mode.onlinecoopmax
+        )
+          ? "Yes"
+          : "Unknown"}
+      </div>
+    </div>
+
+    <div className="gameInfoCard">
+      <div className="gameInfoLabel">Local Play</div>
+      <div className="gameInfoValue">
+        {gameWithModes.multiplayer_modes?.some(
+          (mode) => mode.offlinecoop || mode.offlinecoopmax
+        )
+          ? "Yes"
+          : "Unknown"}
+      </div>
+    </div>
+  </div>
+</section>
 
 <section className="gameSection" style={{ textAlign: "center" }}>
   <h2>About {game.name}</h2>

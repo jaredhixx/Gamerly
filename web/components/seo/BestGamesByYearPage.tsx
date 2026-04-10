@@ -71,7 +71,7 @@ export default async function BestGamesByYearPage({
 }: Props) {
   const games = await fetchGames();
 
-  const matchingGames = games.filter((game) => {
+  const allMatchingGames = games.filter((game) => {
     if (!game.releaseDate) {
       return false;
     }
@@ -83,47 +83,61 @@ export default async function BestGamesByYearPage({
     }
 
     const releaseYear = releaseDate.getUTCFullYear();
+
+    return releaseYear === year;
+  });
+
+  const strongMatchingGames = allMatchingGames.filter((game) => {
     const rating = game.aggregated_rating ?? 0;
     const ratingCount = game.aggregated_rating_count ?? 0;
 
-    return releaseYear === year && rating >= 72 && ratingCount >= 2;
+    return rating >= 72 && ratingCount >= 2;
   });
 
-  const sortedGames = [...matchingGames].sort((a, b) => {
-    const ratingA = a.aggregated_rating ?? 0;
-    const ratingB = b.aggregated_rating ?? 0;
-    const countA = a.aggregated_rating_count ?? 0;
-    const countB = b.aggregated_rating_count ?? 0;
+  const sortGames = (gamesToSort: typeof allMatchingGames) => {
+    return [...gamesToSort].sort((a, b) => {
+      const ratingA = a.aggregated_rating ?? 0;
+      const ratingB = b.aggregated_rating ?? 0;
+      const countA = a.aggregated_rating_count ?? 0;
+      const countB = b.aggregated_rating_count ?? 0;
 
-    const scoreA = ratingA + Math.min(countA, 20) * 0.35;
-    const scoreB = ratingB + Math.min(countB, 20) * 0.35;
+      const scoreA = ratingA + Math.min(countA, 20) * 0.35;
+      const scoreB = ratingB + Math.min(countB, 20) * 0.35;
 
-    const scoreDiff = scoreB - scoreA;
+      const scoreDiff = scoreB - scoreA;
 
-    if (scoreDiff !== 0) {
-      return scoreDiff;
-    }
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
 
-    const ratingDiff = ratingB - ratingA;
+      const ratingDiff = ratingB - ratingA;
 
-    if (ratingDiff !== 0) {
-      return ratingDiff;
-    }
+      if (ratingDiff !== 0) {
+        return ratingDiff;
+      }
 
-    const countDiff = countB - countA;
+      const countDiff = countB - countA;
 
-    if (countDiff !== 0) {
-      return countDiff;
-    }
+      if (countDiff !== 0) {
+        return countDiff;
+      }
 
-    return (
-      new Date(b.releaseDate || "").getTime() -
-      new Date(a.releaseDate || "").getTime()
-    );
-  });
+      return (
+        new Date(b.releaseDate || "").getTime() -
+        new Date(a.releaseDate || "").getTime()
+      );
+    });
+  };
 
-  const topPicks = sortedGames.slice(0, 12);
-  const fullList = sortedGames.slice(12, 72);
+  const sortedStrongGames = sortGames(strongMatchingGames);
+  const sortedAllMatchingGames = sortGames(allMatchingGames);
+
+  const topPicks = sortedStrongGames.slice(0, 12);
+  const topPickIds = new Set(topPicks.map((game) => game.id));
+
+  const fullList = sortedAllMatchingGames
+    .filter((game) => !topPickIds.has(game.id))
+    .slice(0, 60);
 
   return (
     <PageContainer>

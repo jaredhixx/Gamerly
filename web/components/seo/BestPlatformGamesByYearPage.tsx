@@ -70,65 +70,74 @@ export default async function BestPlatformGamesByYearPage({
 }: Props) {
   const games = await fetchGames();
 
-  const matchingGames = games.filter((game) => {
+  const allMatchingGames = games.filter((game) => {
     if (!game.releaseDate) {
       return false;
     }
 
     const releaseDate = new Date(game.releaseDate);
 
-if (year !== new Date().getUTCFullYear() && releaseDate > new Date()) {
-  return false;
-}
+    if (year !== new Date().getUTCFullYear() && releaseDate > new Date()) {
+      return false;
+    }
 
     const releaseYear = releaseDate.getUTCFullYear();
-    const rating = game.aggregated_rating ?? 0;
-    const ratingCount = game.aggregated_rating_count ?? 0;
     const hasPlatform = game.platformSlugs?.includes(platformSlug);
 
-return (
-  releaseYear === year &&
-  hasPlatform &&
-  rating >= 70 &&
-  ratingCount >= 2
-);
+    return releaseYear === year && hasPlatform;
   });
 
-  const sortedGames = [...matchingGames].sort((a, b) => {
-    const ratingA = a.aggregated_rating ?? 0;
-    const ratingB = b.aggregated_rating ?? 0;
-    const countA = a.aggregated_rating_count ?? 0;
-    const countB = b.aggregated_rating_count ?? 0;
+  const strongMatchingGames = allMatchingGames.filter((game) => {
+    const rating = game.aggregated_rating ?? 0;
+    const ratingCount = game.aggregated_rating_count ?? 0;
 
-    const scoreA = ratingA + Math.min(countA, 20) * 0.35;
-    const scoreB = ratingB + Math.min(countB, 20) * 0.35;
-
-    const scoreDiff = scoreB - scoreA;
-
-    if (scoreDiff !== 0) {
-      return scoreDiff;
-    }
-
-    const ratingDiff = ratingB - ratingA;
-
-    if (ratingDiff !== 0) {
-      return ratingDiff;
-    }
-
-    const countDiff = countB - countA;
-
-    if (countDiff !== 0) {
-      return countDiff;
-    }
-
-    return (
-      new Date(b.releaseDate || "").getTime() -
-      new Date(a.releaseDate || "").getTime()
-    );
+    return rating >= 70 && ratingCount >= 2;
   });
 
-  const topPicks = sortedGames.slice(0, 12);
-  const fullList = sortedGames.slice(0, 60);
+  const sortGames = (gamesToSort: typeof allMatchingGames) => {
+    return [...gamesToSort].sort((a, b) => {
+      const ratingA = a.aggregated_rating ?? 0;
+      const ratingB = b.aggregated_rating ?? 0;
+      const countA = a.aggregated_rating_count ?? 0;
+      const countB = b.aggregated_rating_count ?? 0;
+
+      const scoreA = ratingA + Math.min(countA, 20) * 0.35;
+      const scoreB = ratingB + Math.min(countB, 20) * 0.35;
+
+      const scoreDiff = scoreB - scoreA;
+
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
+
+      const ratingDiff = ratingB - ratingA;
+
+      if (ratingDiff !== 0) {
+        return ratingDiff;
+      }
+
+      const countDiff = countB - countA;
+
+      if (countDiff !== 0) {
+        return countDiff;
+      }
+
+      return (
+        new Date(b.releaseDate || "").getTime() -
+        new Date(a.releaseDate || "").getTime()
+      );
+    });
+  };
+
+  const sortedStrongGames = sortGames(strongMatchingGames);
+  const sortedAllMatchingGames = sortGames(allMatchingGames);
+
+  const topPicks = sortedStrongGames.slice(0, 12);
+  const topPickIds = new Set(topPicks.map((game) => game.id));
+
+  const fullList = sortedAllMatchingGames
+    .filter((game) => !topPickIds.has(game.id))
+    .slice(0, 60);
 
     const platformDisplayName =
     platformSlug === "pc"

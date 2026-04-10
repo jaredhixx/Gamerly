@@ -43,7 +43,12 @@ const IGDB_GAME_FIELDS = `
   videos.video_id,
   platforms.id,
   platforms.name,
-  genres.name
+  genres.name,
+  game_modes.name,
+  multiplayer_modes.onlinecoop,
+  multiplayer_modes.onlinecoopmax,
+  multiplayer_modes.offlinecoop,
+  multiplayer_modes.offlinecoopmax
 `;
 
 export type GamerlyGame = {
@@ -51,8 +56,8 @@ export type GamerlyGame = {
   name: string;
   slug: string;
   releaseDate: string | null;
-releaseDateDisplay: string | null;
-releaseDatePrecision: ReleaseDatePrecision;
+  releaseDateDisplay: string | null;
+  releaseDatePrecision: ReleaseDatePrecision;
   aggregated_rating: number | null;
   aggregated_rating_count: number | null;
   coverUrl: string | null;
@@ -63,6 +68,13 @@ releaseDatePrecision: ReleaseDatePrecision;
   summary: string | null;
   screenshots: string[];
   trailer: string | null;
+  game_modes: string[];
+  multiplayer_modes: Array<{
+    onlinecoop?: boolean | null;
+    onlinecoopmax?: number | null;
+    offlinecoop?: boolean | null;
+    offlinecoopmax?: number | null;
+  }>;
 };
 
 function saveCache(games: GamerlyGame[]) {
@@ -227,11 +239,11 @@ function hydrateCachedGameShape(rawGame: any): GamerlyGame {
     name: rawGame.name,
     slug: rawGame.slug,
     releaseDate: rawGame.releaseDate ?? null,
-releaseDateDisplay:
-  rawGame.releaseDateDisplay ??
-  rawGame.releaseDisplayDate ??
-  null,
-releaseDatePrecision: rawGame.releaseDatePrecision ?? "unknown",
+    releaseDateDisplay:
+      rawGame.releaseDateDisplay ??
+      rawGame.releaseDisplayDate ??
+      null,
+    releaseDatePrecision: rawGame.releaseDatePrecision ?? "unknown",
     aggregated_rating: rawGame.aggregated_rating ?? null,
     aggregated_rating_count: rawGame.aggregated_rating_count ?? null,
     coverUrl: rawGame.coverUrl ?? null,
@@ -241,9 +253,44 @@ releaseDatePrecision: rawGame.releaseDatePrecision ?? "unknown",
     genreSlugs,
     summary: rawGame.summary ?? null,
     screenshots: Array.isArray(rawGame?.screenshots)
-      ? rawGame.screenshots.filter((value: unknown): value is string => typeof value === "string")
+      ? rawGame.screenshots.filter(
+          (value: unknown): value is string => typeof value === "string"
+        )
       : [],
-    trailer: rawGame.trailer ?? null
+    trailer: rawGame.trailer ?? null,
+    game_modes: Array.isArray(rawGame?.game_modes)
+      ? rawGame.game_modes.filter(
+          (value: unknown): value is string => typeof value === "string"
+        )
+      : [],
+    multiplayer_modes: Array.isArray(rawGame?.multiplayer_modes)
+      ? rawGame.multiplayer_modes
+          .filter(
+            (value: unknown): value is {
+              onlinecoop?: boolean | null;
+              onlinecoopmax?: number | null;
+              offlinecoop?: boolean | null;
+              offlinecoopmax?: number | null;
+            } => typeof value === "object" && value !== null
+          )
+          .map((mode: {
+            onlinecoop?: boolean | null;
+            onlinecoopmax?: number | null;
+            offlinecoop?: boolean | null;
+            offlinecoopmax?: number | null;
+          }) => ({
+            onlinecoop:
+              typeof mode.onlinecoop === "boolean" ? mode.onlinecoop : null,
+            onlinecoopmax:
+              typeof mode.onlinecoopmax === "number" ? mode.onlinecoopmax : null,
+            offlinecoop:
+              typeof mode.offlinecoop === "boolean" ? mode.offlinecoop : null,
+            offlinecoopmax:
+              typeof mode.offlinecoopmax === "number"
+                ? mode.offlinecoopmax
+                : null
+          }))
+      : []
   };
 }
 
@@ -689,9 +736,28 @@ function normalizeGame(game: any): GamerlyGame {
       ? game.screenshots
           .map((screenshot: any) => normalizeScreenshot(screenshot?.url))
           .filter((value: string | null): value is string => Boolean(value))
-          .slice(0, 5)
+          .slice(0, 12)
       : [],
-    trailer
+    trailer,
+    game_modes: Array.isArray(game?.game_modes)
+      ? game.game_modes
+          .map((mode: any) => mode?.name)
+          .filter((value: unknown): value is string => typeof value === "string")
+      : [],
+    multiplayer_modes: Array.isArray(game?.multiplayer_modes)
+      ? game.multiplayer_modes.map((mode: any) => ({
+          onlinecoop:
+            typeof mode?.onlinecoop === "boolean" ? mode.onlinecoop : null,
+          onlinecoopmax:
+            typeof mode?.onlinecoopmax === "number" ? mode.onlinecoopmax : null,
+          offlinecoop:
+            typeof mode?.offlinecoop === "boolean" ? mode.offlinecoop : null,
+          offlinecoopmax:
+            typeof mode?.offlinecoopmax === "number"
+              ? mode.offlinecoopmax
+              : null
+        }))
+      : []
   };
 }
 
@@ -735,8 +801,13 @@ function mergeGames(existing: GamerlyGame, incoming: GamerlyGame): GamerlyGame {
     genres: mergeStringArrays(existing.genres, incoming.genres),
     genreSlugs: Array.from(new Set([...existing.genreSlugs, ...incoming.genreSlugs])),
     summary: existing.summary ?? incoming.summary ?? null,
-    screenshots: mergeStringArrays(existing.screenshots, incoming.screenshots).slice(0, 5),
-    trailer: existing.trailer ?? incoming.trailer ?? null
+    screenshots: mergeStringArrays(existing.screenshots, incoming.screenshots).slice(0, 12),
+    trailer: existing.trailer ?? incoming.trailer ?? null,
+    game_modes: mergeStringArrays(existing.game_modes, incoming.game_modes),
+    multiplayer_modes:
+      existing.multiplayer_modes.length > 0
+        ? existing.multiplayer_modes
+        : incoming.multiplayer_modes
   };
 }
 

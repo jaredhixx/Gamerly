@@ -134,9 +134,18 @@ export default async function BestGenrePlatformGamesByYearPage({
   };
 
   const sortedStrongGames = sortGames(strongMatchingGames);
+  const sortedAllMatchingGames = sortGames(allMatchingGames);
 
-  const topPicks = sortedStrongGames.slice(0, 12);
-  const fullList = sortedStrongGames.slice(12, 72);
+  const strongGameIds = new Set(sortedStrongGames.map((game) => game.id));
+
+  const fallbackGames = sortedAllMatchingGames.filter(
+    (game) => !strongGameIds.has(game.id)
+  );
+
+  const topPicks = [...sortedStrongGames, ...fallbackGames].slice(0, 12);
+  const fullList = sortedAllMatchingGames
+    .filter((game) => !topPicks.some((topGame) => topGame.id === game.id))
+    .slice(0, 60);
 
   const platformDisplayName =
     platformSlug === "pc"

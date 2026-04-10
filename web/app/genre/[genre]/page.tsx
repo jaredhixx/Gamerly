@@ -82,6 +82,19 @@ export default async function GenrePage(props: any) {
   Best {name} Games Worth Playing Right Now
 </h1>
 
+<p
+  style={{
+    fontSize: "16px",
+    lineHeight: 1.7,
+    color: "#b8c0d4",
+    maxWidth: "800px",
+    margin: "0 auto 20px auto",
+    textAlign: "center"
+  }}
+>
+  Trying to find the best {name.toLowerCase()} games that are actually worth your time? This page highlights the strongest options right now, including top rated games, new releases, and upcoming titles, so you can quickly decide what is worth playing without digging through low-quality picks.
+</p>
+
       <section
   style={{
     marginBottom: "40px",

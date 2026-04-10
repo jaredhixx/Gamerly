@@ -116,7 +116,7 @@ export default async function PlatformPage(props: any) {
     textAlign: "center"
   }}
 >
-  Looking for the best {platformLabel.toLowerCase()} games to play right now? This page highlights the top rated titles, new releases, and upcoming games on {platformLabel}, so you can quickly find what is actually worth playing without wasting time on low-quality picks.
+  Trying to find the best {platformLabel.toLowerCase()} games that are actually worth your time? This page highlights the strongest options right now, including top rated titles, new releases, and upcoming games, so you can quickly decide what is worth playing without digging through low-quality picks.
 </p>
 
 <p

@@ -103,7 +103,7 @@ export default async function PlatformPage(props: any) {
     textAlign: "center"
   }}
 >
-  {platformLabel} Games
+  Best {platformLabel} Games Worth Playing Right Now
 </h1>
 
 <p

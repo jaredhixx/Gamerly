@@ -1092,15 +1092,21 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
   const forceRefresh = process.env.IGDB_FORCE_REFRESH === "true";
   const cache = loadCache();
   const cachedGames = cache.games;
+  const cacheAgeHours = getCacheAgeHours(cache.lastUpdated);
 
   logCacheHealth(cachedGames, cache.lastUpdated, cache.isLegacyFormat);
 
   const cacheLooksUsable =
     cachedGames.length >= MIN_REASONABLE_CACHE_SIZE;
 
-  if (!forceRefresh && cacheLooksUsable) {
+  const cacheIsVeryStale =
+    cache.lastUpdated !== null &&
+    cacheAgeHours !== null &&
+    cacheAgeHours >= CACHE_STALE_ERROR_HOURS;
+
+  if (!forceRefresh && cacheLooksUsable && !cacheIsVeryStale) {
     console.log(
-      `[IGDB] Returning cached catalog. games=${cachedGames.length} forceRefresh=false`
+      `[IGDB] Returning cached catalog. games=${cachedGames.length} forceRefresh=false cacheIsVeryStale=false`
     );
     return cachedGames;
   }
@@ -1109,6 +1115,16 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
     console.warn(
       `[IGDB] Cache exists but looks suspiciously small. games=${cachedGames.length}. Attempting live refresh instead of trusting cache immediately.`
     );
+  }
+
+  if (!forceRefresh && cacheLooksUsable && cacheIsVeryStale) {
+    console.warn(
+      `[IGDB] Cache is usable but very stale. ageHours=${cacheAgeHours?.toFixed(1)}. Attempting live refresh before falling back to cache.`
+    );
+  }
+
+  if (forceRefresh) {
+    console.log("[IGDB] IGDB_FORCE_REFRESH=true. Attempting live catalog refresh.");
   }
 
   if (forceRefresh) {

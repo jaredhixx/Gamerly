@@ -41,7 +41,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
 
 return {
   title: `Best ${platformConfig.name} – Top Games Worth Playing Right Now`,
-  description: `Looking for the best ${platformConfig.name.toLowerCase()} games? Browse top rated games, new releases, and upcoming titles to quickly find what is actually worth playing right now.`,
+  description: `Which ${platformConfig.name.toLowerCase()} games are actually worth playing right now? Skip the filler and find the best options fast, including top rated games, new releases, and upcoming titles.`,
   alternates: {
     canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}`)
   }

@@ -267,7 +267,7 @@ export default async function PlatformPage(props: any) {
     opacity: 0.8
   }}
 >
-  Best {platformLabel} Games in 2025
+  Previous Year Picks (2025)
 </h3>
 
 <div

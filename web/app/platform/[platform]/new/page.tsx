@@ -66,20 +66,35 @@ export default async function PlatformNewPage(props: any) {
 
   const games = await fetchGames();
 
-  const filtered = games.filter((g: any) =>
-    g.platformSlugs?.includes(platformConfig.slug)
-  );
+const now = Date.now();
 
-  const newReleases = filtered
-    .filter((g: any) => {
-      if (!g.releaseDate) return false;
-      return new Date(g.releaseDate) <= new Date();
-    })
-    .sort(
-      (a: any, b: any) =>
-        new Date(b.releaseDate).getTime() -
-        new Date(a.releaseDate).getTime()
-    );
+const newReleases = [];
+
+for (const g of games) {
+  if (!g.platformSlugs?.includes(platformConfig.slug)) {
+    continue;
+  }
+
+  if (!g.releaseDate) {
+    continue;
+  }
+
+  const time = new Date(g.releaseDate).getTime();
+
+  if (Number.isNaN(time)) {
+    continue;
+  }
+
+  if (time <= now) {
+    newReleases.push(g);
+  }
+}
+
+newReleases.sort(
+  (a: any, b: any) =>
+    new Date(b.releaseDate).getTime() -
+    new Date(a.releaseDate).getTime()
+);
 
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>

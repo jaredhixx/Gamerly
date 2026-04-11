@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import GameGrid from "../../../components/game/GameGrid";
-import { fetchGames } from "../../../lib/igdb";
+import { fetchGames, getGenreCatalogSlices } from "../../../lib/igdb";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../lib/site";
 import { genres } from "../../../lib/genres";
@@ -45,36 +45,29 @@ export default async function GenrePage(props: any) {
 
   const games = await fetchGames();
 
-  const filtered = games.filter((g: any) =>
-    g.genreSlugs?.includes(genre)
-  );
+const { filtered, released, upcoming } = getGenreCatalogSlices(
+  games,
+  genre
+);
 
-  const topRated = [...filtered]
-    .filter((g: any) => (g.aggregated_rating ?? 0) > 0)
-    .sort((a: any, b: any) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
-    .slice(0, 8);
+const topRated = released
+  .filter((g: any) => (g.aggregated_rating ?? 0) > 0)
+  .sort((a: any, b: any) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
+  .slice(0, 8);
 
-  const upcoming = [...filtered]
-    .filter((g: any) => {
-      if (!g.releaseDate) return false;
-      return new Date(g.releaseDate) > new Date();
-    })
-    .sort(
-      (a: any, b: any) =>
-        new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
-    )
-    .slice(0, 8);
+const upcomingGames = upcoming
+  .sort(
+    (a: any, b: any) =>
+      new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
+  )
+  .slice(0, 8);
 
-  const newReleases = [...filtered]
-    .filter((g: any) => {
-      if (!g.releaseDate) return false;
-      return new Date(g.releaseDate) <= new Date();
-    })
-    .sort(
-      (a: any, b: any) =>
-        new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
-    )
-    .slice(0, 8);
+const newReleases = released
+  .sort(
+    (a: any, b: any) =>
+      new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+  )
+  .slice(0, 8);
 
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>

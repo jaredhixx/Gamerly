@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import GameGrid from "../../../components/game/GameGrid";
-import { fetchGames } from "../../../lib/igdb";
+import { fetchGames, getPlatformCatalogSlices } from "../../../lib/igdb";
 import { platforms } from "../../../lib/platforms";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../lib/site";
@@ -62,54 +62,29 @@ export default async function PlatformPage(props: any) {
 
   const platformLabel = platformConfig.name.replace(" Games", "");
 
-const now = Date.now();
+  const { filtered, released, upcoming } = getPlatformCatalogSlices(
+    games,
+    platformConfig.slug
+  );
 
-const filtered = [];
-const upcomingCandidates = [];
-const releasedCandidates = [];
+  const topRated = released
+    .filter((g: any) => (g.aggregated_rating ?? 0) > 0)
+    .sort((a: any, b: any) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
+    .slice(0, 8);
 
-for (const g of games) {
-  if (!g.platformSlugs?.includes(platformConfig.slug)) {
-    continue;
-  }
+  const upcomingGames = upcoming
+    .sort(
+      (a: any, b: any) =>
+        new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
+    )
+    .slice(0, 8);
 
-  filtered.push(g);
-
-  if (!g.releaseDate) {
-    continue;
-  }
-
-  const time = new Date(g.releaseDate).getTime();
-
-  if (Number.isNaN(time)) {
-    continue;
-  }
-
-  if (time > now) {
-    upcomingCandidates.push(g);
-  } else {
-    releasedCandidates.push(g);
-  }
-}
-
-const topRated = releasedCandidates
-  .filter((g: any) => (g.aggregated_rating ?? 0) > 0)
-  .sort((a: any, b: any) => (b.aggregated_rating ?? 0) - (a.aggregated_rating ?? 0))
-  .slice(0, 8);
-
-const upcoming = upcomingCandidates
-  .sort(
-    (a: any, b: any) =>
-      new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
-  )
-  .slice(0, 8);
-
-const newReleases = releasedCandidates
-  .sort(
-    (a: any, b: any) =>
-      new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
-  )
-  .slice(0, 8);
+  const newReleases = released
+    .sort(
+      (a: any, b: any) =>
+        new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+    )
+    .slice(0, 8);
 
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
@@ -632,7 +607,7 @@ const newReleases = releasedCandidates
         </section>
       )}
 
-      {upcoming.length > 0 && (
+      {upcomingGames.length > 0 && (
         <section style={{ marginBottom: "50px" }}>
           <h2 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "8px" }}>
             Upcoming {platformLabel} Games
@@ -649,7 +624,7 @@ const newReleases = releasedCandidates
             soon.
           </p>
                     <GameGrid
-                      games={upcoming}
+                      games={upcomingGames}
                       prioritizedPlatformSlug={platformConfig.slug}
                     />
 

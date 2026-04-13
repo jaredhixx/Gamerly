@@ -171,85 +171,124 @@ export default async function PlatformPage(props: any) {
           Explore the main discovery paths for {platformLabel.toLowerCase()} games.
         </p>
 
-        <ul
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "12px",
-            listStyle: "none",
-            padding: 0,
-            margin: 0
-          }}
-        >
-          <li>
-            <Link
-              href={`/platform/${platformConfig.slug}/top-rated`}
-              style={{
-                display: "block",
-                padding: "14px 16px",
-                borderRadius: "12px",
-                textDecoration: "none",
-                color: "#f5f7fb",
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                fontWeight: 600
-              }}
-            >
-              Top Rated {platformLabel} Games
-            </Link>
-          </li>
-          <li>
-            <Link
-              href={`/platform/${platformConfig.slug}/upcoming`}
-              style={{
-                display: "block",
-                padding: "14px 16px",
-                borderRadius: "12px",
-                textDecoration: "none",
-                color: "#f5f7fb",
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                fontWeight: 600
-              }}
-            >
-              Upcoming {platformLabel} Games
-            </Link>
-          </li>
-          <li>
-            <Link
-              href={`/platform/${platformConfig.slug}/new`}
-              style={{
-                display: "block",
-                padding: "14px 16px",
-                borderRadius: "12px",
-                textDecoration: "none",
-                color: "#f5f7fb",
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                fontWeight: 600
-              }}
-            >
-              New {platformLabel} Games
-            </Link>
-          </li>
-          <li>
-            <Link
-              href={`/platform/${platformConfig.slug}/page/2`}
-              style={{
-                display: "block",
-                padding: "14px 16px",
-                borderRadius: "12px",
-                textDecoration: "none",
-                color: "#f5f7fb",
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                fontWeight: 600
-              }}
-            >
-              Browse More {platformLabel} Games
-            </Link>
-          </li>
-                </ul>
+<ul
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "12px",
+    listStyle: "none",
+    padding: 0,
+    margin: 0
+  }}
+>
+  <li>
+    <Link
+      href={`/best-games-2026`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(106,166,255,0.08)",
+        border: "1px solid rgba(106,166,255,0.2)",
+        fontWeight: 700
+      }}
+    >
+      Best Games of 2026
+    </Link>
+  </li>
+
+  <li>
+    <Link
+      href={`/best-${platformConfig.slug}-games-2026`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(106,166,255,0.08)",
+        border: "1px solid rgba(106,166,255,0.2)",
+        fontWeight: 700
+      }}
+    >
+      Best {platformLabel} Games of 2026
+    </Link>
+  </li>
+
+  <li>
+    <Link
+      href={`/best-rpg-games-${platformConfig.slug}-2026`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(106,166,255,0.08)",
+        border: "1px solid rgba(106,166,255,0.2)",
+        fontWeight: 700
+      }}
+    >
+      Best RPG Games on {platformLabel}
+    </Link>
+  </li>
+
+  <li>
+    <Link
+      href={`/platform/${platformConfig.slug}/top-rated`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        fontWeight: 600
+      }}
+    >
+      Top Rated {platformLabel} Games
+    </Link>
+  </li>
+
+  <li>
+    <Link
+      href={`/platform/${platformConfig.slug}/upcoming`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        fontWeight: 600
+      }}
+    >
+      Upcoming {platformLabel} Games
+    </Link>
+  </li>
+
+  <li>
+    <Link
+      href={`/platform/${platformConfig.slug}/new`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        fontWeight: 600
+      }}
+    >
+      New {platformLabel} Games
+    </Link>
+  </li>
+</ul>
 
 <h3
   style={{

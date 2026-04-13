@@ -1,5 +1,22 @@
 export const bestPlatformGamesByYearContent = {
+  
   pc: {
+    2024: {
+  pageTitle: "Best PC Games of 2024 (Ranked & Worth Playing)",
+  pageSubtitle:
+    "Top PC games released in 2024, ranked by rating, popularity, and real player interest.",
+  description:
+    "Looking for the best PC games of 2024? Discover the top-rated releases worth playing, including the most popular and highest-scoring PC games from the past year.",
+  introParagraphOne:
+    "The best PC games of 2024 include some of the strongest recent releases across major genres, from critically acclaimed hits to breakout surprises. This page focuses on games released in 2024 that are available on PC and ranks them using quality and popularity signals.",
+  introParagraphTwo:
+    "If you want a fast way to find the best PC games of 2024 to play right now, this page highlights the strongest options based on review scores, player interest, and overall release impact.",
+  exploreHeading: "Explore More PC Game Pages",
+  topSectionHeading: "Best PC Games Released in 2024",
+  topSectionIntro:
+    "These are the best PC games released in 2024, ranked using a combination of critic scores, player interest, and overall release impact.",
+  fullListHeading: "Full List of Best PC Games of 2024"
+},
     2025: {
       pageTitle: "Best PC Games 2025 (Ranked & Actually Worth Playing)",
       pageSubtitle:
@@ -36,6 +53,22 @@ description:
   },
 
   playstation: {
+    2024: {
+  pageTitle: "Best PlayStation Games of 2024 (Ranked & Worth Playing)",
+  pageSubtitle:
+    "Top PlayStation games released in 2024, ranked by rating, popularity, and real player interest.",
+  description:
+    "Looking for the best PlayStation games of 2024? Discover the top PS5 and PS4 releases worth playing, including the highest-rated and most popular games from the past year.",
+  introParagraphOne:
+    "The best PlayStation games of 2024 include standout releases across major genres, from first-party exclusives to high-performing third-party titles. This page focuses on games released in 2024 that are available on PlayStation platforms.",
+  introParagraphTwo:
+    "If you want a fast way to find the best PlayStation games of 2024 to play right now, this page highlights the strongest options based on review scores, player interest, and overall release impact.",
+  exploreHeading: "Explore More PlayStation Game Pages",
+  topSectionHeading: "Best PlayStation Games Released in 2024",
+  topSectionIntro:
+    "These are the best PlayStation games released in 2024, ranked using a combination of critic scores, player interest, and overall release impact.",
+  fullListHeading: "Full List of Best PlayStation Games of 2024"
+},
     2025: {
       pageTitle: "Best PlayStation Games of 2025 (Ranked & Actually Worth Playing)",
       pageSubtitle:
@@ -72,6 +105,22 @@ description:
   },
 
   xbox: {
+    2024: {
+  pageTitle: "Best Xbox Games of 2024 (Ranked & Worth Playing)",
+  pageSubtitle:
+    "Top Xbox games released in 2024, ranked by rating, popularity, and real player interest.",
+  description:
+    "Looking for the best Xbox games of 2024? Discover the top Xbox Series X|S releases worth playing, including the highest-rated and most popular games from the past year.",
+  introParagraphOne:
+    "The best Xbox games of 2024 include standout releases across major genres, from first-party launches to high-performing third-party titles. This page focuses on games released in 2024 that are available on Xbox platforms.",
+  introParagraphTwo:
+    "If you want a fast way to find the best Xbox games of 2024 to play right now, this page highlights the strongest options based on review scores, player interest, and overall release impact.",
+  exploreHeading: "Explore More Xbox Game Pages",
+  topSectionHeading: "Best Xbox Games Released in 2024",
+  topSectionIntro:
+    "These are the best Xbox games released in 2024, ranked using a combination of critic scores, player interest, and overall release impact.",
+  fullListHeading: "Full List of Best Xbox Games of 2024"
+},
     2025: {
       pageTitle: "Best Xbox Games of 2025 (Ranked & Actually Worth Playing)",
       pageSubtitle:
@@ -108,6 +157,22 @@ description:
   },
 
   switch: {
+    2024: {
+  pageTitle: "Best Switch Games of 2024 (Ranked & Worth Playing)",
+  pageSubtitle:
+    "Top Nintendo Switch games released in 2024, ranked by rating, popularity, and real player interest.",
+  description:
+    "Looking for the best Switch games of 2024? Discover the top Nintendo Switch releases worth playing, including the highest-rated and most popular games from the past year.",
+  introParagraphOne:
+    "The best Nintendo Switch games of 2024 include standout releases across major genres, from first-party exclusives to strong third-party titles. This page focuses on games released in 2024 that are available on Switch.",
+  introParagraphTwo:
+    "If you want a fast way to find the best Switch games of 2024 to play right now, this page highlights the strongest options based on review scores, player interest, and overall release impact.",
+  exploreHeading: "Explore More Switch Game Pages",
+  topSectionHeading: "Best Switch Games Released in 2024",
+  topSectionIntro:
+    "These are the best Switch games released in 2024, ranked using a combination of critic scores, player interest, and overall release impact.",
+  fullListHeading: "Full List of Best Switch Games of 2024"
+},
     2025: {
       pageTitle: "Best Switch Games of 2025 (Ranked & Actually Worth Playing)",
       pageSubtitle:

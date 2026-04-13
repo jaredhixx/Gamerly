@@ -1074,6 +1074,48 @@ return `Trying to decide if ${game.name}${
   </div>
 ) : null}
 
+<section className="gameSection" style={{ textAlign: "center" }}>
+  <h2>
+    Find Better Games Than {game.name}
+  </h2>
+
+  <p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
+    If {game.name} is not exactly what you are looking for, these pages show stronger games based on platform, genre, and overall rankings.
+  </p>
+
+  <div
+    style={{
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: "12px",
+      marginTop: "12px"
+    }}
+  >
+    <Link href="/best-games-2026" className="heroQuickLinkPill">
+      Best games of 2026
+    </Link>
+
+    {primaryPlatformSlug && (
+      <Link
+        href={`/best-${primaryPlatformSlug}-games-2026`}
+        className="heroQuickLinkPill"
+      >
+        Best {getPrimaryPlatform(game)} games of 2026
+      </Link>
+    )}
+
+    {game.genreSlugs?.[0] && primaryPlatformSlug && (
+      <Link
+        href={`/best-${game.genreSlugs[0]}-games-${primaryPlatformSlug}-2026`}
+        className="heroQuickLinkPill"
+      >
+        Best {game.genres?.[0]} games on {getPrimaryPlatform(game)} in 2026
+      </Link>
+    )}
+  </div>
+</section>
+
 {game.summary && (
   <section className="gameHeroSummaryBlock">
 <h2 className="gameHeroSummaryHeading">
@@ -1299,25 +1341,45 @@ return `Trying to decide if ${game.name}${
 </div>
 
 <ul>
-  <li><Link href="/top-rated">See the highest-rated games right now</Link></li>
-  <li><Link href="/new-games">Browse newly released games</Link></li>
-  <li><Link href="/upcoming-games">Browse upcoming game releases</Link></li>
-
-{yearQuickLinkPage && yearQuickLinkSlug && heroQuickLinkYear && (
   <li>
-    <Link href={`/${yearQuickLinkSlug}`}>
-      See the best video games of {heroQuickLinkYear}
+    <Link href="/best-games-2026">
+      See the best games of 2026
     </Link>
   </li>
-)}
 
-  {heroQuickLinkPage && heroQuickLinkSlug && heroQuickLinkYear && (
+  {primaryPlatformSlug && (
     <li>
-      <Link href={`/${heroQuickLinkSlug}`}>
-        See the best {getPrimaryPlatform(game)} games of {heroQuickLinkYear}
+      <Link href={`/best-${primaryPlatformSlug}-games-2026`}>
+        See the best {getPrimaryPlatform(game)} games of 2026
       </Link>
     </li>
   )}
+
+  {game.genreSlugs?.[0] && primaryPlatformSlug && (
+    <li>
+      <Link href={`/best-${game.genreSlugs[0]}-games-${primaryPlatformSlug}-2026`}>
+        Compare the best {game.genres?.[0]} games on {getPrimaryPlatform(game)} in 2026
+      </Link>
+    </li>
+  )}
+
+  <li>
+    <Link href="/top-rated">
+      See the highest-rated games right now
+    </Link>
+  </li>
+
+  <li>
+    <Link href="/new-games">
+      Browse newly released games
+    </Link>
+  </li>
+
+  <li>
+    <Link href="/upcoming-games">
+      Browse upcoming game releases
+    </Link>
+  </li>
 
   {primaryPlatformSlug && (
     <li>
@@ -1329,24 +1391,11 @@ return `Trying to decide if ${game.name}${
 
   {game.genreSlugs?.[0] && (
     <li>
-<Link
-  href={`/genre/${game.genreSlugs[0]}`}
->
+      <Link href={`/genre/${game.genreSlugs[0]}`}>
         Browse the best {game.genres?.[0]} games
       </Link>
     </li>
   )}
-
-  {genrePlatformQuickLinkPage &&
-    genrePlatformQuickLinkSlug &&
-    primaryPlatformSlug &&
-    heroQuickLinkYear && (
-      <li>
-        <Link href={`/${genrePlatformQuickLinkSlug}`}>
-          Compare the best {game.genres?.[0]} games on {getPrimaryPlatform(game)} in {heroQuickLinkYear}
-        </Link>
-      </li>
-    )}
 </ul>
 </section>
       </main>

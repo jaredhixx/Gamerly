@@ -136,16 +136,15 @@ export default async function BestGenrePlatformGamesByYearPage({
   const sortedStrongGames = sortGames(strongMatchingGames);
   const sortedAllMatchingGames = sortGames(allMatchingGames);
 
-  const strongGameIds = new Set(sortedStrongGames.map((game) => game.id));
+const strongGameIds = new Set(sortedStrongGames.map((game) => game.id));
 
-  const fallbackGames = sortedAllMatchingGames.filter(
-    (game) => !strongGameIds.has(game.id)
-  );
+// TOP PICKS = ONLY STRONG GAMES (NO FALLBACK)
+const topPicks = sortedStrongGames.slice(0, 12);
 
-  const topPicks = [...sortedStrongGames, ...fallbackGames].slice(0, 12);
-  const fullList = sortedAllMatchingGames
-    .filter((game) => !topPicks.some((topGame) => topGame.id === game.id))
-    .slice(0, 60);
+// FULL LIST = REMAINING STRONG + OTHER MATCHING GAMES (AFTER TOP PICKS)
+const fullList = sortedAllMatchingGames
+  .filter((game) => !topPicks.some((topGame) => topGame.id === game.id))
+  .slice(0, 60);
 
   const platformDisplayName =
     platformSlug === "pc"
@@ -174,7 +173,7 @@ const genreDisplayName =
       </div>
 
       <div style={INTRO_SECTION_STYLE}>
-        <p
+<p
   style={{
     maxWidth: "720px",
     margin: "0 auto 18px auto",
@@ -184,7 +183,7 @@ const genreDisplayName =
     color: "#cfd6e6"
   }}
 >
-  Looking for the best {genreDisplayName} games on {platformDisplayName} in {year}? This page ranks the top games that are actually worth playing based on review scores, player interest, and overall impact, so you can quickly find the strongest picks without wasting time on low-quality titles.
+  Not all {genreDisplayName} games on {platformDisplayName} in {year} are worth your time. This page filters out low-signal releases and ranks only the strongest games based on review scores, player interest, and overall impact, so you can quickly find what is actually worth playing.
 </p>
         <p style={{ maxWidth: "none" }}>{introParagraphOne}</p>
         <p style={{ maxWidth: "none" }}>{introParagraphTwo}</p>

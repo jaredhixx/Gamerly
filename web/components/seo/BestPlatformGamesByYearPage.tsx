@@ -196,7 +196,7 @@ export default async function BestPlatformGamesByYearPage({
 </div>
 
 <div style={INTRO_SECTION_STYLE}>
-  <p
+<p
   style={{
     maxWidth: "720px",
     margin: "0 auto 18px auto",
@@ -206,7 +206,7 @@ export default async function BestPlatformGamesByYearPage({
     color: "#cfd6e6"
   }}
 >
-  Looking for the best {platformDisplayName} games in {year}? This page ranks the top games that are actually worth playing based on review scores, player interest, and overall impact, so you can quickly find the strongest picks without wasting time on low-quality titles.
+  Not all {platformDisplayName} games in {year} are worth your time. This page filters out low-signal releases and ranks only the strongest games based on review scores, player interest, and overall impact, so you can quickly find what is actually worth playing.
 </p>
   <p style={{ maxWidth: "none" }}>{introParagraphOne}</p>
   <p style={{ maxWidth: "none" }}>{introParagraphTwo}</p>

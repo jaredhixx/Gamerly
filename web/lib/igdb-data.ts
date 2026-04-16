@@ -900,7 +900,9 @@ function getEndOfTodayUTC() {
 }
 
 const CATALOG_PAGE_SIZE = 500;
-const CATALOG_MAX_PAGES_PER_WINDOW = 6;
+const CATALOG_MAX_DIRECT_PAGES_PER_WINDOW = 6;
+const CATALOG_MAX_WINDOW_SPLIT_DEPTH = 3;
+const CATALOG_REQUEST_DELAY_MS = 300;
 
 type CatalogWindow = {
   label: string;
@@ -1086,6 +1088,138 @@ function buildCatalogWindows(): CatalogWindow[] {
   ];
 }
 
+function mergeCatalogGamesIntoMap(
+  mergedById: Map<number, GamerlyGame>,
+  games: GamerlyGame[]
+) {
+  for (const game of games) {
+    const existing = mergedById.get(game.id);
+
+    if (!existing) {
+      mergedById.set(game.id, game);
+      continue;
+    }
+
+    mergedById.set(game.id, mergeGames(existing, game));
+  }
+}
+
+function splitCatalogWindow(window: CatalogWindow): CatalogWindow[] {
+  const midpointUnix = Math.floor((window.startUnix + window.endUnix) / 2);
+
+  if (midpointUnix <= window.startUnix || midpointUnix >= window.endUnix) {
+    return [window];
+  }
+
+  return [
+    {
+      label: `${window.label}-a`,
+      startUnix: window.startUnix,
+      endUnix: midpointUnix,
+      sortDirection: window.sortDirection
+    },
+    {
+      label: `${window.label}-b`,
+      startUnix: midpointUnix + 1,
+      endUnix: window.endUnix,
+      sortDirection: window.sortDirection
+    }
+  ];
+}
+
+async function fetchCatalogPagesForWindow(
+  window: CatalogWindow,
+  dateField: "first_release_date" | "release_dates.date",
+  token: string,
+  mergedById: Map<number, GamerlyGame>
+): Promise<{ hitPageCap: boolean }> {
+  let pageIndex = 0;
+
+  while (pageIndex < CATALOG_MAX_DIRECT_PAGES_PER_WINDOW) {
+    const offset = pageIndex * CATALOG_PAGE_SIZE;
+    const rawGames = await postIGDB(
+      buildCatalogQuery(window, dateField, offset),
+      token
+    );
+    const normalizedGames = rawGames
+      .map(normalizeGame)
+      .filter((game) => game.id && game.name && game.releaseDate);
+
+    console.log(
+      `[IGDB] Catalog page fetched. window=${window.label} dateField=${dateField} pageIndex=${pageIndex} offset=${offset} raw=${rawGames.length} normalized=${normalizedGames.length}`
+    );
+
+    mergeCatalogGamesIntoMap(mergedById, normalizedGames);
+
+    if (rawGames.length < CATALOG_PAGE_SIZE) {
+      return { hitPageCap: false };
+    }
+
+    pageIndex += 1;
+
+    if (pageIndex < CATALOG_MAX_DIRECT_PAGES_PER_WINDOW) {
+      await sleep(CATALOG_REQUEST_DELAY_MS);
+    }
+  }
+
+  console.warn(
+    `[IGDB] Catalog window hit direct page cap. window=${window.label} dateField=${dateField} pageSize=${CATALOG_PAGE_SIZE} maxPages=${CATALOG_MAX_DIRECT_PAGES_PER_WINDOW}`
+  );
+
+  return { hitPageCap: true };
+}
+
+async function fetchCatalogWindowRecursively(
+  window: CatalogWindow,
+  dateField: "first_release_date" | "release_dates.date",
+  token: string,
+  mergedById: Map<number, GamerlyGame>,
+  splitDepth = 0
+): Promise<void> {
+  const { hitPageCap } = await fetchCatalogPagesForWindow(
+    window,
+    dateField,
+    token,
+    mergedById
+  );
+
+  if (!hitPageCap) {
+    return;
+  }
+
+  if (splitDepth >= CATALOG_MAX_WINDOW_SPLIT_DEPTH) {
+    console.warn(
+      `[IGDB] Catalog window remained dense after max split depth. window=${window.label} dateField=${dateField} splitDepth=${splitDepth}`
+    );
+    return;
+  }
+
+  const childWindows = splitCatalogWindow(window);
+
+  if (childWindows.length !== 2) {
+    console.warn(
+      `[IGDB] Catalog window could not be split further. window=${window.label} dateField=${dateField} splitDepth=${splitDepth}`
+    );
+    return;
+  }
+
+  console.warn(
+    `[IGDB] Splitting dense catalog window. window=${window.label} dateField=${dateField} splitDepth=${splitDepth}`
+  );
+
+  await sleep(CATALOG_REQUEST_DELAY_MS);
+
+  for (const childWindow of childWindows) {
+    await fetchCatalogWindowRecursively(
+      childWindow,
+      dateField,
+      token,
+      mergedById,
+      splitDepth + 1
+    );
+  }
+}
+
 async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
   const token = await getTwitchToken();
   const windows = buildCatalogWindows();
@@ -1099,46 +1233,12 @@ async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
       ];
 
       for (const dateField of dateFields) {
-        let hitWindowPageCap = true;
-
-        for (let pageIndex = 0; pageIndex < CATALOG_MAX_PAGES_PER_WINDOW; pageIndex += 1) {
-          const offset = pageIndex * CATALOG_PAGE_SIZE;
-          const rawGames = await postIGDB(
-            buildCatalogQuery(window, dateField, offset),
-            token
-          );
-          const normalizedGames = rawGames
-            .map(normalizeGame)
-            .filter((game) => game.id && game.name && game.releaseDate);
-
-          console.log(
-            `[IGDB] Catalog page fetched. window=${window.label} dateField=${dateField} pageIndex=${pageIndex} offset=${offset} raw=${rawGames.length} normalized=${normalizedGames.length}`
-          );
-
-          for (const game of normalizedGames) {
-            const existing = mergedById.get(game.id);
-
-            if (!existing) {
-              mergedById.set(game.id, game);
-              continue;
-            }
-
-            mergedById.set(game.id, mergeGames(existing, game));
-          }
-
-          if (rawGames.length < CATALOG_PAGE_SIZE) {
-            hitWindowPageCap = false;
-            break;
-          }
-
-          await sleep(300);
-        }
-
-        if (hitWindowPageCap) {
-          console.warn(
-            `[IGDB] Catalog window hit page cap. window=${window.label} dateField=${dateField} pageSize=${CATALOG_PAGE_SIZE} maxPages=${CATALOG_MAX_PAGES_PER_WINDOW}`
-          );
-        }
+        await fetchCatalogWindowRecursively(
+          window,
+          dateField,
+          token,
+          mergedById
+        );
       }
     } catch (error) {
       console.warn(`IGDB catalog window failed: ${window.label}`, error);

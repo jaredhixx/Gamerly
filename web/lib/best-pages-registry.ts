@@ -4,6 +4,28 @@ import { bestGenrePlatformGamesByYearContent } from "./best-genre-platform-games
 import type { GenreSlug } from "./genres";
 import type { PlatformSlug } from "./platforms";
 
+const PLATFORM_LABELS: Record<PlatformSlug, string> = {
+  pc: "PC",
+  playstation: "PlayStation",
+  xbox: "Xbox",
+  switch: "Switch",
+  ios: "iPhone & iPad",
+  android: "Android"
+};
+
+const GENRE_LABELS: Record<GenreSlug, string> = {
+  rpg: "RPG",
+  shooter: "Shooter",
+  adventure: "Adventure",
+  strategy: "Strategy",
+  simulation: "Simulation",
+  puzzle: "Puzzle",
+  indie: "Indie",
+  fighting: "Fighting",
+  racing: "Racing",
+  sport: "Sports"
+};
+
 export type BestPageRegistryEntry =
   | {
       type: "year";
@@ -107,7 +129,7 @@ function buildPlatformYearEntry(
     canonicalPath: `/best-${platformSlug}-games-${year}`,
     platformSlug,
     year,
-    pageTitle: `Best ${platformSlug.toUpperCase()} Games ${year} – What’s Actually Worth Playing`,
+    pageTitle: `Best ${PLATFORM_LABELS[platformSlug]} Games of ${year}`,
     pageSubtitle: content.pageSubtitle,
     description: content.description,
     introParagraphOne: content.introParagraphOne,
@@ -145,7 +167,7 @@ function buildGenrePlatformYearEntry(
     genreSlug,
     platformSlug,
     year,
-    pageTitle: `Best ${genreSlug.toUpperCase()} Games on ${platformSlug.toUpperCase()} ${year} – Ranked & Worth Playing`,
+    pageTitle: `Best ${GENRE_LABELS[genreSlug]} Games on ${PLATFORM_LABELS[platformSlug]} in ${year}`,
     pageSubtitle: content.pageSubtitle,
     description: content.description,
     introParagraphOne: content.introParagraphOne,

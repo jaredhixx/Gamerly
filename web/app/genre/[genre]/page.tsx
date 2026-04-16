@@ -121,7 +121,7 @@ const newReleases = released
   }}
 >
   <Link
-    href={`/best-${genre}-games-pc-2026`}
+    href={`/best-${genre}-games`}
     style={{
       display: "block",
       padding: "14px 16px",
@@ -133,11 +133,11 @@ const newReleases = released
       fontWeight: 700
     }}
   >
-    Best {name} Games on PC (2026)
+    Best {name} Games
   </Link>
 
   <Link
-    href={`/best-${genre}-games-playstation-2026`}
+    href={`/best-${genre}-games-pc-2025`}
     style={{
       display: "block",
       padding: "14px 16px",
@@ -149,11 +149,11 @@ const newReleases = released
       fontWeight: 700
     }}
   >
-    Best {name} Games on PlayStation (2026)
+    Best {name} Games on PC
   </Link>
 
   <Link
-    href={`/best-${genre}-games-xbox-2026`}
+    href={`/best-${genre}-games-playstation-2025`}
     style={{
       display: "block",
       padding: "14px 16px",
@@ -165,11 +165,11 @@ const newReleases = released
       fontWeight: 700
     }}
   >
-    Best {name} Games on Xbox (2026)
+    Best {name} Games on PlayStation
   </Link>
 
   <Link
-    href={`/best-${genre}-games-switch-2026`}
+    href={`/best-${genre}-games-xbox-2025`}
     style={{
       display: "block",
       padding: "14px 16px",
@@ -181,7 +181,39 @@ const newReleases = released
       fontWeight: 700
     }}
   >
-    Best {name} Games on Switch (2026)
+    Best {name} Games on Xbox
+  </Link>
+
+  <Link
+    href={`/best-${genre}-games-switch-2025`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(106,166,255,0.08)",
+      border: "1px solid rgba(106,166,255,0.2)",
+      fontWeight: 700
+    }}
+  >
+    Best {name} Games on Switch
+  </Link>
+
+  <Link
+    href={`/best-games-2026`}
+    style={{
+      display: "block",
+      padding: "14px 16px",
+      borderRadius: "12px",
+      textDecoration: "none",
+      color: "#f5f7fb",
+      background: "rgba(106,166,255,0.08)",
+      border: "1px solid rgba(106,166,255,0.2)",
+      fontWeight: 700
+    }}
+  >
+    Best Games of 2026
   </Link>
 </div>
 

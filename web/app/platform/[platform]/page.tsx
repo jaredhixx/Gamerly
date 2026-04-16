@@ -219,7 +219,25 @@ export default async function PlatformPage(props: any) {
 
   <li>
     <Link
-      href={`/best-rpg-games-${platformConfig.slug}-2026`}
+      href={`/best-${platformConfig.slug}-games-2025`}
+      style={{
+        display: "block",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        textDecoration: "none",
+        color: "#f5f7fb",
+        background: "rgba(106,166,255,0.08)",
+        border: "1px solid rgba(106,166,255,0.2)",
+        fontWeight: 700
+      }}
+    >
+      Best {platformLabel} Games of 2025
+    </Link>
+  </li>
+
+  <li>
+    <Link
+      href={`/best-rpg-games-${platformConfig.slug}-2025`}
       style={{
         display: "block",
         padding: "14px 16px",
@@ -237,55 +255,37 @@ export default async function PlatformPage(props: any) {
 
   <li>
     <Link
-      href={`/platform/${platformConfig.slug}/top-rated`}
+      href={`/best-shooter-games-${platformConfig.slug}-2025`}
       style={{
         display: "block",
         padding: "14px 16px",
         borderRadius: "12px",
         textDecoration: "none",
         color: "#f5f7fb",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        fontWeight: 600
+        background: "rgba(106,166,255,0.08)",
+        border: "1px solid rgba(106,166,255,0.2)",
+        fontWeight: 700
       }}
     >
-      Top Rated {platformLabel} Games
+      Best Shooter Games on {platformLabel}
     </Link>
   </li>
 
   <li>
     <Link
-      href={`/platform/${platformConfig.slug}/upcoming`}
+      href={`/best-adventure-games-${platformConfig.slug}-2025`}
       style={{
         display: "block",
         padding: "14px 16px",
         borderRadius: "12px",
         textDecoration: "none",
         color: "#f5f7fb",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        fontWeight: 600
+        background: "rgba(106,166,255,0.08)",
+        border: "1px solid rgba(106,166,255,0.2)",
+        fontWeight: 700
       }}
     >
-      Upcoming {platformLabel} Games
-    </Link>
-  </li>
-
-  <li>
-    <Link
-      href={`/platform/${platformConfig.slug}/new`}
-      style={{
-        display: "block",
-        padding: "14px 16px",
-        borderRadius: "12px",
-        textDecoration: "none",
-        color: "#f5f7fb",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        fontWeight: 600
-      }}
-    >
-      New {platformLabel} Games
+      Best Adventure Games on {platformLabel}
     </Link>
   </li>
 </ul>

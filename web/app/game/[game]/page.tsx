@@ -1052,16 +1052,37 @@ return `Trying to decide if ${game.name}${
 </div>
   </div>
 
-{(game.platformSlugs?.[0] && game.releaseDate) || game.genreSlugs?.[0] ? (
+{heroQuickLinkPage || yearQuickLinkPage || genrePlatformQuickLinkPage || game.genreSlugs?.[0] ? (
   <div className="heroQuickLinks">
-{heroQuickLinkPage && heroQuickLinkSlug && heroQuickLinkYear && (
-  <Link
-    href={`/${heroQuickLinkSlug}`}
-    className="heroQuickLinkPill"
-  >
-    Best {getPrimaryPlatform(game)} games of {heroQuickLinkYear}
-  </Link>
-)}
+    {heroQuickLinkPage && heroQuickLinkSlug && heroQuickLinkYear && (
+      <Link
+        href={`/${heroQuickLinkSlug}`}
+        className="heroQuickLinkPill"
+      >
+        Best {getPrimaryPlatform(game)} games of {heroQuickLinkYear}
+      </Link>
+    )}
+
+    {yearQuickLinkPage && yearQuickLinkSlug && heroQuickLinkYear && (
+      <Link
+        href={`/${yearQuickLinkSlug}`}
+        className="heroQuickLinkPill"
+      >
+        Best games of {heroQuickLinkYear}
+      </Link>
+    )}
+
+    {genrePlatformQuickLinkPage &&
+    genrePlatformQuickLinkSlug &&
+    game.genres?.[0] &&
+    heroQuickLinkYear ? (
+      <Link
+        href={`/${genrePlatformQuickLinkSlug}`}
+        className="heroQuickLinkPill"
+      >
+        Best {game.genres[0]} games on {getPrimaryPlatform(game)} in {heroQuickLinkYear}
+      </Link>
+    ) : null}
 
     {game.genreSlugs?.[0] && (
       <Link
@@ -1092,27 +1113,32 @@ return `Trying to decide if ${game.name}${
       marginTop: "12px"
     }}
   >
-    <Link href="/best-games-2026" className="heroQuickLinkPill">
-      Best games of 2026
-    </Link>
-
-    {primaryPlatformSlug && (
-      <Link
-        href={`/best-${primaryPlatformSlug}-games-2026`}
-        className="heroQuickLinkPill"
-      >
-        Best {getPrimaryPlatform(game)} games of 2026
+    {yearQuickLinkPage && yearQuickLinkSlug && heroQuickLinkYear && (
+      <Link href={`/${yearQuickLinkSlug}`} className="heroQuickLinkPill">
+        Best games of {heroQuickLinkYear}
       </Link>
     )}
 
-    {game.genreSlugs?.[0] && primaryPlatformSlug && (
+    {heroQuickLinkPage && heroQuickLinkSlug && heroQuickLinkYear && (
       <Link
-        href={`/best-${game.genreSlugs[0]}-games-${primaryPlatformSlug}-2026`}
+        href={`/${heroQuickLinkSlug}`}
         className="heroQuickLinkPill"
       >
-        Best {game.genres?.[0]} games on {getPrimaryPlatform(game)} in 2026
+        Best {getPrimaryPlatform(game)} games of {heroQuickLinkYear}
       </Link>
     )}
+
+    {genrePlatformQuickLinkPage &&
+    genrePlatformQuickLinkSlug &&
+    game.genres?.[0] &&
+    heroQuickLinkYear ? (
+      <Link
+        href={`/${genrePlatformQuickLinkSlug}`}
+        className="heroQuickLinkPill"
+      >
+        Best {game.genres[0]} games on {getPrimaryPlatform(game)} in {heroQuickLinkYear}
+      </Link>
+    ) : null}
   </div>
 </section>
 
@@ -1341,27 +1367,32 @@ return `Trying to decide if ${game.name}${
 </div>
 
 <ul>
-  <li>
-    <Link href="/best-games-2026">
-      See the best games of 2026
-    </Link>
-  </li>
-
-  {primaryPlatformSlug && (
+  {yearQuickLinkPage && yearQuickLinkSlug && heroQuickLinkYear && (
     <li>
-      <Link href={`/best-${primaryPlatformSlug}-games-2026`}>
-        See the best {getPrimaryPlatform(game)} games of 2026
+      <Link href={`/${yearQuickLinkSlug}`}>
+        See the best games of {heroQuickLinkYear}
       </Link>
     </li>
   )}
 
-  {game.genreSlugs?.[0] && primaryPlatformSlug && (
+  {heroQuickLinkPage && heroQuickLinkSlug && heroQuickLinkYear && (
     <li>
-      <Link href={`/best-${game.genreSlugs[0]}-games-${primaryPlatformSlug}-2026`}>
-        Compare the best {game.genres?.[0]} games on {getPrimaryPlatform(game)} in 2026
+      <Link href={`/${heroQuickLinkSlug}`}>
+        See the best {getPrimaryPlatform(game)} games of {heroQuickLinkYear}
       </Link>
     </li>
   )}
+
+  {genrePlatformQuickLinkPage &&
+  genrePlatformQuickLinkSlug &&
+  game.genres?.[0] &&
+  heroQuickLinkYear ? (
+    <li>
+      <Link href={`/${genrePlatformQuickLinkSlug}`}>
+        Compare the best {game.genres[0]} games on {getPrimaryPlatform(game)} in {heroQuickLinkYear}
+      </Link>
+    </li>
+  ) : null}
 
   <li>
     <Link href="/top-rated">

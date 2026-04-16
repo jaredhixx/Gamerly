@@ -1220,7 +1220,7 @@ async function fetchCatalogWindowRecursively(
   }
 }
 
-async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
+export async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
   const token = await getTwitchToken();
   const windows = buildCatalogWindows();
   const mergedById = new Map<number, GamerlyGame>();

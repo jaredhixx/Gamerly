@@ -929,6 +929,15 @@ function buildCatalogQuery(
   `;
 }
 
+export type CatalogDateField =
+  | "first_release_date"
+  | "release_dates.date";
+
+export type CatalogRefreshSlice = {
+  windowLabel: string;
+  dateField: CatalogDateField;
+};
+
 function buildCatalogWindows(): CatalogWindow[] {
   const endOfTodayUTC = getEndOfTodayUTC();
   const todayUnix = unixSeconds(endOfTodayUTC);
@@ -1088,6 +1097,27 @@ function buildCatalogWindows(): CatalogWindow[] {
   ];
 }
 
+export function getCatalogRefreshSlices(): CatalogRefreshSlice[] {
+  const windows = buildCatalogWindows();
+  const dateFields: CatalogDateField[] = [
+    "first_release_date",
+    "release_dates.date"
+  ];
+
+  const slices: CatalogRefreshSlice[] = [];
+
+  for (const window of windows) {
+    for (const dateField of dateFields) {
+      slices.push({
+        windowLabel: window.label,
+        dateField
+      });
+    }
+  }
+
+  return slices;
+}
+
 function mergeCatalogGamesIntoMap(
   mergedById: Map<number, GamerlyGame>,
   games: GamerlyGame[]
@@ -1219,10 +1249,6 @@ async function fetchCatalogWindowRecursively(
     );
   }
 }
-
-export type CatalogDateField =
-  | "first_release_date"
-  | "release_dates.date";
 
 function finalizeCatalogFromMap(
   mergedById: Map<number, GamerlyGame>

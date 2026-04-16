@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
 import {
-  refreshCatalogSliceFromIGDB,
-  type CatalogDateField
+  getCatalogRefreshSlices,
+  refreshCatalogSliceFromIGDB
 } from "@/lib/igdb-data";
-
-const ALLOWED_DATE_FIELDS: CatalogDateField[] = [
-  "first_release_date",
-  "release_dates.date"
-];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const key = searchParams.get("key");
-  const windowLabel = searchParams.get("window");
-  const dateField = searchParams.get("dateField");
+  const indexParam = searchParams.get("index");
 
   if (key !== process.env.ADMIN_REFRESH_KEY) {
     return NextResponse.json(
@@ -22,46 +16,66 @@ export async function GET(request: Request) {
     );
   }
 
-  if (!windowLabel) {
+  if (!indexParam) {
     return NextResponse.json(
-      { success: false, error: "Missing window parameter" },
+      { success: false, error: "Missing index parameter" },
       { status: 400 }
     );
   }
 
-  if (!dateField || !ALLOWED_DATE_FIELDS.includes(dateField as CatalogDateField)) {
+  const index = Number(indexParam);
+
+  if (!Number.isInteger(index) || index < 0) {
     return NextResponse.json(
-      { success: false, error: "Invalid dateField parameter" },
+      { success: false, error: "Invalid index parameter" },
+      { status: 400 }
+    );
+  }
+
+  const slices = getCatalogRefreshSlices();
+  const slice = slices[index];
+
+  if (!slice) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Slice index out of range",
+        totalSlices: slices.length
+      },
       { status: 400 }
     );
   }
 
   try {
     console.log(
-      `[ADMIN] Manual IGDB slice refresh triggered. window=${windowLabel} dateField=${dateField}`
+      `[ADMIN] Indexed IGDB slice refresh triggered. index=${index} window=${slice.windowLabel} dateField=${slice.dateField}`
     );
 
     const result = await refreshCatalogSliceFromIGDB(
-      windowLabel,
-      dateField as CatalogDateField
+      slice.windowLabel,
+      slice.dateField
     );
 
     console.log(
-      `[ADMIN] Manual IGDB slice refresh complete. window=${result.windowLabel} dateField=${result.dateField} games=${result.games.length}`
+      `[ADMIN] Indexed IGDB slice refresh complete. index=${index} window=${result.windowLabel} dateField=${result.dateField} games=${result.games.length}`
     );
 
     return NextResponse.json({
       success: true,
+      index,
+      totalSlices: slices.length,
       windowLabel: result.windowLabel,
       dateField: result.dateField,
-      games: result.games.length
+      games: result.games.length,
+      nextIndex: index + 1 < slices.length ? index + 1 : null
     });
   } catch (error) {
-    console.error("[ADMIN] IGDB slice refresh failed", error);
+    console.error("[ADMIN] Indexed IGDB slice refresh failed", error);
 
     return NextResponse.json(
       {
         success: false,
+        index,
         error: String(error)
       },
       { status: 500 }

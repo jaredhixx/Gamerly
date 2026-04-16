@@ -1220,6 +1220,72 @@ async function fetchCatalogWindowRecursively(
   }
 }
 
+export type CatalogDateField =
+  | "first_release_date"
+  | "release_dates.date";
+
+function finalizeCatalogFromMap(
+  mergedById: Map<number, GamerlyGame>
+): GamerlyGame[] {
+  const catalog = Array.from(mergedById.values())
+    .filter((game) => game.releaseDate && game.coverUrl)
+    .sort((a, b) => {
+      const aTime = new Date(a.releaseDate || "").getTime();
+      const bTime = new Date(b.releaseDate || "").getTime();
+      return bTime - aTime;
+    });
+
+  if (catalog.length === 0) {
+    throw new Error("IGDB shared catalog returned zero games");
+  }
+
+  return catalog;
+}
+
+export async function refreshCatalogSliceFromIGDB(
+  windowLabel: string,
+  dateField: CatalogDateField
+): Promise<{
+  games: GamerlyGame[];
+  windowLabel: string;
+  dateField: CatalogDateField;
+}> {
+  const token = await getTwitchToken();
+  const windows = buildCatalogWindows();
+  const window = windows.find((entry) => entry.label === windowLabel);
+
+  if (!window) {
+    throw new Error(`Unknown catalog window: ${windowLabel}`);
+  }
+
+  const cache = loadCache();
+  const mergedById = new Map<number, GamerlyGame>();
+
+  mergeCatalogGamesIntoMap(mergedById, cache.games);
+
+  await fetchCatalogWindowRecursively(
+    window,
+    dateField,
+    token,
+    mergedById
+  );
+
+  const games = finalizeCatalogFromMap(mergedById);
+
+  saveCache(games);
+  inMemoryCatalogGames = games;
+
+  console.log(
+    `[IGDB] Slice refresh complete. window=${windowLabel} dateField=${dateField} games=${games.length}`
+  );
+
+  return {
+    games,
+    windowLabel,
+    dateField
+  };
+}
+
 export async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
   const token = await getTwitchToken();
   const windows = buildCatalogWindows();
@@ -1227,7 +1293,7 @@ export async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
 
   for (const window of windows) {
     try {
-      const dateFields: Array<"first_release_date" | "release_dates.date"> = [
+      const dateFields: CatalogDateField[] = [
         "first_release_date",
         "release_dates.date"
       ];
@@ -1246,19 +1312,7 @@ export async function fetchSharedCatalogFromIGDB(): Promise<GamerlyGame[]> {
     }
   }
 
-  const catalog = Array.from(mergedById.values())
-    .filter((game) => game.releaseDate && game.coverUrl)
-    .sort((a, b) => {
-      const aTime = new Date(a.releaseDate || "").getTime();
-      const bTime = new Date(b.releaseDate || "").getTime();
-      return bTime - aTime;
-    });
-
-  if (catalog.length === 0) {
-    throw new Error("IGDB shared catalog returned zero games");
-  }
-
-  return catalog;
+  return finalizeCatalogFromMap(mergedById);
 }
 
 export async function getAllGames(): Promise<GamerlyGame[]> {

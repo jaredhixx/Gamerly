@@ -31,8 +31,8 @@ export async function fetchGames(): Promise<GamerlyGame[]> {
   return getAllGames();
 }
 
-export function getIGDBCacheLastUpdated(): string | null {
-  return getCacheLastUpdated();
+export async function getIGDBCacheLastUpdated(): Promise<string | null> {
+  return await getCacheLastUpdated();
 }
 
 export async function getGameById(id: number) {

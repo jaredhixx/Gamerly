@@ -109,7 +109,7 @@ let inMemoryDerivedGameData:
   | null = null;
 
 export async function getDerivedGameData(): Promise<DerivedGameData> {
-    const cacheLastUpdated = getIGDBCacheLastUpdated();
+  const cacheLastUpdated = await getIGDBCacheLastUpdated();
 
   if (
     inMemoryDerivedGameData &&

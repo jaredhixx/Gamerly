@@ -4,6 +4,7 @@ import "server-only";
 import { platformIdToSlug, type PlatformSlug } from "./platforms";
 import { genreNameToSlug, type GenreSlug } from "./genres";
 import type { ReleaseDatePrecision } from "./release-date";
+import { put, get } from "@vercel/blob";
 
 const CACHE_FILE = path.join(process.cwd(), "igdb-cache.json");
 
@@ -96,12 +97,131 @@ function saveCache(games: GamerlyGame[]) {
       isLegacyFormat: false
     };
 
+    void saveCacheToBlob(games);
+
     console.log(
       `[IGDB] Cache saved successfully. games=${games.length} file=${CACHE_FILE}`
     );
   } catch (error) {
     console.warn("Failed to write IGDB cache:", error);
   }
+}
+
+const BLOB_CACHE_PATH = "igdb-cache.json";
+
+async function loadCacheFromBlob(): Promise<LoadedCache | null> {
+  try {
+    const result = await get(BLOB_CACHE_PATH, {
+      access: "private"
+    });
+
+    if (!result || result.statusCode !== 200 || !result.stream) {
+      console.log("[IGDB] No Blob cache found");
+      return null;
+    }
+
+    const text = await new Response(result.stream).text();
+    const parsed = JSON.parse(text);
+
+    if (Array.isArray(parsed)) {
+      const games = parsed.map(hydrateCachedGameShape);
+
+      console.warn(
+        `[IGDB] Loaded legacy Blob cache format. games=${games.length} path=${BLOB_CACHE_PATH}`
+      );
+
+      return {
+        games,
+        lastUpdated: null,
+        isLegacyFormat: true
+      };
+    }
+
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      Array.isArray(parsed.games)
+    ) {
+      const games = parsed.games.map(hydrateCachedGameShape);
+      const lastUpdated =
+        typeof parsed.lastUpdated === "string" ? parsed.lastUpdated : null;
+
+      console.log(
+        `[IGDB] Loaded catalog from Blob. games=${games.length} lastUpdated=${lastUpdated ?? "unknown"}`
+      );
+
+      return {
+        games,
+        lastUpdated,
+        isLegacyFormat: false
+      };
+    }
+
+    console.warn("[IGDB] Blob cache exists but format is invalid.");
+    return {
+      games: [],
+      lastUpdated: null,
+      isLegacyFormat: false
+    };
+  } catch (error) {
+    console.warn("[IGDB] Failed to load Blob cache", error);
+    return null;
+  }
+}
+
+async function saveCacheToBlob(games: GamerlyGame[]) {
+  try {
+    const lastUpdated = new Date().toISOString();
+
+    const payload: IGDBCacheFile = {
+      lastUpdated,
+      games
+    };
+
+    await put(BLOB_CACHE_PATH, JSON.stringify(payload, null, 2), {
+      access: "private",
+      contentType: "application/json",
+      allowOverwrite: true
+    });
+
+    console.log(
+      `[IGDB] Saved catalog to Blob. games=${games.length} lastUpdated=${lastUpdated}`
+    );
+  } catch (error) {
+    console.warn("[IGDB] Failed to save Blob cache", error);
+  }
+}
+
+async function loadBestAvailableCache(): Promise<LoadedCache> {
+  const blobCache = await loadCacheFromBlob();
+
+  if (blobCache && blobCache.games.length > 0) {
+    console.log(
+      `[IGDB] Using Blob cache as primary source. games=${blobCache.games.length} lastUpdated=${blobCache.lastUpdated ?? "unknown"}`
+    );
+    inMemoryLoadedCache = blobCache;
+    return blobCache;
+  }
+
+  const fileCache = loadCache();
+
+  console.log(
+    `[IGDB] Falling back to file cache. games=${fileCache.games.length} lastUpdated=${fileCache.lastUpdated ?? "unknown"}`
+  );
+
+  return fileCache;
+}
+
+export async function getCachedCatalogSnapshot(): Promise<{
+  games: GamerlyGame[];
+  lastUpdated: string | null;
+}> {
+  const cache = await loadBestAvailableCache();
+
+  return {
+    games: cache.games,
+    lastUpdated: cache.lastUpdated
+  };
 }
 
 function normalizePlatformSlugsFromNames(platformNames: string[]): PlatformSlug[] {
@@ -1359,7 +1479,7 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
   }
 
   inFlightCatalogPromise = (async () => {
-    const cache = loadCache();
+    const cache = await loadBestAvailableCache();
     const cachedGames = cache.games;
     const cacheAgeHours = getCacheAgeHours(cache.lastUpdated);
 

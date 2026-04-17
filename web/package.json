@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "refresh:igdb": "node scripts/run-igdb-refresh.mjs"
   },
   "dependencies": {
+    "@vercel/blob": "^2.3.0",
     "next": "14.2.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",

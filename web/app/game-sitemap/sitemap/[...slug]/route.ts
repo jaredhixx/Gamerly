@@ -1,68 +1,9 @@
-import fs from "fs";
-import path from "path";
+import { getCachedCatalogSnapshot } from "../../../../lib/igdb-data";
 import { SITE_URL } from "../../../../lib/site";
 
 export const revalidate = 21600;
 
 const GAME_SITEMAP_PAGE_SIZE = 5000;
-const CACHE_FILE = path.join(process.cwd(), "igdb-cache.json");
-
-type CachedGame = {
-  id: number;
-  slug: string;
-  releaseDate?: string | null;
-};
-
-type CachePayload =
-  | {
-      lastUpdated?: string;
-      games?: CachedGame[];
-    }
-  | CachedGame[];
-
-function readGameCache(): {
-  games: CachedGame[];
-  lastUpdated: string;
-} {
-  const nowIso = new Date().toISOString();
-
-  try {
-    const raw = fs.readFileSync(CACHE_FILE, "utf8");
-    const parsed = JSON.parse(raw) as CachePayload;
-
-    const rawGames = Array.isArray(parsed)
-      ? parsed
-      : Array.isArray(parsed.games)
-      ? parsed.games
-      : [];
-
-    const games = rawGames.filter(
-      (game): game is CachedGame =>
-        typeof game?.id === "number" &&
-        typeof game?.slug === "string" &&
-        game.slug.length > 0
-    );
-
-    const lastUpdated =
-      Array.isArray(parsed)
-        ? nowIso
-        : typeof parsed.lastUpdated === "string"
-        ? parsed.lastUpdated
-        : nowIso;
-
-    return {
-      games,
-      lastUpdated
-    };
-  } catch (error) {
-    console.error("[game-sitemap-child] Failed to read igdb-cache.json", error);
-
-    return {
-      games: [],
-      lastUpdated: nowIso
-    };
-  }
-}
 
 function escapeXml(value: string) {
   return value
@@ -96,7 +37,8 @@ export async function GET(
     return new Response("Invalid sitemap id", { status: 404 });
   }
 
-  const { games, lastUpdated } = readGameCache();
+  const { games, lastUpdated } = await getCachedCatalogSnapshot();
+  const safeLastUpdated = lastUpdated ?? new Date().toISOString();
   const startIndex = sitemapId * GAME_SITEMAP_PAGE_SIZE;
   const endIndex = startIndex + GAME_SITEMAP_PAGE_SIZE;
   const gamesForThisSitemap = games.slice(startIndex, endIndex);
@@ -107,7 +49,7 @@ export async function GET(
 
   const entries = gamesForThisSitemap.map((game) => {
     const url = `${SITE_URL}/game/${game.id}-${game.slug}`;
-    const lastModified = game.releaseDate || lastUpdated;
+    const lastModified = game.releaseDate || safeLastUpdated;
 
     return `  <url>
     <loc>${escapeXml(url)}</loc>

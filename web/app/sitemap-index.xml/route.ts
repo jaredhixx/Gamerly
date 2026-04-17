@@ -1,78 +1,26 @@
-import fs from "fs";
-import path from "path";
+import { getCachedCatalogSnapshot } from "../../lib/igdb-data";
 import { SITE_URL } from "../../lib/site";
 
 export const revalidate = 21600;
 
 const GAME_SITEMAP_PAGE_SIZE = 5000;
-const CACHE_FILE = path.join(process.cwd(), "igdb-cache.json");
-
-type CachedGame = {
-  id: number;
-  slug: string;
-};
-
-type CachePayload =
-  | {
-      lastUpdated?: string;
-      games?: CachedGame[];
-    }
-  | CachedGame[];
-
-function readGameCount(): {
-  gameCount: number;
-  lastUpdated: string;
-} {
-  const nowIso = new Date().toISOString();
-
-  try {
-    const raw = fs.readFileSync(CACHE_FILE, "utf8");
-    const parsed = JSON.parse(raw) as CachePayload;
-
-    const rawGames = Array.isArray(parsed)
-      ? parsed
-      : Array.isArray(parsed.games)
-      ? parsed.games
-      : [];
-
-    const gameCount = rawGames.filter(
-      (game) =>
-        typeof game?.id === "number" &&
-        typeof game?.slug === "string" &&
-        game.slug.length > 0
-    ).length;
-
-    const lastUpdated =
-      Array.isArray(parsed)
-        ? nowIso
-        : typeof parsed.lastUpdated === "string"
-        ? parsed.lastUpdated
-        : nowIso;
-
-    return {
-      gameCount,
-      lastUpdated
-    };
-  } catch (error) {
-    console.error(
-      "[sitemap-index] Failed to read igdb-cache.json for game sitemap count.",
-      error
-    );
-
-    return {
-      gameCount: 0,
-      lastUpdated: nowIso
-    };
-  }
-}
 
 export async function GET() {
-  const { gameCount, lastUpdated } = readGameCount();
+  const { games, lastUpdated } = await getCachedCatalogSnapshot();
+
+  const gameCount = games.filter(
+    (game) =>
+      typeof game?.id === "number" &&
+      typeof game?.slug === "string" &&
+      game.slug.length > 0
+  ).length;
+
+  const safeLastUpdated = lastUpdated ?? new Date().toISOString();
 
   const sitemapEntries = [
     `  <sitemap>
     <loc>${SITE_URL}/sitemap.xml</loc>
-    <lastmod>${lastUpdated}</lastmod>
+    <lastmod>${safeLastUpdated}</lastmod>
   </sitemap>`
   ];
 
@@ -84,7 +32,7 @@ export async function GET() {
   for (let index = 0; index < gameSitemapCount; index += 1) {
     sitemapEntries.push(`  <sitemap>
     <loc>${SITE_URL}/game-sitemap/sitemap/${index}.xml</loc>
-    <lastmod>${lastUpdated}</lastmod>
+    <lastmod>${safeLastUpdated}</lastmod>
   </sitemap>`);
   }
 

@@ -81,31 +81,34 @@ export type GamerlyGame = {
 };
 
 async function saveCache(games: GamerlyGame[]) {
+  const lastUpdated = new Date().toISOString();
+
+  const payload: IGDBCacheFile = {
+    lastUpdated,
+    games
+  };
+
+  await saveCacheToBlob(payload);
+
   try {
-    const lastUpdated = new Date().toISOString();
-
-    const payload: IGDBCacheFile = {
-      lastUpdated,
-      games
-    };
-
-await saveCacheToBlob(payload);
-
-fs.writeFileSync(CACHE_FILE, JSON.stringify(payload, null, 2));
-
-inMemoryLoadedCache = {
-  games,
-  lastUpdated,
-  isLegacyFormat: false
-};
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(payload, null, 2));
 
     console.log(
-      `[IGDB] Cache saved successfully. games=${games.length} file=${CACHE_FILE}`
+      `[IGDB] Local cache file saved successfully. games=${games.length} file=${CACHE_FILE}`
     );
   } catch (error) {
-    console.warn("Failed to write IGDB cache:", error);
-    throw error;
+    console.warn("[IGDB] Local cache file write skipped or failed:", error);
   }
+
+  inMemoryLoadedCache = {
+    games,
+    lastUpdated,
+    isLegacyFormat: false
+  };
+
+  console.log(
+    `[IGDB] Cache saved successfully. games=${games.length} blobPrimary=true`
+  );
 }
 
 const BLOB_CACHE_PATH = "igdb-cache.json";

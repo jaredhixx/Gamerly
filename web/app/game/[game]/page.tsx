@@ -52,6 +52,24 @@ function isReleasedGame(game: { releaseDate?: string | null }) {
   return releaseDate.getTime() <= Date.now();
 }
 
+function isHighSignalGame(game: {
+  aggregated_rating?: number | null;
+  aggregated_rating_count?: number | null;
+  releaseDate?: string | null;
+}) {
+  if (!isReleasedGame(game)) {
+    return false;
+  }
+
+  const hasRating = typeof game.aggregated_rating === "number";
+
+  const hasAtLeastOneRating =
+    typeof game.aggregated_rating_count === "number" &&
+    game.aggregated_rating_count >= 1;
+
+  return hasRating && hasAtLeastOneRating;
+}
+
 function getReleaseYear(value?: string | null) {
   if (!value) {
     return null;
@@ -570,11 +588,11 @@ const releaseYear = game.releaseDate
   ? new Date(game.releaseDate).getUTCFullYear()
   : null;
 
-const seoTitle = isReleasedGame(game)
+const seoTitle = isHighSignalGame(game)
   ? `${game.name}${releaseYear ? ` (${releaseYear})` : ""} – Is It Worth Playing? ${primaryPlatform ? `${primaryPlatform} Review & Verdict` : "Review & Verdict"}`
-  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""} – Release Date, Platforms & What to Expect`;
+  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""} – Release Date, Platforms, Gameplay & Details`;
 
-const seoDescription = isReleasedGame(game)
+const seoDescription = isHighSignalGame(game)
   ? [
       `Is ${game.name}${releaseYear ? ` (${releaseYear})` : ""} actually worth playing?`,
       typeof game.aggregated_rating === "number"
@@ -789,9 +807,9 @@ const yearQuickLinkPage =
   <span className="gameTitleSub">
     {" "}
     –{" "}
-    {isReleasedGame(game)
-      ? "Is It Worth Playing? Review & Verdict"
-      : "Release Date, Platforms & What to Expect"}
+{isHighSignalGame(game)
+  ? "Is It Worth Playing? Review & Verdict"
+  : "Release Date, Platforms, Gameplay & Details"}
   </span>
 </h1>
 

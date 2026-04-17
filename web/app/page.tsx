@@ -1,4 +1,4 @@
-export const revalidate = 300;
+export const revalidate = 900;
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -36,9 +36,11 @@ function formatCount(value: number): string {
 
 export default async function Home() {
 const allGames = await fetchGames();
+const HOMEPAGE_GAME_LIMIT = 5000;
+const homepageGames = allGames.slice(0, HOMEPAGE_GAME_LIMIT);
 const now = Date.now();
 
-const games = buildHomepageCandidateGames(allGames, now);
+const games = buildHomepageCandidateGames(homepageGames, now);
 
 const streams = await fetchTwitchStreams().catch(() => []);
 

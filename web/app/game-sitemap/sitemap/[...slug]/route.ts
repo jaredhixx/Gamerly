@@ -5,6 +5,38 @@ export const revalidate = 21600;
 
 const GAME_SITEMAP_PAGE_SIZE = 5000;
 
+function isReleasedGame(game: { releaseDate?: string | null }) {
+  if (!game.releaseDate) {
+    return false;
+  }
+
+  const releaseTime = new Date(game.releaseDate).getTime();
+
+  if (Number.isNaN(releaseTime)) {
+    return false;
+  }
+
+  return releaseTime <= Date.now();
+}
+
+function isHighSignalGame(game: {
+  aggregated_rating?: number | null;
+  aggregated_rating_count?: number | null;
+  releaseDate?: string | null;
+}) {
+  if (!isReleasedGame(game)) {
+    return false;
+  }
+
+  const hasRating = typeof game.aggregated_rating === "number";
+
+  const hasAtLeastOneRating =
+    typeof game.aggregated_rating_count === "number" &&
+    game.aggregated_rating_count >= 1;
+
+  return hasRating && hasAtLeastOneRating;
+}
+
 function escapeXml(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -39,9 +71,10 @@ export async function GET(
 
   const { games, lastUpdated } = await getCachedCatalogSnapshot();
   const safeLastUpdated = lastUpdated ?? new Date().toISOString();
+  const sitemapEligibleGames = games.filter(isHighSignalGame);
   const startIndex = sitemapId * GAME_SITEMAP_PAGE_SIZE;
   const endIndex = startIndex + GAME_SITEMAP_PAGE_SIZE;
-  const gamesForThisSitemap = games.slice(startIndex, endIndex);
+  const gamesForThisSitemap = sitemapEligibleGames.slice(startIndex, endIndex);
 
   if (gamesForThisSitemap.length === 0 && sitemapId !== 0) {
     return new Response("Sitemap not found", { status: 404 });

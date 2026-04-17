@@ -80,7 +80,7 @@ export type GamerlyGame = {
   }>;
 };
 
-function saveCache(games: GamerlyGame[]) {
+async function saveCache(games: GamerlyGame[]) {
   try {
     const lastUpdated = new Date().toISOString();
 
@@ -89,21 +89,22 @@ function saveCache(games: GamerlyGame[]) {
       games
     };
 
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(payload, null, 2));
+await saveCacheToBlob(payload);
 
-    inMemoryLoadedCache = {
-      games,
-      lastUpdated,
-      isLegacyFormat: false
-    };
+fs.writeFileSync(CACHE_FILE, JSON.stringify(payload, null, 2));
 
-    void saveCacheToBlob(games);
+inMemoryLoadedCache = {
+  games,
+  lastUpdated,
+  isLegacyFormat: false
+};
 
     console.log(
       `[IGDB] Cache saved successfully. games=${games.length} file=${CACHE_FILE}`
     );
   } catch (error) {
     console.warn("Failed to write IGDB cache:", error);
+    throw error;
   }
 }
 
@@ -169,14 +170,8 @@ async function loadCacheFromBlob(): Promise<LoadedCache | null> {
   }
 }
 
-async function saveCacheToBlob(games: GamerlyGame[]) {
+async function saveCacheToBlob(payload: IGDBCacheFile) {
   try {
-    const lastUpdated = new Date().toISOString();
-
-    const payload: IGDBCacheFile = {
-      lastUpdated,
-      games
-    };
 
     await put(BLOB_CACHE_PATH, JSON.stringify(payload, null, 2), {
       access: "private",
@@ -185,10 +180,11 @@ async function saveCacheToBlob(games: GamerlyGame[]) {
     });
 
     console.log(
-      `[IGDB] Saved catalog to Blob. games=${games.length} lastUpdated=${lastUpdated}`
+      `[IGDB] Saved catalog to Blob. games=${payload.games.length} lastUpdated=${payload.lastUpdated}`
     );
   } catch (error) {
     console.warn("[IGDB] Failed to save Blob cache", error);
+    throw error;
   }
 }
 
@@ -1404,7 +1400,7 @@ export async function refreshCatalogSliceFromIGDB(
     throw new Error(`Unknown catalog window: ${windowLabel}`);
   }
 
-  const cache = loadCache();
+  const cache = await loadBestAvailableCache();
   const mergedById = new Map<number, GamerlyGame>();
 
   mergeCatalogGamesIntoMap(mergedById, cache.games);
@@ -1418,7 +1414,7 @@ export async function refreshCatalogSliceFromIGDB(
 
   const games = finalizeCatalogFromMap(mergedById);
 
-  saveCache(games);
+  await saveCache(games);
   inMemoryCatalogGames = games;
 
   console.log(
@@ -1465,13 +1461,6 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
   const forceRefresh = process.env.IGDB_FORCE_REFRESH === "true";
   const allowAutomaticStaleRefresh =
     process.env.IGDB_ALLOW_AUTOMATIC_STALE_REFRESH === "true";
-
-  if (!forceRefresh && inMemoryCatalogGames) {
-    console.log(
-      `[IGDB] Returning memoized in-memory catalog. games=${inMemoryCatalogGames.length}`
-    );
-    return inMemoryCatalogGames;
-  }
 
   if (inFlightCatalogPromise) {
     console.log("[IGDB] Awaiting in-flight catalog request.");
@@ -1544,7 +1533,7 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
         throw new Error("Live IGDB catalog returned zero games");
       }
 
-      saveCache(liveGames);
+      await saveCache(liveGames);
       inMemoryCatalogGames = liveGames;
 
       console.log(
@@ -1580,9 +1569,9 @@ export async function getGameByIdFromIGDB(id: number): Promise<GamerlyGame | nul
   return game ?? null;
 }
 
-export function getCacheLastUpdated(): string | null {
+export async function getCacheLastUpdated(): Promise<string | null> {
   try {
-    const loaded = loadCache();
+    const loaded = await loadBestAvailableCache();
     return loaded.lastUpdated ?? null;
   } catch {
     return null;

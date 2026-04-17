@@ -192,6 +192,13 @@ async function saveCacheToBlob(payload: IGDBCacheFile) {
 }
 
 async function loadBestAvailableCache(): Promise<LoadedCache> {
+  if (inMemoryLoadedCache && inMemoryLoadedCache.games.length > 0) {
+    console.log(
+      `[IGDB] Returning in-memory loaded cache. games=${inMemoryLoadedCache.games.length} lastUpdated=${inMemoryLoadedCache.lastUpdated ?? "unknown"}`
+    );
+    return inMemoryLoadedCache;
+  }
+
   const blobCache = await loadCacheFromBlob();
 
   if (blobCache && blobCache.games.length > 0) {
@@ -207,6 +214,8 @@ async function loadBestAvailableCache(): Promise<LoadedCache> {
   console.log(
     `[IGDB] Falling back to file cache. games=${fileCache.games.length} lastUpdated=${fileCache.lastUpdated ?? "unknown"}`
   );
+
+  inMemoryLoadedCache = fileCache;
 
   return fileCache;
 }
@@ -1465,6 +1474,13 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
   const allowAutomaticStaleRefresh =
     process.env.IGDB_ALLOW_AUTOMATIC_STALE_REFRESH === "true";
 
+  if (!forceRefresh && inMemoryCatalogGames && inMemoryCatalogGames.length > 0) {
+    console.log(
+      `[IGDB] Returning in-memory catalog games. games=${inMemoryCatalogGames.length}`
+    );
+    return inMemoryCatalogGames;
+  }
+
   if (inFlightCatalogPromise) {
     console.log("[IGDB] Awaiting in-flight catalog request.");
     return inFlightCatalogPromise;
@@ -1567,8 +1583,8 @@ export async function getAllGames(): Promise<GamerlyGame[]> {
 }
 
 export async function getGameByIdFromIGDB(id: number): Promise<GamerlyGame | null> {
-  const games = await getAllGames();
-  const game = games.find((g) => g.id === id);
+  const loaded = await loadBestAvailableCache();
+  const game = loaded.games.find((g) => g.id === id);
   return game ?? null;
 }
 

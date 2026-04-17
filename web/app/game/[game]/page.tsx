@@ -564,8 +564,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   const slugParts = slugParam.split("-");
   const id = Number(slugParts[0]);
 
-  const allGames = await fetchGames();
-  const game = allGames.find((g) => g.id === id);
+  const game = await getGameById(id);
 
   if (!game) {
     notFound();
@@ -635,11 +634,12 @@ export default async function GamePage(props: any) {
   const id = Number(slugParts[0]);
 
   const game = await getGameById(id);
-  const allGames = await fetchGames();
 
   if (!game) {
     notFound();
   }
+
+  const allGames = await fetchGames();
 
   const gameWithModes = game as typeof game & {
     game_modes?: string[] | null;
@@ -656,7 +656,7 @@ export default async function GamePage(props: any) {
   const relatedCandidates = allGames.filter(
     (g) =>
       g.id !== game.id &&
-      isReleasedGame(g) &&
+      isHighSignalGame(g) &&
       (
         (g.genres &&
           game.genres &&

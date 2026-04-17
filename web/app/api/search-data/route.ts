@@ -10,26 +10,33 @@ export async function GET(request: Request) {
 
   const games = await fetchGames();
 
-  const filtered = games
-    .filter((game) => game.name && game.name.toLowerCase().includes(query))
-    .sort((a, b) => {
-      const aName = a.name.toLowerCase();
-      const bName = b.name.toLowerCase();
+  const exactMatches: typeof games = [];
+  const startsWithMatches: typeof games = [];
+  const containsMatches: typeof games = [];
 
-      const aStarts = aName.startsWith(query);
-      const bStarts = bName.startsWith(query);
+  for (const game of games) {
+    if (!game.name) {
+      continue;
+    }
 
-      if (aStarts && !bStarts) return -1;
-      if (!aStarts && bStarts) return 1;
+    const gameName = game.name.toLowerCase();
 
-      const aExact = aName === query;
-      const bExact = bName === query;
+    if (gameName === query) {
+      exactMatches.push(game);
+    } else if (gameName.startsWith(query)) {
+      startsWithMatches.push(game);
+    } else if (gameName.includes(query)) {
+      containsMatches.push(game);
+    }
 
-      if (aExact && !bExact) return -1;
-      if (!aExact && bExact) return 1;
+    if (
+      exactMatches.length + startsWithMatches.length + containsMatches.length >= 24
+    ) {
+      break;
+    }
+  }
 
-      return aName.localeCompare(bName);
-    })
+  const filtered = [...exactMatches, ...startsWithMatches, ...containsMatches]
     .slice(0, 6)
     .map((game) => ({
       id: game.id,

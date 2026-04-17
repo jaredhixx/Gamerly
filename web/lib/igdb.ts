@@ -53,11 +53,34 @@ function getReleaseTime(value?: string | null) {
   return time;
 }
 
+type CatalogSlices = {
+  filtered: GamerlyGame[];
+  released: GamerlyGame[];
+  upcoming: GamerlyGame[];
+};
+
+let platformSliceCacheGamesRef: GamerlyGame[] | null = null;
+const platformSliceCache = new Map<PlatformSlug, CatalogSlices>();
+
+let genreSliceCacheGamesRef: GamerlyGame[] | null = null;
+const genreSliceCache = new Map<GenreSlug, CatalogSlices>();
+
 export function getPlatformCatalogSlices(
   games: GamerlyGame[],
   platformSlug: PlatformSlug,
   now = Date.now()
 ) {
+  if (platformSliceCacheGamesRef !== games) {
+    platformSliceCacheGamesRef = games;
+    platformSliceCache.clear();
+  }
+
+  const cachedSlices = platformSliceCache.get(platformSlug);
+
+  if (cachedSlices) {
+    return cachedSlices;
+  }
+
   const filtered: GamerlyGame[] = [];
   const released: GamerlyGame[] = [];
   const upcoming: GamerlyGame[] = [];
@@ -82,11 +105,15 @@ export function getPlatformCatalogSlices(
     }
   }
 
-  return {
+  const slices = {
     filtered,
     released,
     upcoming
   };
+
+  platformSliceCache.set(platformSlug, slices);
+
+  return slices;
 }
 
 export function getGenreCatalogSlices(
@@ -94,6 +121,17 @@ export function getGenreCatalogSlices(
   genreSlug: GenreSlug,
   now = Date.now()
 ) {
+  if (genreSliceCacheGamesRef !== games) {
+    genreSliceCacheGamesRef = games;
+    genreSliceCache.clear();
+  }
+
+  const cachedSlices = genreSliceCache.get(genreSlug);
+
+  if (cachedSlices) {
+    return cachedSlices;
+  }
+
   const filtered: GamerlyGame[] = [];
   const released: GamerlyGame[] = [];
   const upcoming: GamerlyGame[] = [];
@@ -118,9 +156,13 @@ export function getGenreCatalogSlices(
     }
   }
 
-  return {
+  const slices = {
     filtered,
     released,
     upcoming
   };
+
+  genreSliceCache.set(genreSlug, slices);
+
+  return slices;
 }

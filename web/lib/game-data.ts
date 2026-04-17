@@ -115,15 +115,7 @@ export async function getDerivedGameData(): Promise<DerivedGameData> {
     inMemoryDerivedGameData &&
     inMemoryDerivedGameData.cacheLastUpdated === cacheLastUpdated
   ) {
-    return {
-      games: [...inMemoryDerivedGameData.data.games],
-      newGames: [...inMemoryDerivedGameData.data.newGames],
-      upcomingGames: [...inMemoryDerivedGameData.data.upcomingGames],
-      topRated: [...inMemoryDerivedGameData.data.topRated],
-      releasingToday: [...inMemoryDerivedGameData.data.releasingToday],
-      releasingThisWeek: [...inMemoryDerivedGameData.data.releasingThisWeek],
-      releasingThisMonth: [...inMemoryDerivedGameData.data.releasingThisMonth]
-    };
+    return inMemoryDerivedGameData.data;
   }
 
   const games = await fetchGames();
@@ -177,13 +169,5 @@ export async function getDerivedGameData(): Promise<DerivedGameData> {
     data
   };
 
-  return {
-    games: [...data.games],
-    newGames: [...data.newGames],
-    upcomingGames: [...data.upcomingGames],
-    topRated: [...data.topRated],
-    releasingToday: [...data.releasingToday],
-    releasingThisWeek: [...data.releasingThisWeek],
-    releasingThisMonth: [...data.releasingThisMonth]
-  };
+  return data;
 }

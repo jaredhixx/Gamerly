@@ -12,15 +12,27 @@ export const metadata: Metadata = {
 
 export default async function SearchPage({ searchParams }: any) {
 
-  const query = searchParams?.q?.toLowerCase() || "";
+  const query = searchParams?.q?.toLowerCase().trim() || "";
 
-  const games = await fetchGames();
+  let results: Awaited<ReturnType<typeof fetchGames>> = [];
 
-  const results = games
-    .filter((g) =>
-      g.name?.toLowerCase().includes(query)
-    )
-    .slice(0, 60);
+  if (query.length >= 2) {
+    const games = await fetchGames();
+
+    for (const game of games) {
+      if (!game.name) {
+        continue;
+      }
+
+      if (game.name.toLowerCase().includes(query)) {
+        results.push(game);
+      }
+
+      if (results.length >= 60) {
+        break;
+      }
+    }
+  }
 
   return (
     <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>

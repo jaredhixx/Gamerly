@@ -33,9 +33,9 @@ const genres = [
 ];
 
 export default function SiteHeader() {
-
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (query.trim().length < 3) {
@@ -72,105 +72,146 @@ export default function SiteHeader() {
     };
   }, [query]);
 
-
   return (
-<header className="siteHeader">
+    <header className="siteHeader">
       <PageContainer>
-<div className="siteHeaderInner">
+        <div className="siteHeaderInner">
+          <div className="siteHeaderLeft">
+            <Link
+              href="/"
+              className="siteLogo"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Gamerly
+              <span className="logoPulse"></span>
+            </Link>
+          </div>
 
-<Link href="/" className="siteLogo">
-  Gamerly
-  <span className="logoPulse"></span>
-</Link>
+          <div className="siteHeaderCenter">
+            <div className="siteSearch">
+              <div className="siteSearchShell">
+                <input
+                  type="text"
+                  placeholder="Search games..."
+                  className="siteSearchInput"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && query.trim().length > 1) {
+                      window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
+                    }
+                  }}
+                />
 
-<div className="siteSearch">
-<input
-  type="text"
-  placeholder="Search games..."
-  className="siteSearchInput"
-  value={query}
-  onChange={(e) => setQuery(e.target.value)}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" && query.trim().length > 1) {
-      window.location.href = `/search?q=${encodeURIComponent(query)}`;
-    }
-  }}
-/>
+                <button
+                  type="button"
+                  className="siteSearchButton"
+                  onClick={() => {
+                    if (query.trim().length > 1) {
+                      window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
+                    }
+                  }}
+                  aria-label="Search games"
+                >
+                  Search
+                </button>
+              </div>
 
-{results.length > 0 && (
-  <div className="searchDropdown">
-{results.map((game) => (
-  <Link
-    key={game.id}
-    href={`/game/${game.id}-${game.slug}`}
-    className="searchResult"
-    onClick={() => {
-      setQuery("");
-      setResults([]);
-    }}
-  >
+              {results.length > 0 && (
+                <div className="searchDropdown">
+                  {results.map((game) => (
+                    <Link
+                      key={game.id}
+                      href={`/game/${game.id}-${game.slug}`}
+                      className="searchResult"
+                      onClick={() => {
+                        setQuery("");
+                        setResults([]);
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      {game.cover && (
+                        <img
+                          src={game.cover}
+                          alt={game.name}
+                          className="searchResultImage"
+                        />
+                      )}
 
-    {game.cover && (
-      <img
-        src={game.cover}
-        alt={game.name}
-        className="searchResultImage"
-      />
-    )}
+                      <span className="searchResultTitle">{game.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
-    <span className="searchResultTitle">
-      {game.name}
-    </span>
+          <button
+            type="button"
+            className="mobileMenuButton"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((current) => !current)}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
 
-  </Link>
-))}
-  </div>
-)}
-</div>
+          <nav className={`siteNav ${mobileMenuOpen ? "siteNavOpen" : ""}`}>
+            {primaryLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="siteNavLink"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
 
-<nav className="siteNav">
-  {primaryLinks.map((link) => (
-    <Link
-      key={link.href}
-      href={link.href}
-      className="siteNavLink"
-    >
-      {link.label}
-    </Link>
-  ))}
-
-<div className="dropdown">
-  <Link href="/platforms" className="dropdownLabel">
-    Platforms <span className="navCaret">▾</span>
-  </Link>
+            <div className="dropdown">
+              <Link
+                href="/platforms"
+                className="dropdownLabel"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Platforms <span className="navCaret">▾</span>
+              </Link>
 
               <div className="dropdownMenu">
                 {platforms.map((p) => (
                   <Link
-  key={p.slug}
-  href={`/platform/${p.slug}`}
-  className="dropdownItem"
->
-  {p.name}
-</Link>
+                    key={p.slug}
+                    href={`/platform/${p.slug}`}
+                    className="dropdownItem"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {p.name}
+                  </Link>
                 ))}
               </div>
             </div>
 
-<div className="dropdown">
-  <Link href="/genres" className="dropdownLabel">
-    Genres <span className="navCaret">▾</span>
-  </Link>
+            <div className="dropdown">
+              <Link
+                href="/genres"
+                className="dropdownLabel"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Genres <span className="navCaret">▾</span>
+              </Link>
 
               <div className="dropdownMenu">
                 {genres.map((g) => (
                   <Link
-  key={g.slug}
-  href={`/genre/${g.slug}`}
-  className="dropdownItem"
->
-  {g.name}
-</Link>
+                    key={g.slug}
+                    href={`/genre/${g.slug}`}
+                    className="dropdownItem"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {g.name}
+                  </Link>
                 ))}
               </div>
             </div>

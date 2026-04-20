@@ -26,6 +26,10 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   return {
     title: `${platformLabel} Games - Page ${page}`,
     description: `Browse ${platformLabel.toLowerCase()} games including release dates, ratings, screenshots, and more.`,
+    robots: {
+      index: false,
+      follow: true
+    },
     alternates: {
       canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}/page/${page}`)
     }

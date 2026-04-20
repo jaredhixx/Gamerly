@@ -29,24 +29,18 @@ export default async function AllGamesPage() {
 
       <GameGrid games={firstPage} />
 
-      <div style={{ marginTop: "40px" }}>
-        {Array.from({ length: totalPages - 1 }, (_, i) => {
-          const page = i + 2;
-
-          return (
-            <Link
-              key={page}
-              href={`/all-games/page/${page}`}
-              style={{
-                marginRight: "12px",
-                color: "#6aa6ff"
-              }}
-            >
-              Page {page}
-            </Link>
-          );
-        })}
-      </div>
+      {totalPages > 1 && (
+        <div style={{ marginTop: "40px" }}>
+          <Link
+            href="/all-games/page/2"
+            style={{
+              color: "#6aa6ff"
+            }}
+          >
+            Next
+          </Link>
+        </div>
+      )}
     </PageContainer>
   );
 }

@@ -363,22 +363,14 @@ export default async function NewGamesPage() {
 
       {totalPages > 1 && (
         <div style={{ marginTop: "40px" }}>
-          {Array.from({ length: totalPages - 1 }, (_, index) => {
-            const page = index + 2;
-
-            return (
-              <Link
-                key={page}
-                href={`/new-games/page/${page}`}
-                style={{
-                  marginRight: "12px",
-                  color: "#6aa6ff"
-                }}
-              >
-                Page {page}
-              </Link>
-            );
-          })}
+          <Link
+            href="/new-games/page/2"
+            style={{
+              color: "#6aa6ff"
+            }}
+          >
+            Next
+          </Link>
         </div>
       )}
     </PageContainer>

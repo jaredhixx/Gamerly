@@ -34,6 +34,10 @@ export async function generateMetadata(
   return {
     title: `Upcoming Games - Page ${page}`,
     description: `Browse page ${page} of upcoming video game releases across all platforms.`,
+    robots: {
+      index: false,
+      follow: true
+    },
     alternates: {
       canonical: buildCanonicalUrl(`/upcoming-games/page/${page}`)
     }
@@ -72,6 +76,15 @@ export default async function UpcomingGamesPaginationPage(
       <GameGrid games={pageGames} />
 
       <div style={{ marginTop: "40px" }}>
+        {page === 2 && (
+          <Link
+            href="/upcoming-games"
+            style={{ marginRight: "16px", color: "#6aa6ff" }}
+          >
+            Previous
+          </Link>
+        )}
+
         {page > 2 && (
           <Link
             href={`/upcoming-games/page/${page - 1}`}

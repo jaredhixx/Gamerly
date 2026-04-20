@@ -35,6 +35,10 @@ export async function generateMetadata(
   return {
     title: `All Games - Page ${page}`,
     description: `Browse page ${page} of all games on Gamerly across platforms and genres.`,
+    robots: {
+      index: false,
+      follow: true
+    },
     alternates: {
       canonical: buildCanonicalUrl(`/all-games/page/${page}`)
     }
@@ -70,6 +74,12 @@ export default async function AllGamesPagination(
       <GameGrid games={pageGames} />
 
       <div style={{ marginTop: "40px" }}>
+        {page === 2 && (
+          <Link href="/all-games" style={{ marginRight: "16px" }}>
+            Previous
+          </Link>
+        )}
+
         {page > 2 && (
           <Link href={`/all-games/page/${page - 1}`} style={{ marginRight: "16px" }}>
             Previous

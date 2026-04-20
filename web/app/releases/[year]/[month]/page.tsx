@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import GameGrid from "../../../../components/game/GameGrid";
-import { fetchGames } from "../../../../lib/igdb";
+import { getDerivedGameData } from "../../../../lib/game-data";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../../lib/site";
 
@@ -79,7 +79,7 @@ export default async function ReleaseMonthPage(props: any) {
     notFound();
   }
 
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
   const filtered = games.filter((g: any) => {
     if (!g.releaseDate) return false;

@@ -1,4 +1,4 @@
-import { fetchGames, getIGDBCacheLastUpdated, type GamerlyGame } from "./igdb";
+import { getIGDBCatalogSnapshot, type GamerlyGame } from "./igdb";
 
 function isFuture(date?: string | null) {
   if (!date) {
@@ -109,7 +109,8 @@ let inMemoryDerivedGameData:
   | null = null;
 
 export async function getDerivedGameData(): Promise<DerivedGameData> {
-  const cacheLastUpdated = await getIGDBCacheLastUpdated();
+  const { games, lastUpdated: cacheLastUpdated } =
+    await getIGDBCatalogSnapshot();
 
   if (
     inMemoryDerivedGameData &&
@@ -117,8 +118,6 @@ export async function getDerivedGameData(): Promise<DerivedGameData> {
   ) {
     return inMemoryDerivedGameData.data;
   }
-
-  const games = await fetchGames();
 
   const sortedByNewestRelease = [...games].sort(
     (a, b) =>

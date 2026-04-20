@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import GameGrid from "../../components/game/GameGrid";
-import { fetchGames } from "../../lib/igdb";
 import { getDerivedGameData } from "../../lib/game-data";
 import { buildCanonicalUrl } from "../../lib/site";
 
@@ -26,8 +25,7 @@ function isToday(dateString: string | null | undefined) {
 }
 
 export default async function GamesReleasingTodayPage() {
-  const { releasingToday } = await getDerivedGameData();
-  const games = await fetchGames();
+  const { games, releasingToday } = await getDerivedGameData();
 
   const tomorrowGames = games.filter((g) => {
     if (!g.releaseDate) return false;

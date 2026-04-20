@@ -1,7 +1,7 @@
 export const revalidate = 1800;
 
 import { Metadata } from "next";
-import { fetchGames } from "../../lib/igdb";
+import { getDerivedGameData } from "../../lib/game-data";
 import { fetchTwitchStreams } from "../../lib/twitch";
 import {
   calculateHypeRankingScore,
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HypePage() {
-const allGames = await fetchGames();
+const { games: allGames } = await getDerivedGameData();
 const games = allGames.slice(0, 5000);
   const streams = await fetchTwitchStreams();
 

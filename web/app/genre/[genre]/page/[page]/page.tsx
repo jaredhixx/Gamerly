@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import GameGrid from "../../../../../components/game/GameGrid";
-import { fetchGames } from "../../../../../lib/igdb";
+import { getDerivedGameData } from "../../../../../lib/game-data";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../../../lib/site";
 import { genres } from "../../../../../lib/genres";
@@ -41,7 +41,7 @@ export default async function GenrePaginationPage(props: any) {
     notFound();
   }
 
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
   const filtered = games.filter((g: any) =>
     g.genreSlugs?.includes(genre)

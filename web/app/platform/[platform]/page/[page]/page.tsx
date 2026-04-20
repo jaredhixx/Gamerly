@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import GameGrid from "../../../../../components/game/GameGrid";
-import { fetchGames } from "../../../../../lib/igdb";
+import { getDerivedGameData } from "../../../../../lib/game-data";
 import { platforms } from "../../../../../lib/platforms";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../../../lib/site";
@@ -47,7 +47,7 @@ export default async function PlatformPaginationPage(props: any) {
 
   const platformLabel = platformConfig.name.replace(" Games", "");
 
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
   const filtered = games.filter((g: any) =>
     g.platformSlugs?.includes(platformConfig.slug)

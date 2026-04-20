@@ -1,4 +1,4 @@
-import { fetchGames } from "../../lib/igdb";
+import { getDerivedGameData } from "../../lib/game-data";
 import { fetchTwitchStreams } from "../../lib/twitch";
 import GameCarousel from "../../components/game/GameCarousel";
 import PageContainer from "../../components/layout/PageContainer";
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function LiveGamesPage() {
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
   const streams = await fetchTwitchStreams();
 
 const viewerMap = new Map();

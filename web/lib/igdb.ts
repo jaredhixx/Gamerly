@@ -1,6 +1,7 @@
 import {
   getAllGames,
   getCacheLastUpdated,
+  getCachedCatalogSnapshot,
   getGameByIdFromIGDB
 } from "./igdb-data";
 import type { PlatformSlug } from "./platforms";
@@ -33,6 +34,13 @@ export async function fetchGames(): Promise<GamerlyGame[]> {
 
 export async function getIGDBCacheLastUpdated(): Promise<string | null> {
   return await getCacheLastUpdated();
+}
+
+export async function getIGDBCatalogSnapshot(): Promise<{
+  games: GamerlyGame[];
+  lastUpdated: string | null;
+}> {
+  return await getCachedCatalogSnapshot();
 }
 
 export async function getGameById(id: number) {

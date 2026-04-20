@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import GameGrid from "../../components/game/GameGrid";
-import { fetchGames } from "../../lib/igdb";
+import { getDerivedGameData } from "../../lib/game-data";
 import Link from "next/link";
 import { buildCanonicalUrl } from "../../lib/site";
 
@@ -56,7 +56,7 @@ function getReleaseTimestamp(releaseDate?: string | null) {
 }
 
 export default async function GamesReleasingNextMonthPage() {
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
   const now = new Date();
 

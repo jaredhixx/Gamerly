@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import GameGrid from "../../../../components/game/GameGrid";
 import { genres } from "../../../../lib/genres";
-import { fetchGames } from "../../../../lib/igdb";
+import { getDerivedGameData } from "../../../../lib/game-data";
 import { platforms } from "../../../../lib/platforms";
 import { buildCanonicalUrl } from "../../../../lib/site";
 
@@ -63,7 +63,7 @@ export default async function PlatformGenrePage(props: any) {
 
   const platformLabel = platformConfig.name.replace(" Games", "");
 
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
   const filtered = games.filter((g: any) => {
     const matchesPlatform = g.platformSlugs?.includes(platformConfig.slug);

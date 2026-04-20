@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import GameGrid from "../../../../components/game/GameGrid";
-import { fetchGames } from "../../../../lib/igdb";
+import { getDerivedGameData } from "../../../../lib/game-data";
 import { platforms } from "../../../../lib/platforms";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../../lib/site";
@@ -64,7 +64,7 @@ export default async function PlatformNewPage(props: any) {
 
   const platformLabel = platformConfig.name.replace(" Games", "");
 
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
 const now = Date.now();
 

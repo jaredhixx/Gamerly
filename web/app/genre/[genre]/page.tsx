@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import GameGrid from "../../../components/game/GameGrid";
-import { fetchGames, getGenreCatalogSlices } from "../../../lib/igdb";
+import { getGenreCatalogSlices } from "../../../lib/igdb";
+import { getDerivedGameData } from "../../../lib/game-data";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../lib/site";
 import { genres } from "../../../lib/genres";
@@ -43,7 +44,7 @@ export default async function GenrePage(props: any) {
     notFound();
   }
 
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
 const { filtered, released, upcoming } = getGenreCatalogSlices(
   games,

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import GameGrid from "../../../components/game/GameGrid";
-import { fetchGames, getPlatformCatalogSlices } from "../../../lib/igdb";
+import { getPlatformCatalogSlices } from "../../../lib/igdb";
+import { getDerivedGameData } from "../../../lib/game-data";
 import { platforms } from "../../../lib/platforms";
 import { notFound } from "next/navigation";
 import { buildCanonicalUrl } from "../../../lib/site";
@@ -58,7 +59,7 @@ export default async function PlatformPage(props: any) {
     notFound();
   }
 
-  const games = await fetchGames();
+  const { games } = await getDerivedGameData();
 
   const platformLabel = platformConfig.name.replace(" Games", "");
 

@@ -40,13 +40,13 @@ export async function generateMetadata(props: any): Promise<Metadata> {
     };
   }
 
-return {
-  title: `Best ${platformConfig.name} – Top Games Worth Playing Right Now`,
-  description: `Which ${platformConfig.name.toLowerCase()} games are actually worth playing right now? Skip the filler and find the best options fast, including top rated games, new releases, and upcoming titles.`,
-  alternates: {
-    canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}`)
-  }
-};
+  return {
+    title: `Best ${platformConfig.name} Games Right Now (Top Rated, New & Upcoming)`,
+    description: `Compare the best ${platformConfig.name.toLowerCase()} games fast. See top-rated picks, new releases, and upcoming games in one place so you can skip filler and find the strongest options.`,
+    alternates: {
+      canonical: buildCanonicalUrl(`/platform/${platformConfig.slug}`)
+    }
+  };
 }
 
 export default async function PlatformPage(props: any) {
@@ -97,7 +97,7 @@ export default async function PlatformPage(props: any) {
     textAlign: "center"
   }}
 >
-  Best {platformLabel} Games Worth Playing Right Now
+  Best {platformLabel} Games Right Now
 </h1>
 
 <p
@@ -110,7 +110,7 @@ export default async function PlatformPage(props: any) {
     textAlign: "center"
   }}
 >
-  Trying to find the best {platformLabel.toLowerCase()} games that are actually worth your time? This page highlights the strongest options right now, including top rated titles, new releases, and upcoming games, so you can quickly decide what is worth playing without digging through low-quality picks.
+  Compare top-rated {platformLabel.toLowerCase()} games, new releases, and upcoming picks in one place. This page is built for fast discovery, so you can spot the strongest games quickly and skip filler.
 </p>
 
 <p
@@ -641,7 +641,7 @@ export default async function PlatformPage(props: any) {
                 fontWeight: 600
               }}
             >
-              View all top rated {platformLabel} games →
+              View all top rated {platformLabel} games â†’
             </Link>
           </div>
         </section>
@@ -678,7 +678,7 @@ export default async function PlatformPage(props: any) {
                 fontWeight: 600
               }}
             >
-              View all upcoming {platformLabel} games →
+              View all upcoming {platformLabel} games â†’
             </Link>
           </div>
         </section>
@@ -715,7 +715,7 @@ export default async function PlatformPage(props: any) {
                 fontWeight: 600
               }}
             >
-              View all new {platformLabel} games →
+              View all new {platformLabel} games â†’
             </Link>
           </div>
         </section>
@@ -797,7 +797,7 @@ export default async function PlatformPage(props: any) {
                 fontWeight: 600
               }}
             >
-              Browse more {platformLabel} games →
+              Browse more {platformLabel} games â†’
             </Link>
           </div>
         )}

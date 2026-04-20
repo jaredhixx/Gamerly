@@ -123,13 +123,13 @@ function createAdventureEntry(
 
   return {
     pageTitle: `Best Adventure Games on ${labels.pageLabel} in ${year}`,
-    pageSubtitle: `Top adventure games on ${labels.releaseLabel} released in ${year}, ranked by reviews, momentum, and real player interest.`,
-    description: `Compare the best adventure games on ${labels.pageLabel} released in ${year}, ranked by reviews, momentum, and player interest so you can quickly find what is actually worth playing.`,
-    introParagraphOne: `Looking for the best adventure games on ${labels.pageLabel} released in ${year}? This list highlights the top titles right now, so you can quickly decide what to play first without digging through everything.`,
-    introParagraphTwo: `If you want to find the most worth-playing adventure games on ${labels.pageLabel} released in ${year}, this page highlights the top options based on review scores and player interest. For a broader view across all genres, explore the best ${labels.broadPageLabel} games of ${year} to see the top releases across the entire platform.`,
+    pageSubtitle: `Top adventure games on ${labels.releaseLabel} in ${year} for fast comparison of the strongest picks.`,
+    description: `Compare the best adventure games on ${labels.pageLabel} in ${year} fast, including top-rated releases, new standouts, and the strongest picks without the filler.`,
+    introParagraphOne: `Looking for the best adventure games on ${labels.pageLabel} in ${year}? This page helps you compare the strongest releases fast, from top-rated hits to newer standouts.`,
+    introParagraphTwo: `Use this page to skip weaker releases and focus on the adventure games on ${labels.pageLabel} that are separating themselves through review scores, player interest, and overall impact. For a broader view across all genres, explore the best ${labels.broadPageLabel} games of ${year}.`,
     exploreHeading: `Explore More ${labels.exploreLabel} Adventure Pages`,
     topSectionHeading: `Top Adventure Games Released on ${labels.releaseLabel} in ${year}`,
-    topSectionIntro: `These are the standout adventure games released on ${labels.releaseLabel} in ${year} based on quality and popularity signals.`,
+    topSectionIntro: `These are the adventure games on ${labels.releaseLabel} in ${year} that stand out most on review strength, player interest, and overall impact.`,
     fullListHeading: `Full List of Best Adventure Games on ${labels.pageLabel} in ${year}`
   };
 }

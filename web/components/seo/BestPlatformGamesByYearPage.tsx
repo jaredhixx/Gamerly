@@ -206,7 +206,9 @@ export default async function BestPlatformGamesByYearPage({
     color: "#cfd6e6"
   }}
 >
-  Not all {platformDisplayName} games in {year} are worth your time. This page filters out low-signal releases and ranks only the strongest games based on review scores, player interest, and overall impact, so you can quickly find what is actually worth playing.
+  {year === new Date().getUTCFullYear()
+    ? `Compare the strongest ${platformDisplayName} games of ${year} so far. This page highlights early standouts, new releases, and the games starting to separate themselves without making you sift through filler.`
+    : `Compare the strongest ${platformDisplayName} games of ${year} fast. This page surfaces top-rated releases, standout newcomers, and the clearest picks without making you sift through filler.`}
 </p>
   <p style={{ maxWidth: "none" }}>{introParagraphOne}</p>
   <p style={{ maxWidth: "none" }}>{introParagraphTwo}</p>

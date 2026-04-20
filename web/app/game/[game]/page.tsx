@@ -612,9 +612,33 @@ const seoDescription = isHighSignalGame(game)
       .filter(Boolean)
       .join(" ");
 
+const pageSeoTitle = isHighSignalGame(game)
+  ? `${game.name}${releaseYear ? ` (${releaseYear})` : ""} - Review, Rating & Should You Play It?`
+  : `${game.name}${releaseYear ? ` (${releaseYear})` : ""} - Release Date, Platforms, Trailer & Gameplay`;
+
+const pageSeoDescription = isHighSignalGame(game)
+  ? [
+      `See whether ${game.name}${releaseYear ? ` (${releaseYear})` : ""} is worth playing.`,
+      typeof game.aggregated_rating === "number"
+        ? `Check the ${Math.round(game.aggregated_rating)}/100 rating,`
+        : `Check the review picture,`,
+      `release details, platforms, trailer, screenshots, and similar games to make a faster call.`
+    ]
+      .filter(Boolean)
+      .join(" ")
+  : [
+      `Track ${game.name}${releaseYear ? ` (${releaseYear})` : ""} before launch.`,
+      game.releaseDate
+        ? `See the release date, platforms, trailer, screenshots, and early gameplay details.`
+        : `See the platforms, trailer, screenshots, and early gameplay details available so far.`,
+      `Find out if it deserves a spot on your radar.`
+    ]
+      .filter(Boolean)
+      .join(" ");
+
 return {
-  title: seoTitle,
-  description: seoDescription,
+  title: pageSeoTitle,
+  description: pageSeoDescription,
   alternates: {
     canonical: buildCanonicalUrl(`/game/${id}-${game.slug}`)
   }
@@ -808,8 +832,8 @@ const yearQuickLinkPage =
     {" "}
     –{" "}
 {isHighSignalGame(game)
-  ? "Is It Worth Playing? Review & Verdict"
-  : "Release Date, Platforms, Gameplay & Details"}
+  ? "Review, Rating & Should You Play It?"
+  : "Release Date, Platforms, Trailer & Gameplay"}
   </span>
 </h1>
 
@@ -819,33 +843,26 @@ const yearQuickLinkPage =
       ? new Date(game.releaseDate).getUTCFullYear()
       : null;
 
-    const platform = getPrimaryPlatform(game);
-    const genre = game.genres?.[0];
-
     const rating =
       typeof game.aggregated_rating === "number"
         ? Math.round(game.aggregated_rating)
         : null;
 
     if (isReleasedGame(game)) {
-return `Trying to decide if ${game.name}${
+return `Trying to decide whether ${game.name}${
   releaseYear ? ` (${releaseYear})` : ""
 } is worth playing? ${
-  rating ? `It currently has a ${rating}/100 rating.` : ""
-} ${
-  platform ? `See how it performs on ${platform},` : ""
-} who it is best for, and whether it is actually worth your time before you play.`;
+  rating ? `It currently has a ${rating}/100 rating. ` : ""
+}See the release details, supported platforms, trailer, gameplay snapshot, and who it is best for so you can make a faster call.`;
     }
 
-return `Trying to decide if ${game.name}${
+return `Following ${game.name}${
   releaseYear ? ` (${releaseYear})` : ""
-} is worth following before launch? ${
-  platform ? `It is currently expected on ${platform}.` : ""
-} ${
+}? ${
   game.releaseDate
-    ? `The current release date is ${formatReleaseDateForDisplay(game)}.`
-    : "A release date has not been confirmed yet."
-} See what kind of players it may appeal to, what to expect at launch, and whether it deserves a spot on your radar.`;
+    ? `The current release date is ${formatReleaseDateForDisplay(game)}. `
+    : "A release date has not been confirmed yet. "
+}Check the platforms, trailer, screenshots, and early gameplay details to see whether it deserves a spot on your radar.`;
   })()}
 </p>
 

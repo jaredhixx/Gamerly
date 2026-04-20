@@ -183,7 +183,7 @@ const genreDisplayName =
     color: "#cfd6e6"
   }}
 >
-  Not all {genreDisplayName} games on {platformDisplayName} in {year} are worth your time. This page filters out low-signal releases and ranks only the strongest games based on review scores, player interest, and overall impact, so you can quickly find what is actually worth playing.
+  Compare the strongest {genreDisplayName} games on {platformDisplayName} in {year} fast. This page surfaces top-rated releases and the clearest standouts so you can skip filler and find the best picks quickly.
 </p>
         <p style={{ maxWidth: "none" }}>{introParagraphOne}</p>
         <p style={{ maxWidth: "none" }}>{introParagraphTwo}</p>

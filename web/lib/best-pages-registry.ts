@@ -122,6 +122,12 @@ function buildPlatformYearEntry(
   year: keyof (typeof bestPlatformGamesByYearContent)[keyof typeof bestPlatformGamesByYearContent]
 ): BestPageRegistryEntry {
   const content = bestPlatformGamesByYearContent[platformSlug][year];
+  const pageTitle =
+    platformSlug === "pc" && year === 2025
+      ? "Best PC Games of 2025 (Top Rated & Worth Playing)"
+      : platformSlug === "pc" && year === 2026
+        ? "Best PC Games of 2026 So Far (Early Top Picks)"
+        : `Best ${PLATFORM_LABELS[platformSlug]} Games of ${year}`;
 
   return {
     type: "platform-year",
@@ -129,7 +135,7 @@ function buildPlatformYearEntry(
     canonicalPath: `/best-${platformSlug}-games-${year}`,
     platformSlug,
     year,
-    pageTitle: `Best ${PLATFORM_LABELS[platformSlug]} Games of ${year}`,
+    pageTitle,
     pageSubtitle: content.pageSubtitle,
     description: content.description,
     introParagraphOne: content.introParagraphOne,
@@ -159,6 +165,10 @@ function buildGenrePlatformYearEntry(
 ): BestPageRegistryEntry {
   const content =
     bestGenrePlatformGamesByYearContent[platformSlug][genreSlug][year];
+  const pageTitle =
+    platformSlug === "switch" && genreSlug === "adventure" && year === 2025
+      ? "Best Adventure Games on Switch (2025 Top Picks)"
+      : `Best ${GENRE_LABELS[genreSlug]} Games on ${PLATFORM_LABELS[platformSlug]} in ${year}`;
 
   return {
     type: "genre-platform-year",
@@ -167,7 +177,7 @@ function buildGenrePlatformYearEntry(
     genreSlug,
     platformSlug,
     year,
-    pageTitle: `Best ${GENRE_LABELS[genreSlug]} Games on ${PLATFORM_LABELS[platformSlug]} in ${year}`,
+    pageTitle,
     pageSubtitle: content.pageSubtitle,
     description: content.description,
     introParagraphOne: content.introParagraphOne,

@@ -966,6 +966,32 @@ return `Following ${game.name}${
         </Link>
       );
     })}
+
+    {gameWithModes.game_modes?.includes("Single player") && (
+      <span className="gamePill">Single Player</span>
+    )}
+
+    {gameWithModes.game_modes?.includes("Multiplayer") && (
+      <span className="gamePill">Multiplayer</span>
+    )}
+
+    {gameWithModes.game_modes?.some((mode) =>
+      mode.toLowerCase().includes("coop")
+    ) && (
+      <span className="gamePill">Co-op</span>
+    )}
+
+    {gameWithModes.multiplayer_modes?.some(
+      (mode) => mode.onlinecoop || mode.onlinecoopmax
+    ) && (
+      <span className="gamePill">Online Play</span>
+    )}
+
+    {gameWithModes.multiplayer_modes?.some(
+      (mode) => mode.offlinecoop || mode.offlinecoopmax
+    ) && (
+      <span className="gamePill">Local Play</span>
+    )}
   </div>
 
   <div className="gameHeroDecisionCard">
@@ -1087,37 +1113,67 @@ return `Following ${game.name}${
 </div>
   </div>
 
-{heroQuickLinkPage || yearQuickLinkPage || genrePlatformQuickLinkPage || game.genreSlugs?.[0] ? (
-  <div className="heroQuickLinks">
-    {heroQuickLinkPage && heroQuickLinkSlug && heroQuickLinkYear && (
-      <Link
-        href={`/${heroQuickLinkSlug}`}
-        className="heroQuickLinkPill"
-      >
-        Best {getPrimaryPlatform(game)} games of {heroQuickLinkYear}
-      </Link>
-    )}
+<div
+  style={{
+    maxWidth: "760px",
+    margin: "24px auto 32px auto",
+    padding: "18px",
+    border: "1px solid rgba(255, 255, 255, 0.12)",
+    borderRadius: "12px",
+    background: "rgba(255, 255, 255, 0.05)",
+    textAlign: "center"
+  }}
+>
+  <h3
+    style={{
+      margin: 0,
+      fontSize: "1.125rem",
+      lineHeight: 1.35,
+      fontWeight: 700,
+      color: "#fff"
+    }}
+  >
+    Not sure this is the right game?
+  </h3>
 
+  <p
+    style={{
+      maxWidth: "620px",
+      margin: "6px auto 0 auto",
+      fontSize: "0.95rem",
+      lineHeight: 1.5,
+      color: "rgba(255, 255, 255, 0.68)"
+    }}
+  >
+    Compare stronger picks before you decide.
+  </p>
+
+  <div
+    style={{
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: "12px",
+      marginTop: "14px"
+    }}
+  >
     {yearQuickLinkPage && yearQuickLinkSlug && heroQuickLinkYear && (
-      <Link
-        href={`/${yearQuickLinkSlug}`}
-        className="heroQuickLinkPill"
-      >
+      <Link href={`/${yearQuickLinkSlug}`} className="heroQuickLinkPill">
         Best games of {heroQuickLinkYear}
       </Link>
     )}
 
     {genrePlatformQuickLinkPage &&
-    genrePlatformQuickLinkSlug &&
-    game.genres?.[0] &&
-    heroQuickLinkYear ? (
-      <Link
-        href={`/${genrePlatformQuickLinkSlug}`}
-        className="heroQuickLinkPill"
-      >
-        Best {game.genres[0]} games on {getPrimaryPlatform(game)} in {heroQuickLinkYear}
-      </Link>
-    ) : null}
+      genrePlatformQuickLinkSlug &&
+      game.genres?.[0] &&
+      heroQuickLinkYear && (
+        <Link
+          href={`/${genrePlatformQuickLinkSlug}`}
+          className="heroQuickLinkPill"
+        >
+          Best {game.genres[0]} games on {getPrimaryPlatform(game)} in {heroQuickLinkYear}
+        </Link>
+      )}
 
     {game.genreSlugs?.[0] && (
       <Link
@@ -1128,9 +1184,58 @@ return `Following ${game.name}${
       </Link>
     )}
   </div>
-) : null}
+</div>
+
+{game.summary && (
+  <section className="gameHeroSummaryBlock">
+<h2 className="gameHeroSummaryHeading">
+  Is {game.name} Worth Playing?
+</h2>
+    <ExpandableSummary summary={game.summary} />
+  </section>
+)}
 
 <section className="gameSection" style={{ textAlign: "center" }}>
+  <h2>About {game.name}</h2>
+
+<p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
+  {(() => {
+    const isReleased = isReleasedGame(game);
+
+    const releaseTime = game.releaseDate
+      ? new Date(game.releaseDate).getTime()
+      : null;
+
+    const hasFutureReleaseDate =
+      typeof releaseTime === "number" &&
+      !Number.isNaN(releaseTime) &&
+      releaseTime > Date.now();
+
+    const rawGenre = game.genres?.[0] || "video";
+    const genre = rawGenre.toLowerCase();
+
+    const primaryPlatform = getPrimaryPlatform(game);
+    const platformText =
+      primaryPlatform && primaryPlatform !== "Unknown Platform"
+        ? primaryPlatform
+        : "supported platforms";
+
+    const article = /^[aeiou]/i.test(genre) ? "an" : "a";
+
+    if (isReleased) {
+      return `${game.name} is ${article} ${genre} game available on ${platformText}. See its rating, gameplay details, similar games, and whether it is worth playing.`;
+    }
+
+    if (hasFutureReleaseDate) {
+      return `${game.name} is an upcoming ${genre} game for ${platformText}. See its release date, platforms, gameplay details, similar games, and whether it is worth keeping on your radar.`;
+    }
+
+    return `${game.name} is ${article} ${genre} game listed for ${platformText}. See its available release details, platforms, gameplay details, similar games, and whether it is worth keeping on your radar.`;
+  })()}
+</p>
+</section>
+
+<section className="gameSection" style={{ textAlign: "center", marginBottom: "32px" }}>
   <h2>
     Find Better Games Than {game.name}
   </h2>
@@ -1175,135 +1280,6 @@ return `Following ${game.name}${
       </Link>
     ) : null}
   </div>
-</section>
-
-{game.summary && (
-  <section className="gameHeroSummaryBlock">
-<h2 className="gameHeroSummaryHeading">
-  Is {game.name} Worth Playing?
-</h2>
-    <ExpandableSummary summary={game.summary} />
-  </section>
-)}
-
-<section className="gameSection" style={{ textAlign: "center" }}>
-  <h2>How {game.name} Plays</h2>
-
-  <div
-    style={{
-      maxWidth: "700px",
-      margin: "0 auto",
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-      gap: "14px",
-      marginTop: "16px"
-    }}
-  >
-    <div className="gameInfoCard">
-      <div className="gameInfoLabel">Single Player</div>
-      <div className="gameInfoValue">
-        {gameWithModes.game_modes?.includes("Single player")
-          ? "Yes"
-          : "Unknown"}
-      </div>
-    </div>
-
-    <div className="gameInfoCard">
-      <div className="gameInfoLabel">Multiplayer</div>
-      <div className="gameInfoValue">
-        {gameWithModes.game_modes?.includes("Multiplayer")
-          ? "Yes"
-          : "Unknown"}
-      </div>
-    </div>
-
-    <div className="gameInfoCard">
-      <div className="gameInfoLabel">Co-op</div>
-      <div className="gameInfoValue">
-        {gameWithModes.game_modes?.some((mode) =>
-          mode.toLowerCase().includes("coop")
-        )
-          ? "Available"
-          : "Unknown"}
-      </div>
-    </div>
-
-    <div className="gameInfoCard">
-      <div className="gameInfoLabel">Online Play</div>
-      <div className="gameInfoValue">
-        {gameWithModes.multiplayer_modes?.some(
-          (mode) => mode.onlinecoop || mode.onlinecoopmax
-        )
-          ? "Yes"
-          : "Unknown"}
-      </div>
-    </div>
-
-    <div className="gameInfoCard">
-      <div className="gameInfoLabel">Local Play</div>
-      <div className="gameInfoValue">
-        {gameWithModes.multiplayer_modes?.some(
-          (mode) => mode.offlinecoop || mode.offlinecoopmax
-        )
-          ? "Yes"
-          : "Unknown"}
-      </div>
-    </div>
-  </div>
-</section>
-
-<section className="gameSection" style={{ textAlign: "center" }}>
-  <h2>About {game.name}</h2>
-
-<p style={{ maxWidth: "700px", margin: "0 auto 16px auto" }}>
-  {isReleasedGame(game)
-    ? `This page helps you quickly decide whether ${game.name} is actually worth playing.`
-    : `This page helps you quickly decide whether ${game.name} is worth keeping on your radar before release.`}{" "}
-  {game.releaseDate
-    ? `It ${new Date(game.releaseDate).getTime() <= Date.now() ? "released" : "is scheduled to release"} on ${formatReleaseDateForDisplay(game)}.`
-    : "It does not yet have a confirmed release date."}{" "}
-  {game.platforms && game.platforms.length > 0 ? (
-    <>
-      {getPrimaryPlatformSlug(game) ? (
-        <>
-          The main platform here is{" "}
-          <Link
-            href={`/platform/${getPrimaryPlatformSlug(game)}`}
-            className="inlineTextLink"
-          >
-            {getPrimaryPlatform(game)}
-          </Link>
-          .
-        </>
-      ) : (
-        <>
-          The main platform here is {getPrimaryPlatform(game)}.
-        </>
-      )}{" "}
-    </>
-  ) : null}
-  {game.genres && game.genres.length > 0 ? (
-    <>
-      It is best matched with players interested in{" "}
-      {game.genreSlugs?.[0] ? (
-        <Link
-          href={`/genre/${game.genreSlugs[0]}`}
-          className="inlineTextLink"
-        >
-          {game.genres[0]}
-        </Link>
-      ) : (
-        game.genres[0]
-      )}
-      {game.genres.length > 1
-        ? `, with ${game.genres.slice(1).join(", ")} elements also in the mix.`
-        : " games."}{" "}
-    </>
-  ) : null}
-  {typeof game.aggregated_rating === "number"
-    ? `It currently holds a ${Math.round(game.aggregated_rating)}/100 rating, which gives you a fast read on how well it is landing so far.`
-    : `Use the trailer, screenshots, release timing, and related games below to judge whether it deserves your time.`}
-</p>
 </section>
 
 </div>

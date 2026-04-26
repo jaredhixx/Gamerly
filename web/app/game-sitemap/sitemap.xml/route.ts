@@ -9,9 +9,30 @@ export async function GET() {
   const { games, lastUpdated } = await getCachedCatalogSnapshot();
 
   const safeLastUpdated = lastUpdated ?? new Date().toISOString();
+
+  const sitemapEligibleGames = games.filter((game) => {
+    if (!game.releaseDate) {
+      return false;
+    }
+
+    const releaseTime = new Date(game.releaseDate).getTime();
+
+    if (Number.isNaN(releaseTime)) {
+      return false;
+    }
+
+    const isReleased = releaseTime <= Date.now();
+    const hasRating = typeof game.aggregated_rating === "number";
+    const hasAtLeastOneRating =
+      typeof game.aggregated_rating_count === "number" &&
+      game.aggregated_rating_count >= 1;
+
+    return isReleased && hasRating && hasAtLeastOneRating;
+  });
+
   const sitemapCount = Math.max(
     1,
-    Math.ceil(games.length / GAME_SITEMAP_PAGE_SIZE)
+    Math.ceil(sitemapEligibleGames.length / GAME_SITEMAP_PAGE_SIZE)
   );
 
   const entries = Array.from({ length: sitemapCount }, (_, index) => {

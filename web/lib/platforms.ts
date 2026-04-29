@@ -1,37 +1,37 @@
 export const platforms = {
   pc: {
     slug: "pc",
-    name: "PC Games",
+    name: "PC",
     igdbIds: [6]
   },
 
   playstation: {
     slug: "playstation",
-    name: "PlayStation Games",
+    name: "PlayStation",
     igdbIds: [48, 167]
   },
 
   xbox: {
     slug: "xbox",
-    name: "Xbox Games",
+    name: "Xbox",
     igdbIds: [49, 169]
   },
 
   switch: {
     slug: "switch",
-    name: "Switch Games",
+    name: "Switch",
     igdbIds: [130]
   },
 
   ios: {
     slug: "ios",
-    name: "iOS Games",
+    name: "iOS",
     igdbIds: [39]
   },
 
   android: {
     slug: "android",
-    name: "Android Games",
+    name: "Android",
     igdbIds: [34]
   }
 } as const;

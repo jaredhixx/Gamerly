@@ -20,12 +20,14 @@ export const bestPlatformGamesByYearContent = {
       pageTitle: "Best PC Games of 2025",
       pageSubtitle:
         "Top PC games of 2025 for fast comparison, including top-rated releases and standout new games.",
-      description:
-        "Compare the best PC games of 2025 fast. See top-rated releases, breakout hits, and the strongest new games without digging through filler.",
-      introParagraphOne:
-        "Looking for the best PC games of 2025? This list surfaces the strongest releases first, so you can compare top-rated picks, standout new games, and the titles most worth your time.",
-      introParagraphTwo:
-        "Use this page when you want the short list, not the whole catalog. Rankings prioritize review scores, player interest, and overall release impact to highlight the PC games separating themselves fastest in 2025. For more focused lists, explore the best RPG games on PC in 2025 or the best shooter games on PC in 2025.",
+description:
+  "Looking for the best PC games of 2025? These are the top-rated, most played, and actually worth your time right now — ranked using real data, not opinions.",
+
+introParagraphOne:
+  "Most 'best PC games' lists are outdated, biased, or filled with filler picks. This page is different. These are the best PC games of 2025 based on real signals — critic ratings, player activity, and what people are actually playing.",
+
+introParagraphTwo:
+  "If you want something genuinely worth playing right now — whether it's a new release or a game dominating player interest — start here.",
       exploreHeading: "Explore More PC Game Pages",
       topSectionHeading: "Best PC Games Released in 2025",
       topSectionIntro:
@@ -37,12 +39,14 @@ export const bestPlatformGamesByYearContent = {
       pageTitle: "Best PC Games of 2026",
       pageSubtitle:
         "Early standout PC games of 2026, with new releases and top picks as the year takes shape.",
-      description:
-        "Track the best PC games of 2026 so far. Compare early standouts, new releases, and the games gaining traction as reviews start to land.",
-      introParagraphOne:
-        "Looking for the best PC games of 2026 so far? This page tracks the early standouts, newest releases, and the first games starting to separate themselves.",
-      introParagraphTwo:
-        "Because 2026 is still in progress, the rankings can shift as more PC games launch and more reviews come in. Use this page to compare the strongest releases so far without wading through filler.",
+description:
+  "Looking for the best PC games of 2026 so far? These are the top-rated, most played, and early standout games worth your time right now — ranked using real data, not opinions.",
+
+introParagraphOne:
+  "Early 'best PC games of 2026' lists are usually guesses or hype-driven picks. This page focuses on what actually matters — real data like ratings, player activity, and which games are gaining traction right now.",
+
+introParagraphTwo:
+  "If you want to find the strongest games of 2026 so far — not just the most talked about — this is where to start.",
       exploreHeading: "Explore More PC Game Pages",
       topSectionHeading: "Best PC Games Released in 2026",
       topSectionIntro:
@@ -176,12 +180,14 @@ export const bestPlatformGamesByYearContent = {
       pageTitle: "Best Switch Games of 2025",
       pageSubtitle:
         "Top Switch games released in 2025, ranked by reviews, momentum, and real player interest.",
-      description:
-        "Compare the best Nintendo Switch games released in 2025, ranked by reviews, momentum, and player interest so you can quickly find what is actually worth playing.",
-      introParagraphOne:
-        "Looking for the best Nintendo Switch games released in 2025? This list highlights the top titles right now, so you can quickly decide what to play first without digging through everything.",
-      introParagraphTwo:
-        "If you are looking for the most worth-playing Switch games released in 2025, this page highlights the strongest options based on review quality, popularity, and overall impact.",
+description:
+  "Looking for the best adventure games on Switch in 2025? These are the top-rated, most played, and actually worth your time right now — from story-driven hits to standout indie experiences.",
+
+introParagraphOne:
+  "Most 'best adventure games on Switch' lists are either outdated or filled with obvious picks. This page focuses on what actually matters — which games people are playing, recommending, and sticking with in 2025.",
+
+introParagraphTwo:
+  "If you want a great story, strong gameplay, and something genuinely worth your time on Switch right now, start here.",
       exploreHeading: "Explore More Switch Game Pages",
       topSectionHeading: "Top Switch Games Released in 2025",
       topSectionIntro:
